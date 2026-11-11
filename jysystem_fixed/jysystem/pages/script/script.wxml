@@ -1,0 +1,42 @@
+<app-nav title="销冠话术" back="{{true}}"></app-nav>
+<view class="app-page" style="{{theme.style}}">
+  <view class="top-bar"><theme-switch bind:change="onTheme"></theme-switch><text class="top-meta">共 {{totalCount || allRows.length}} 条精选话术</text></view>
+  <view class="page-head"><view><view class="eyebrow-row"><text class="seal-dot"></text><text class="eyebrow">ADVISOR PLAYBOOK</text></view><view class="page-title">销冠话术库</view><view class="page-sub">东方美学顾问应答锦囊，点按卡片即可一键复制发给微信客户。</view></view><button class="head-action" bindtap="openDrawer">新增话术</button></view>
+<view class="row search-row" style="margin-bottom:14rpx;"><input class="input-mini grow" value="{{keyword}}" placeholder="标题或内容关键词" placeholder-class="placeholder" bindinput="onKeyword" bindconfirm="load" /><button class="btn-mini primary" bindtap="load">搜索</button></view>
+  <view class="chips"><button wx:for="{{categories}}" wx:key="*this" class="chip {{category===item?'active':''}}" data-category="{{item}}" bindtap="setCategory">{{item}}</button></view>
+  <view wx:if="{{loading && !allRows.length}}" class="state"><view class="state-title">正在读取话术</view><view>同步门店应答锦囊。</view></view>
+  <view wx:elif="{{error && !allRows.length}}" class="state" bindtap="load"><view class="state-title">话术加载失败</view><view>{{error}}</view><text class="state-action">重试</text></view>
+  <view wx:elif="{{!rows.length}}" class="state" bindtap="openDrawer"><view class="state-title">这一栏还没有话术</view><view>可以沉淀一条可直接发给客户的应答。</view><text class="state-action">新增话术</text></view>
+  <view wx:else>
+    <view wx:for="{{rows}}" wx:key="id" class="glass-card script-card" data-id="{{item.id}}" bindtap="copy" bindlongpress="editScript">
+      <view class="row-between script-title-row"><view class="row script-title-group"><text class="tag tag-gold">{{item.scriptType}}</text><text class="script-title" style="font-size:25rpx;font-weight:700;">{{item.title}}</text></view><text class="tag {{copiedId===item.id?'':'tag-gold'}}">{{copiedId===item.id?'✓ 已复制':'一键复制'}}</text></view>
+      <view class="script-meta-row"><view class="script-stars" aria-label="话术星级"><text wx:for="{{item.stars}}" wx:for-item="lit" wx:key="index" class="script-star {{lit?'lit':''}}">★</text><text class="muted small">{{item.sortNo}} 星</text></view><text wx:if="{{item.createTimeText}}" class="muted small">{{item.createTimeText}}</text></view>
+      <view class="script-content">{{item.content}}</view>
+      <view class="script-actions"><button class="btn-mini" data-id="{{item.id}}" catchtap="editScript">编辑</button><button class="btn-mini danger" data-id="{{item.id}}" catchtap="removeScript">删除</button></view>
+    </view>
+    <view wx:if="{{rows.length}}" class="pager-bar">
+      <view class="pager-info">当前分类 {{rows.length}} 条 · 已加载 {{allRows.length}} / {{totalCount}} 条（第 {{pageNum}} 页）</view>
+      <view class="pager-actions">
+        <button wx:if="{{hasMore}}" class="pager-btn" loading="{{loadingMore}}" bindtap="loadMore">{{loadingMore ? '加载中...' : '加载更多话术 ↓'}}</button>
+        <text wx:else class="muted small">—— 已展示全部话术 ——</text>
+        <button wx:if="{{pageNum > 1 || rows.length > 8}}" class="pager-btn" bindtap="scrollTop">回到顶部 ↑</button>
+      </view>
+    </view>
+  </view>
+  <view wx:if="{{error && allRows.length}}" class="glass-card small" style="color:var(--red);">{{error}}</view>
+</view>
+<view wx:if="{{drawer}}" class="drawer-mask" bindtap="closeDrawer">
+  <view class="drawer-panel" catchtap="noop">
+    <view class="drawer-handle"></view>
+    <view class="drawer-head"><text class="drawer-title">{{editing ? '编辑销冠话术' : '沉淀新销冠话术'}}</text><button class="btn-mini" bindtap="closeDrawer">关闭 ×</button></view>
+    <view class="drawer-list">
+      <input class="input-mini" value="{{form.title}}" data-field="title" placeholder="话术标题，如：手串换弹力线售后说明" placeholder-class="placeholder" bindinput="onForm" />
+      <view class="chips" style="margin:0;"><block wx:for="{{categories}}" wx:key="*this"><button wx:if="{{item!=='全部'}}" class="chip {{form.scriptType===item?'active':''}}" data-type="{{item}}" bindtap="setFormType">{{item}}</button></block></view>
+      <view class="star-picker-row"><text class="small" style="color:var(--muted);">话术星级</text><view class="star-picker"><button wx:for="{{starOptions}}" wx:key="*this" class="star-picker-btn {{form.sortNo>=item?'lit':''}}" data-stars="{{item}}" bindtap="setStars">★</button><text class="muted small">{{form.sortNo}} 星</text></view></view>
+      <textarea class="textarea-mini" value="{{form.content}}" data-field="content" placeholder="可直接复制发送给客户的温润应答话术..." placeholder-class="placeholder" bindinput="onForm" />
+      <button class="btn btn-primary" loading="{{saving}}" bindtap="save">{{editing ? '保存修改' : '保存入库'}}</button>
+      <view wx:if="{{formError}}" class="small" style="color:var(--red);">{{formError}}</view>
+    </view>
+  </view>
+</view>
+<bottom-nav active=""></bottom-nav>

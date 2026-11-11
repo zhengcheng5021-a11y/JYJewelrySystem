@@ -1,0 +1,2732 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ZR.Admin.WebApi</name>
+    </assembly>
+    <members>
+        <member name="T:ZR.Admin.WebApi.Controllers.AI.AiChatController">
+            <summary>
+            全局 AI 助手（办工助手）：会话管理与工具调用对话。
+            权限按登录用户（common），会话/消息/工具数据均按当前登录用户隔离。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiChatController.Quota(System.String)">
+            <summary>
+            当前登录用户在指定场景下的额度快照（默认 ai_chat）。只读，不占并发。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiChatController.Tools">
+            <summary>
+            当前用户可见的工具展示名清单（Name + Label）。
+            前端据此渲染"正在调用 XX / 已调用 XX"，后端新增工具无需再改前端映射；
+            声明了权限的工具仅对有权限用户返回，未登记 Label 时前端降级显示工具名。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiChatController.Sessions">
+            <summary>
+            会话列表（按当前用户，最近更新倒序，最多 50 条）
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiChatController.CreateSession">
+            <summary>
+            新建空会话
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiChatController.RenameSession(System.Int64,ZR.Model.AI.Dto.SysAiChatRenameDto)">
+            <summary>
+            重命名会话
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiChatController.DeleteSession(System.Int64)">
+            <summary>
+            删除会话（连同历史消息）
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiChatController.Messages(System.Int64)">
+            <summary>
+            会话历史消息（升序）
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiChatController.Chat(ZR.Model.AI.Dto.SysAiChatRequestDto)">
+            <summary>
+            发送对话消息（SessionId 传 0 自动新建会话；内部自动调用工具）
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiChatController.ChatStream(ZR.Model.AI.Dto.SysAiChatRequestDto)">
+            <summary>
+            流式对话（SSE，text/event-stream）。入参与 Chat 一致，事件协议见 SysAiChatStreamDto：
+            delta=增量文本（打字机效果）、tool=工具执行状态(start|done)、done=整轮结束(含落库结果与图表)、error=异常终止。
+            </summary>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.AI.AiGovernanceController">
+            <summary>
+            AI 权限额度、模型价格与 Provider 诊断管理控制器。
+            提供 AI 能力查询、治理策略管理、模型价格维护、配置检查和健康诊断等功能。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiGovernanceController.Capabilities">
+            <summary>
+            获取 AI 能力列表。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiGovernanceController.Catalog">
+            <summary>
+            获取 AI 能力目录信息。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiGovernanceController.PolicyList(ZR.Model.AI.Dto.AiPolicyQueryDto)">
+            <summary>
+            查询治理策略列表。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiGovernanceController.PolicySubjects(System.String,System.String)">
+            <summary>
+            查询治理策略适用主体集合。
+            <paramref name="keyword"/>
+            <paramref name="scopeType"/>
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiGovernanceController.Policy(System.Int64)">
+            <summary>
+            根据主键查询治理策略详情
+            <paramref name="id"/>
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiGovernanceController.AddPolicy(ZR.Model.AI.Dto.AiPolicySaveDto)">
+            <summary>
+            新增治理策略。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiGovernanceController.EditPolicy(ZR.Model.AI.Dto.AiPolicySaveDto)">
+            <summary>
+            修改治理策略。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiGovernanceController.DeletePolicy(System.Int64)">
+            <summary>
+            删除治理策略。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiGovernanceController.PriceList(ZR.Model.AI.Dto.AiModelPriceQueryDto)">
+            <summary>
+            查询模型价格列表。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiGovernanceController.Price(System.Int64)">
+            <summary>
+            根据主键查询模型价格详情。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiGovernanceController.AddPrice(ZR.Model.AI.Dto.AiModelPriceSaveDto)">
+            <summary>
+            新增模型价格。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiGovernanceController.EditPrice(ZR.Model.AI.Dto.AiModelPriceSaveDto)">
+            <summary>
+            修改模型价格。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiGovernanceController.DeletePrice(System.Int64)">
+            <summary>
+            删除模型价格。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiGovernanceController.ConfigCheck">
+            <summary>
+            检查 AI 配置项是否正确。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiGovernanceController.Health">
+            <summary>
+            执行 AI 服务健康检查。
+            </summary>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.AI.AiUsageController">
+            <summary>
+            AI token 用量：管理员全站统计 + 个人自助查询。
+            权限统一由本控制器的 ActionPermissionFilter 校验（单一闸门）：
+            管理端 ai:usage:list（导出为 ai:usage:export），个人端 ai:usage:mine；
+            Service 侧只决定数据范围（个人端强制按当前登录人过滤，管理端按租户/平台视角收窄）。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiUsageController.Summary(ZR.Model.AI.Dto.AiUsageQueryDto)">
+            <summary>
+            【管理】全站用量汇总（累计 + 按天 + 按场景）
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiUsageController.Users(ZR.Model.AI.Dto.AiUsageQueryDto)">
+            <summary>
+            【管理】按用户聚合时间段内 token 消耗
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiUsageController.List(ZR.Model.AI.Dto.AiUsageQueryDto)">
+            <summary>
+            【管理】调用流水分页（可指定用户）
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiUsageController.Export(ZR.Model.AI.Dto.AiUsageQueryDto)">
+            <summary>
+            【管理】导出调用流水（当前筛选，最多 10000 条）
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiUsageController.MySummary(ZR.Model.AI.Dto.AiUsageQueryDto)">
+            <summary>
+            【个人】本人用量汇总（累计 + 按天 + 按场景）
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiUsageController.MyList(ZR.Model.AI.Dto.AiUsageQueryDto)">
+            <summary>
+            【个人】本人调用流水分页
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.AI.AiUsageController.MyExport(ZR.Model.AI.Dto.AiUsageQueryDto)">
+            <summary>
+            【个人】导出本人调用流水（当前筛选，最多 10000 条）
+            </summary>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.CommonController">
+            <summary>
+            公共模块
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CommonController.#ctor(Microsoft.Extensions.Localization.IStringLocalizer{ZR.ServiceCore.Resources.SharedResource},Microsoft.Extensions.Options.IOptions{Infrastructure.Model.OptionsSetting},Microsoft.AspNetCore.Hosting.IWebHostEnvironment,ZR.ServiceCore.Services.ISysFileService)">
+            <summary>
+            
+            </summary>
+            <param name="stringLocalizer"></param>
+            <param name="options"></param>
+            <param name="webHostEnvironment"></param>
+            <param name="fileService"></param>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CommonController.Index">
+            <summary>
+            home
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CommonController.IPInfo(System.String)">
+            <summary>
+            查询IP信息
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CommonController.SendMsg(System.String,System.String)">
+            <summary>
+            企业消息测试
+            </summary>
+            <param name="msg">要发送的消息</param>
+            <param name="toUser">要发送的人@all所有，xxx单独发送对个人</param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CommonController.UploadFile(ZR.Model.Dto.UploadDto,Microsoft.AspNetCore.Http.IFormFile,Infrastructure.Enums.StoreType)">
+            <summary>
+            存储文件
+            </summary>
+            <param name="uploadDto">自定义文件名</param>
+            <param name="file"></param>
+            <param name="storeType">上传类型1、保存到本地 2、保存到阿里云</param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CommonController.DownloadFile(System.String,System.Int64)">
+            <summary>
+            下载文件
+            </summary>
+            <param name="path"></param>
+            <param name="fileId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CommonController.InitSeedData(System.Boolean)">
+            <summary>
+            初始化种子数据
+            </summary>
+            <param name="clean">是否清空数据</param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CommonController.UpdateSeedData">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.ArticleCategoryController">
+            <summary>
+            文章目录Controller
+            </summary>
+        </member>
+        <member name="F:ZR.Admin.WebApi.Controllers.ArticleCategoryController._ArticleCategoryService">
+            <summary>
+            文章目录接口
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.ArticleCategoryController.QueryArticleCategory(ZR.Model.Content.Dto.ArticleCategoryQueryDto)">
+            <summary>
+            查询文章目录列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.ArticleCategoryController.QueryTreeArticleCategory(ZR.Model.Content.Dto.ArticleCategoryQueryDto)">
+            <summary>
+            查询文章目录列表树
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.ArticleCategoryController.GetArticleCategory(System.Int32)">
+            <summary>
+            查询文章目录详情
+            </summary>
+            <param name="CategoryId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.ArticleCategoryController.GetArticleCategoryByType(System.Int32)">
+            <summary>
+            查询目录分类
+            </summary>
+            <param name="categoryType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.ArticleCategoryController.AddArticleCategory(ZR.Model.Content.Dto.ArticleCategoryDto)">
+            <summary>
+            添加文章目录
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.ArticleCategoryController.UpdateArticleCategory(ZR.Model.Content.Dto.ArticleCategoryDto)">
+            <summary>
+            更新文章目录
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.ArticleCategoryController.DeleteArticleCategory(System.String)">
+            <summary>
+            删除文章目录
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.ArticleCategoryController.Export(ZR.Model.Content.Dto.ArticleCategoryQueryDto)">
+            <summary>
+            导出文章目录
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.ArticleCategoryController.CategoryList">
+            <summary>
+            获取文章目录
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.ArticleCategoryController.ChangeSort(System.Int32,System.Int32)">
+            <summary>
+            保存排序
+            </summary>
+            <param name="id"></param>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.Content.ArticleController">
+            <summary>
+            内容管理
+            </summary>
+        </member>
+        <member name="F:ZR.Admin.WebApi.Controllers.Content.ArticleController._ArticleService">
+            <summary>
+            文章接口
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Content.ArticleController.Query(ZR.Model.Content.Dto.ArticleQueryDto)">
+            <summary>
+            查询文章列表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Content.ArticleController.PassedMonents(System.String)">
+            <summary>
+            内容批量审核通过
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Content.ArticleController.RejectMonents(System.String,System.String)">
+            <summary>
+            内容批量审核拒绝
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Content.ArticleController.QueryMyList(ZR.Model.Content.Dto.ArticleQueryDto)">
+            <summary>
+            查询我的文章列表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Content.ArticleController.Get(System.Int32)">
+            <summary>
+            查询文章详情
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Content.ArticleController.Publish(ZR.Model.Content.Dto.ArticleDto)">
+            <summary>
+            发布文章
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Content.ArticleController.Update(ZR.Model.Content.Dto.ArticleDto)">
+            <summary>
+            更新文章
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Content.ArticleController.Top(ZR.Model.Content.Article)">
+            <summary>
+            置顶
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Content.ArticleController.ChangePublic(ZR.Model.Content.Article)">
+            <summary>
+            是否公开
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Content.ArticleController.Delete(System.Int32)">
+            <summary>
+            删除文章
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Content.ArticleController.Export(ZR.Model.Content.Dto.ArticleQueryDto)">
+            <summary>
+            导出文章
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Content.ArticleController.ImportData(Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>
+            导入文章
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Content.ArticleController.ImportTemplateExcel">
+            <summary>
+            文章导入模板下载
+            </summary>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.ArticleTopicController">
+            <summary>
+            文章话题
+            </summary>
+        </member>
+        <member name="F:ZR.Admin.WebApi.Controllers.ArticleTopicController._ArticleTopicService">
+            <summary>
+            文章话题接口
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.ArticleTopicController.QueryArticleTopic(ZR.Model.Content.Dto.ArticleTopicQueryDto)">
+            <summary>
+            查询文章话题列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.ArticleTopicController.GetArticleTopic(System.Int64)">
+            <summary>
+            查询文章话题详情
+            </summary>
+            <param name="TopicId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.ArticleTopicController.AddArticleTopic(ZR.Model.Content.Dto.ArticleTopicDto)">
+            <summary>
+            添加文章话题
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.ArticleTopicController.UpdateArticleTopic(ZR.Model.Content.Dto.ArticleTopicDto)">
+            <summary>
+            更新文章话题
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.ArticleTopicController.DeleteArticleTopic(System.String)">
+            <summary>
+            删除文章话题
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.ArticleTopicController.Export(ZR.Model.Content.Dto.ArticleTopicQueryDto)">
+            <summary>
+            导出文章话题
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.FrontArticleController">
+            <summary>
+            内容管理前端接口
+            </summary>
+        </member>
+        <member name="F:ZR.Admin.WebApi.Controllers.FrontArticleController._ArticleService">
+            <summary>
+            文章接口
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.FrontArticleController.#ctor(ZR.Service.Content.IService.IArticleService,ZR.Service.Content.IService.IArticleCategoryService,ZR.Service.Content.IService.IArticlePraiseService,ZR.ServiceCore.Services.ISysUserService,ZR.Service.Content.IService.IArticleTopicService,ZR.Service.Content.IService.IArticleUserCirclesService,ZR.Service.Social.IService.ISocialFansInfoService)">
+            <summary>
+            
+            </summary>
+            <param name="ArticleService"></param>
+            <param name="articleCategoryService"></param>
+            <param name="articlePraiseService"></param>
+            <param name="sysUserService"></param>
+            <param name="articleTopicService"></param>
+            <param name="articleUserCirclesService"></param>
+            <param name="fansInfoService"></param>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.FrontArticleController.QueryHomeList(ZR.Model.Content.Dto.ArticleQueryDto)">
+            <summary>
+            前台查询文章列表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.FrontArticleController.QueryNew">
+            <summary>
+            查询最新文章列表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.FrontArticleController.Praise(System.Int32,System.Int64)">
+            <summary>
+            点赞
+            </summary>
+            <param name="id"></param>
+            <param name="authorId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.FrontArticleController.Top(ZR.Model.Content.Article)">
+            <summary>
+            置顶
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.FrontArticleController.ChangePublic(ZR.Model.Content.Article)">
+            <summary>
+            修改可见范围
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.FrontArticleController.ChangeComment(ZR.Model.Content.Article)">
+            <summary>
+            修改评论权限
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.FrontArticleController.Delete(System.Int64)">
+            <summary>
+            删除
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.FrontArticleController.Get(System.Int32)">
+            <summary>
+            查询文章详情
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.FrontArticleController.QueryTopicList(ZR.Model.Content.Dto.ArticleTopicQueryDto)">
+            <summary>
+            前台查询话题
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.FrontArticleController.GetArticleTopic(System.Int64)">
+            <summary>
+            查询文章话题详情
+            </summary>
+            <param name="TopicId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.FrontArticleController.GetArticleCategory(System.Int32)">
+            <summary>
+            查询文章目录详情
+            </summary>
+            <param name="CategoryId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.FrontArticleController.GetCircleList(ZR.Model.Content.Dto.ArticleQueryDto)">
+            <summary>
+            查询圈子内容列表（文章+动态混合）
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.FrontArticleController.Create(ZR.Model.Content.Dto.ArticleDto)">
+            <summary>
+            发布文章
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.FrontArticleController.GetUserWidget(System.Int32)">
+            <summary>
+            获取我的成就信息
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.FrontCommentController">
+            <summary>
+            评论
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.FrontCommentController.#ctor(ZR.Service.Content.IService.IArticleCommentService,ZR.Service.Content.IService.IArticleService)">
+            <summary>
+            
+            </summary>
+            <param name="messageService"></param>
+            <param name="articleService"></param>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.FrontCommentController.QueryList(ZR.Model.Content.Dto.MessageQueryDto)">
+            <summary>
+            查询评论列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.FrontCommentController.Create(ZR.Model.Content.Dto.ArticleCommentDto)">
+            <summary>
+            评论
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.FrontCommentController.Praise(ZR.Model.Content.Dto.ArticleCommentDto)">
+            <summary>
+            评论点赞
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.FrontCommentController.Delete(System.Int64)">
+            <summary>
+            评论删除
+            </summary>
+            <param name="mid"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.FrontCommentController.QueryMyCommentList(ZR.Model.Content.Dto.MessageQueryDto)">
+            <summary>
+            查询我的评论列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.FrontCommentController.Top(ZR.Model.Content.Dto.ArticleCommentDto)">
+            <summary>
+            评论置顶
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.ArticleUserCirclesController">
+            <summary>
+            用户加入圈子
+            </summary>
+        </member>
+        <member name="F:ZR.Admin.WebApi.Controllers.ArticleUserCirclesController._ArticleUserCirclesService">
+            <summary>
+            用户加入圈子接口
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.ArticleUserCirclesController.#ctor(ZR.Service.Content.IService.IArticleUserCirclesService)">
+            <summary>
+            
+            </summary>
+            <param name="ArticleUserCirclesService"></param>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.ArticleUserCirclesController.QueryArticleUserCircles">
+            <summary>
+            查询用户加入圈子列表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.ArticleUserCirclesController.JoinCircles(System.Int32)">
+            <summary>
+            用户加入圈子
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.ArticleUserCirclesController.DeleteCircles(System.Int32)">
+            <summary>
+            删除用户加入圈子
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="F:ZR.Admin.WebApi.Controllers.MomentsController._ArticleService">
+            <summary>
+            动态接口
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.MomentsController.#ctor(ZR.Service.Content.IService.IArticleService)">
+            <summary>
+            
+            </summary>
+            <param name="ArticleService"></param>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.MomentsController.QueryMyList(ZR.Model.Content.Dto.ArticleQueryDto)">
+            <summary>
+            查询我的(后台)
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.MomentsController.QueryMonentList(ZR.Model.Content.Dto.ArticleQueryDto)">
+            <summary>
+            查询动态列表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.MomentsController.PublishMoment(ZR.Model.Content.Dto.ArticleDto)">
+            <summary>
+            动态发布
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.MomentsController.GetInfo">
+            <summary>
+            动态信息
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.Email.EmailLogController">
+            <summary>
+            邮件发送记录
+            </summary>
+        </member>
+        <member name="F:ZR.Admin.WebApi.Controllers.Email.EmailLogController._EmailLogService">
+            <summary>
+            邮件发送记录接口
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Email.EmailLogController.QueryEmailLog(ZR.Model.Dto.EmailLogQueryDto)">
+            <summary>
+            查询邮件发送记录列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Email.EmailLogController.GetEmailLog(System.Int64)">
+            <summary>
+            查询邮件发送记录详情
+            </summary>
+            <param name="Id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Email.EmailLogController.SendEmail(ZR.Model.Dto.EmailLogDto)">
+            <summary>
+            批量发送邮件(从记录发送)
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Email.EmailLogController.DeleteEmailLog(System.String)">
+            <summary>
+            删除邮件发送记录
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Email.EmailLogController.SendEmail(Infrastructure.Model.SendEmailDto)">
+            <summary>
+            发送邮件
+            </summary>
+            <param name="sendEmailVo">请求参数接收实体</param>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.Email.EmailTplController">
+            <summary>
+            邮件模板
+            </summary>
+        </member>
+        <member name="F:ZR.Admin.WebApi.Controllers.Email.EmailTplController._EmailTplService">
+            <summary>
+            邮件模板接口
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Email.EmailTplController.QueryEmailTpl(ZR.Model.Dto.EmailTplQueryDto)">
+            <summary>
+            查询邮件模板列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Email.EmailTplController.GetEmailTpl(System.Int32)">
+            <summary>
+            查询邮件模板详情
+            </summary>
+            <param name="Id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Email.EmailTplController.AddEmailTpl(ZR.Model.Dto.EmailTplDto)">
+            <summary>
+            添加邮件模板
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Email.EmailTplController.UpdateEmailTpl(ZR.Model.Dto.EmailTplDto)">
+            <summary>
+            更新邮件模板
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Email.EmailTplController.DeleteEmailTpl(System.String)">
+            <summary>
+            删除邮件模板
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.JingYue.JyDailyTaskController">
+            <summary>每日必做。复用待办菜单权限，避免额外菜单配置。</summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.JingYue.JyGoodsController.List(ZR.Model.JingYue.Dto.JyGoodsItemQueryDto)">
+            <summary>商品档案来自已完成的采购入库，按单件商品查询。</summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.JingYue.JyGoodsController.Options">
+            <summary>保留分类/材质选项，供库存等页面筛选使用。</summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.JingYue.JyGoodsController.Save(ZR.Model.JingYue.Dto.JyGoodsItemEditDto)">
+            <summary>只允许编辑已入库商品，不提供手工新建入口。</summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.JingYue.JyMemberController.Referrers(System.Int64)">
+            <summary>客户的推荐关系历史（多对一维护，销售单只选其中一位）。</summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.JingYue.JyMemberController.AddReferrer(System.Int64,ZR.Model.JingYue.Dto.JyMemberReferrerEditDto)">
+            <summary>新增推荐人；已有返现历史的关系不允许物理删除，只做逻辑隐藏。</summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.JingYue.JyMemberController.RemoveReferrer(System.Int64,System.Int64)">
+            <summary>逻辑移出推荐关系（隐藏），历史返现与来源单永久保留。</summary>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.JingYue.JyMemberFollowController">
+            <summary>客户跟进记录。</summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.JingYue.JyReferralController.Rates">
+            <summary>按一级款式分类维护返点</summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.JingYue.JyReferralController.AdjustAmount(System.Int64,ZR.Model.JingYue.Dto.JyReferralAmountDto)">
+            <summary>先调整金额、保持待返现状态</summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.JingYue.JySaleController.CustomerReferrers(System.Int64)">
+            <summary>开单时读取客户的多位推荐人，用于本次单选归属。</summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.JingYue.JySaleReturnController.Orders(ZR.Model.JingYue.Dto.JySaleReturnQueryDto)">
+            <summary>查询可退货的已完成销售单。</summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.JingYue.JySaleReturnController.SaleDetail(System.Int64)">
+            <summary>查看原销售单及可退数量。</summary>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.JingYue.JyTimeController">
+            <summary>静悦业务统一服务器时钟。前端仅用于显示和筛选，业务落库仍以后端时间为准。</summary>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.JingYue.JyWorkItemController">
+            <summary>待办与目标工作台。</summary>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.JingYue.JyWorkTemplateController">
+            <summary>目标模板维护与应用。</summary>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.Public.BannerConfigController">
+            <summary>
+            广告管理
+            </summary>
+        </member>
+        <member name="F:ZR.Admin.WebApi.Controllers.Public.BannerConfigController._BannerConfigService">
+            <summary>
+            广告管理接口
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Public.BannerConfigController.QueryBannerConfig(ZR.Model.Public.Dto.BannerConfigQueryDto)">
+            <summary>
+            查询广告管理列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Public.BannerConfigController.GetBannerConfig(System.Int32)">
+            <summary>
+            查询广告管理详情
+            </summary>
+            <param name="Id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Public.BannerConfigController.AddBannerConfig(ZR.Model.Public.Dto.BannerConfigDto)">
+            <summary>
+            添加广告管理
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Public.BannerConfigController.UpdateBannerConfig(ZR.Model.Public.Dto.BannerConfigDto)">
+            <summary>
+            更新广告管理
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Public.BannerConfigController.DeleteBannerConfig(System.String)">
+            <summary>
+            删除广告管理
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Public.BannerConfigController.Export(ZR.Model.Public.Dto.BannerConfigQueryDto)">
+            <summary>
+            导出广告管理
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Public.BannerConfigController.ChangeSort(System.Int32,System.Int32)">
+            <summary>
+            保存排序
+            </summary>
+            <param name="id">主键</param>
+            <param name="value">排序值</param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.Public.BannerConfigController.QueryBannerList(ZR.Model.Public.Dto.BannerConfigQueryDto)">
+            <summary>
+            查询广告管理列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.SocialFansController">
+            <summary>
+            粉丝/关注
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.SocialFansController.FollowList(ZR.Model.social.FansQueryDto)">
+            <summary>
+            关注/粉丝列表
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.SocialFansController.IsFollow(System.Int32)">
+            <summary>
+            是否关注
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.SocialFansController.Follow(ZR.Model.social.SocialFansDto)">
+            <summary>
+            关注
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.SocialFansController.CancelFollow(ZR.Model.social.SocialFansDto)">
+            <summary>
+            取消关注
+            </summary>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.CodeGeneratorController">
+            <summary>
+            代码生成
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CodeGeneratorController.AiSuggestColumns(System.Int64)">
+            <summary>
+            AI 推断列配置建议（中文标签/控件类型/是否列表查询等）。
+            只返回建议不写库，采纳与否由用户在列配置页勾选后走既有保存接口。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CodeGeneratorController.GetListDataBase">
+            <summary>
+            获取所有数据库的信息
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CodeGeneratorController.FindListTable(System.String,System.String,ZR.Model.PagerInfo)">
+             <summary>
+            获取所有表根据数据库名
+             </summary>
+             <param name="dbName">数据库名</param>
+             <param name="tableName">表名</param>
+             <param name="pager">分页信息</param>
+             <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CodeGeneratorController.GetGenTable(System.String,System.String,System.String,System.String,ZR.Model.PagerInfo)">
+            <summary>
+            查询生成表数据
+            </summary>
+            <param name="tableName">表名</param>
+            <param name="pagerInfo">分页信息</param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CodeGeneratorController.GetColumnList(System.Int64)">
+            <summary>
+            修改代码生成业务查询
+            </summary>
+            <param name="tableId">genTable表id</param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CodeGeneratorController.GetTableColumnList(System.Int64)">
+            <summary>
+            根据表id查询表列
+            </summary>
+            <param name="tableId">genTable表id</param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CodeGeneratorController.EnsureSubTablesImported(ZR.Model.System.Generate.GenTable)">
+            <summary>
+            确保子表已导入代码生成（未导入时按物理表结构自动导入），返回是否发生了导入
+            </summary>
+            <param name="genTable">主表信息</param>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CodeGeneratorController.ImportSingleTable(System.String,System.String,System.String)">
+            <summary>
+            按物理表结构导入单张表到代码生成（与导入接口 ImportTableSave 相同逻辑）
+            </summary>
+            <param name="tableName">表名</param>
+            <param name="description">表描述</param>
+            <param name="dbName">数据库名</param>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CodeGeneratorController.EnsureAndGetGenTable(System.Int64)">
+            <summary>
+            获取主表信息，并自动导入配置了但尚未导入的子表（编辑/预览/生成共用）
+            </summary>
+            <param name="tableId">主表id</param>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CodeGeneratorController.Remove(System.String)">
+            <summary>
+            删除代码生成
+            </summary>
+            <param name="tableIds"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CodeGeneratorController.ImportTableSave(ZR.CodeGenerator.Model.ImportCodeGenTableDto)">
+            <summary>
+            导入表结构（保存）
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CodeGeneratorController.EditSave(ZR.Model.System.Dto.GenTableDto)">
+            <summary>
+            修改保存代码生成业务
+            </summary>
+            <param name="genTableDto">请求参数实体</param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CodeGeneratorController.Preview(ZR.CodeGenerator.Model.GenerateDto,System.Int64)">
+            <summary>
+            预览代码
+            </summary>
+            <param name="dto"></param>
+            <param name="tableId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CodeGeneratorController.CodeGenerate(ZR.CodeGenerator.Model.GenerateDto)">
+            <summary>
+            生成代码（下载方式）
+            </summary>
+            <param name="dto">数据传输对象</param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CodeGeneratorController.SynchDb(System.String,System.Int64)">
+            <summary>
+            同步数据库
+            </summary>
+            <param name="tableId"></param>
+            <param name="tableName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CodeGeneratorController.IsSubPathOf(System.String,System.String)">
+            <summary>
+            判断 target 路径是否位于 root 目录内（含等于 root），用于拦截路径穿越。
+            Windows 下忽略大小写，Unix 下大小写敏感。
+            </summary>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.CommonLangController">
+            <summary>
+            多语言配置Controller
+            </summary>
+        </member>
+        <member name="F:ZR.Admin.WebApi.Controllers.CommonLangController._CommonLangService">
+            <summary>
+            多语言配置接口
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CommonLangController.QueryCommonLang(ZR.Model.Dto.CommonLangQueryDto)">
+            <summary>
+            查询多语言配置列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CommonLangController.QueryCommonLangs(System.String)">
+            <summary>
+            查询多语言配置列表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CommonLangController.GetCommonLang(System.Int64)">
+            <summary>
+            查询多语言配置详情
+            </summary>
+            <param name="Id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CommonLangController.GetCommonLangByKey(System.String)">
+            <summary>
+            查询多语言配置详情
+            </summary>
+            <param name="langKey"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CommonLangController.UpdateCommonLang(ZR.Model.Dto.CommonLangDto)">
+            <summary>
+            更新多语言配置
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CommonLangController.DeleteCommonLang(System.String)">
+            <summary>
+            删除多语言配置
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CommonLangController.DeleteCommonLangByKey(System.String)">
+            <summary>
+            删除多语言配置
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CommonLangController.Export(ZR.Model.Dto.CommonLangQueryDto)">
+            <summary>
+            导出多语言配置
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CommonLangController.ImportData(Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>
+            导入
+            </summary>
+            <param name="file"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CommonLangController.AiTranslate(ZR.Model.System.Dto.SysAiLangTranslateInput)">
+            <summary>
+            AI 批量翻译界面文案，返回可编辑草稿（不落库）。提示词见 Prompts/system/lang-translate.md。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CommonLangController.AiApply(ZR.Model.System.Dto.SysAiLangApplyInput)">
+            <summary>
+            应用 AI 译文到多语言配置。默认只补空缺，勾选覆盖时才更新已有译文。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.CommonLangController.ImportTemplateExcel">
+            <summary>
+            多语言设置导入模板下载
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.System.DailyScheduleController">
+            <summary>
+            日程管理Controller
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.DailyScheduleController.QueryDailySchedule(ZR.Model.System.Dto.DailyScheduleQueryDto)">
+            <summary>
+            查询日程列表
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.DailyScheduleController.GetStats">
+            <summary>
+            查询统计（总/未完成/今日到期/已逾期）
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.DailyScheduleController.GetReminders">
+            <summary>
+            查询当前用户未完成日程列表（供消息中心日程 tab 打开时拉取，不写消息）
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.DailyScheduleController.GetDailySchedule(System.Int64)">
+            <summary>
+            查询详情
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.DailyScheduleController.AddDailySchedule(ZR.Model.System.Dto.DailyScheduleDto)">
+            <summary>
+            新增日程
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.DailyScheduleController.UpdateDailySchedule(ZR.Model.System.Dto.DailyScheduleDto)">
+            <summary>
+            修改日程
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.DailyScheduleController.ChangeStatus(ZR.Model.System.Dto.DailyScheduleStatusDto)">
+            <summary>
+            标记完成 / 取消完成
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.DailyScheduleController.AiParse(ZR.Model.System.Dto.SysAiScheduleParseInput)">
+            <summary>
+            AI 一句话解析日程，返回可编辑草稿（不落库），确认后调用新增接口保存
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.DailyScheduleController.AiWeeklyReport(ZR.Model.System.Dto.SysAiWeeklyReportInput)">
+            <summary>
+            AI 汇总指定区间（默认本周）日程生成周报
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.DailyScheduleController.DeleteDailySchedule(System.String)">
+            <summary>
+            删除日程
+            </summary>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.System.DbSyncController">
+            <summary>
+            数据库结构同步（前端可视化：预览差异 / 一键同步表结构）。
+            仅负责主库（MainDb）；商城库同步见 ZR.Mall 的 shopping/dbSync。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.DbSyncController.Diff">
+            <summary>
+            预览当前数据库与实体模型的结构差异（主库），不执行任何 DDL。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.DbSyncController.Sync">
+            <summary>
+            执行同步：补齐缺失的表与列（主库）。
+            幂等、安全：仅 ADD 缺失对象，不删除列，不修改列类型。
+            </summary>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.System.monitor.SmsCodeLogController">
+            <summary>
+            短信验证码记录
+            </summary>
+        </member>
+        <member name="F:ZR.Admin.WebApi.Controllers.System.monitor.SmsCodeLogController._SmscodeLogService">
+            <summary>
+            短信验证码记录接口
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.monitor.SmsCodeLogController.QuerySmscodeLog(ZR.Model.Dto.SmscodeLogQueryDto)">
+            <summary>
+            查询短信验证码记录列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.monitor.SmsCodeLogController.DeleteSmscodeLog(System.String)">
+            <summary>
+            删除短信验证码记录
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.monitor.SmsCodeLogController.Export(ZR.Model.Dto.SmscodeLogQueryDto)">
+            <summary>
+            导出短信验证码记录
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.System.SysDeptController">
+            <summary>
+            部门
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysDeptController.List(ZR.Model.System.Dto.SysDeptQueryDto)">
+            <summary>
+            获取部门列表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysDeptController.ExcludeChild(System.Int64)">
+            <summary>
+            查询部门列表（排除节点）
+            </summary>
+            <param name="deptId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysDeptController.TreeSelect(ZR.Model.System.Dto.SysDeptQueryDto)">
+            <summary>
+            获取部门下拉树列表
+            </summary>
+            <param name="dept"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysDeptController.RoleMenuTreeselect(System.Int32)">
+            <summary>
+            获取角色部门信息
+            加载对应角色部门列表树
+            </summary>
+            <param name="roleId"></param>
+            <returns></returns>        
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysDeptController.GetInfo(System.Int64)">
+            <summary>
+            根据部门编号获取详细信息
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysDeptController.Add(ZR.Model.System.SysDept)">
+            <summary>
+            新增部门
+            </summary>
+            <param name="dept"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysDeptController.Update(ZR.Model.System.SysDept)">
+            <summary>
+            修改部门
+            </summary>
+            <param name="dept"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysDeptController.Remove(System.Int64)">
+            <summary>
+            删除部门
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.System.SysDictDataController">
+            <summary>
+            数据字典信息
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysDictDataController.List(ZR.Model.System.SysDictData,ZR.Model.PagerInfo)">
+            <summary>
+            搜索
+            </summary>
+            <param name="dictData"></param>
+            <param name="pagerInfo"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysDictDataController.DictType(System.String)">
+            <summary>
+            根据字典类型查询字典数据信息
+            </summary>
+            <param name="dictType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysDictDataController.DictTypes(System.Collections.Generic.List{ZR.Model.System.Dto.SysdictDataParamDto})">
+            <summary>
+            根据字典类型查询字典数据信息
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysDictDataController.GetDictTypes">
+            <summary>
+            移动端使用uniapp
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysDictDataController.GetInfo(System.Int64)">
+            <summary>
+            查询字典数据详细
+            </summary>
+            <param name="dictCode"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysDictDataController.Add(ZR.Model.System.SysDictData)">
+            <summary>
+            添加
+            </summary>
+            <param name="dict"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysDictDataController.Edit(ZR.Model.System.SysDictData)">
+            <summary>
+            修改
+            </summary>
+            <param name="dict"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysDictDataController.ChangeStatus(ZR.Model.System.SysDictData)">
+            <summary>
+            修改字典数据状态
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysDictDataController.Remove(System.String)">
+            <summary>
+            删除字典类型
+            </summary>
+            <param name="dictCode"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.System.SysDictTypeController">
+            <summary>
+            数据字典信息
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysDictTypeController.List(ZR.Model.System.SysDictType,ZR.Model.PagerInfo)">
+            <summary>
+            查询
+            </summary>
+            <param name="dict"></param>
+            <param name="pagerInfo"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysDictTypeController.GetInfo(System.Int64)">
+            <summary>
+            查询字典类型详细
+            </summary>
+            <param name="dictId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysDictTypeController.Add(ZR.Model.System.Dto.SysDictTypeDto)">
+            <summary>
+            添加字典类型
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysDictTypeController.Edit(ZR.Model.System.Dto.SysDictTypeDto)">
+            <summary>
+            修改字典类型
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysDictTypeController.Remove(System.String)">
+            <summary>
+            删除字典类型
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysDictTypeController.Optionselect">
+            <summary>
+            获取字典选择框列表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysDictTypeController.Export">
+            <summary>
+            字典导出
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.System.SysFileGroupController">
+            <summary>
+            文件分组
+            </summary>
+        </member>
+        <member name="F:ZR.Admin.WebApi.Controllers.System.SysFileGroupController._SysFileGroupService">
+            <summary>
+            文件分组接口
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysFileGroupController.QuerySysFileGroup(ZR.Model.System.Model.Dto.SysFileGroupQueryDto)">
+            <summary>
+            查询文件分组列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysFileGroupController.QueryTreeSysFileGroup(ZR.Model.System.Model.Dto.SysFileGroupQueryDto)">
+            <summary>
+            查询文件分组列表树
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysFileGroupController.AddSysFileGroup(ZR.Model.System.Model.Dto.SysFileGroupDto)">
+            <summary>
+            添加文件分组
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysFileGroupController.UpdateSysFileGroup(ZR.Model.System.Model.Dto.SysFileGroupDto)">
+            <summary>
+            更新文件分组
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysFileGroupController.DeleteSysFileGroup(System.String)">
+            <summary>
+            删除文件分组
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysFileGroupController.ChangeSort(System.Int32,System.Int32)">
+            <summary>
+            保存排序
+            </summary>
+            <param name="id">主键</param>
+            <param name="value">排序值</param>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.System.SysLoginController">
+            <summary>
+            登录
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysLoginController.Login(ZR.Model.System.Dto.LoginBodyDto)">
+            <summary>
+            登录
+            </summary>
+            <param name="loginBody">登录对象</param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysLoginController.LogOut">
+            <summary>
+            注销
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysLoginController.GetUserInfo">
+            <summary>
+            获取用户信息
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysLoginController.GetRouters">
+            <summary>
+            获取路由信息
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysLoginController.GetAppRouters(System.Int32)">
+            <summary>
+            获取路由信息
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysLoginController.TenantInfo">
+            <summary>
+            获取多租户信息（登录页使用：是否启用多租户 + 可选租户列表）
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysLoginController.CaptchaImage">
+            <summary>
+            生成图片验证码
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysLoginController.Register(ZR.Model.System.Dto.RegisterDto)">
+            <summary>
+            注册
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysLoginController.GenerateQrcode(System.String,System.String)">
+            <summary>
+            生成二维码
+            </summary>
+            <param name="uuid"></param>
+            <param name="deviceId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysLoginController.VerifyScan(ZR.Model.System.Dto.ScanDto)">
+            <summary>
+            轮询判断扫码状态
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysLoginController.ScanLogin(ZR.Model.System.Dto.ScanDto)">
+            <summary>
+            移动端扫码登录
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysLoginController.CheckMobile(ZR.ServiceCore.Model.Dto.PhoneLoginDto)">
+            <summary>
+            
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysLoginController.PhoneLogin(ZR.ServiceCore.Model.Dto.PhoneLoginDto)">
+            <summary>
+            手机号登录
+            </summary>
+            <param name="loginBody">登录对象</param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysLoginController.PhoneBind(ZR.ServiceCore.Model.Dto.PhoneLoginDto)">
+            <summary>
+            手机号绑定
+            </summary>
+            <param name="loginBody"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysLoginController.Unlockscreen(ZR.Model.System.Dto.LoginBodyDto)">
+            <summary>
+            解锁屏幕
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.System.SysMenuController">
+            <summary>
+            系统菜单
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysMenuController.TreeMenuList(ZR.Model.System.Dto.MenuQueryDto)">
+            <summary>
+            获取菜单树列表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysMenuController.MenuList(ZR.Model.System.Dto.MenuQueryDto)">
+            <summary>
+            获取菜单列表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysMenuController.GetMenuInfo(System.Int32)">
+            <summary>
+            根据菜单编号获取详细信息
+            </summary>
+            <param name="menuId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysMenuController.GetMenuList(System.Int32)">
+            <summary>
+            根据菜单编号获取菜单列表，菜单管理首次进入
+            </summary>
+            <param name="menuId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysMenuController.RoleMenuTreeselect(System.Int32)">
+            <summary>
+            获取角色菜单信息
+            加载对应角色菜单列表树
+            </summary>
+            <param name="roleId"></param>
+            <returns></returns>        
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysMenuController.MenuEdit(ZR.Model.System.Dto.MenuDto)">
+            <summary>
+            修改菜单
+            </summary>
+            <param name="menuDto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysMenuController.MenuAdd(ZR.Model.System.Dto.MenuDto)">
+            <summary>
+            添加菜单
+            </summary>
+            <param name="menuDto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysMenuController.Remove(System.Int32)">
+            <summary>
+            菜单删除
+            </summary>
+            <param name="menuId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysMenuController.RemoveAll(System.Int32)">
+            <summary>
+            菜单删除
+            </summary>
+            <param name="menuId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysMenuController.ChangeSort(System.Int32,System.Int32)">
+            <summary>
+            保存排序
+            </summary>
+            <param name="id"></param>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.System.SysNoticeController">
+            <summary>
+            系统通知
+            </summary>
+        </member>
+        <member name="F:ZR.Admin.WebApi.Controllers.System.SysNoticeController._SysNoticeService">
+            <summary>
+            通知公告表接口
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysNoticeController.QueryNotice(ZR.Model.System.Dto.SysNoticeQueryDto)">
+            <summary>
+            查询通知公告表列表(移动端用)
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysNoticeController.QuerySysNotice(ZR.Model.System.Dto.SysNoticeQueryDto)">
+            <summary>
+            查询通知公告表列表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysNoticeController.GetSysNotice(System.Int32)">
+            <summary>
+            查询通知公告表详情
+            </summary>
+            <param name="NoticeId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysNoticeController.AddSysNotice(ZR.Model.System.Dto.SysNoticeDto)">
+            <summary>
+            添加通知公告表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysNoticeController.UpdateSysNotice(ZR.Model.System.Dto.SysNoticeDto)">
+            <summary>
+            更新通知公告表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysNoticeController.SendNotice(System.Int32)">
+            <summary>
+            发送通知公告表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysNoticeController.DeleteSysNotice(System.String)">
+            <summary>
+            删除通知公告表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysNoticeController.Export(ZR.Model.System.Dto.SysNoticeQueryDto)">
+            <summary>
+            导出通知公告表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.System.SysPostController">
+            <summary>
+            岗位管理
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysPostController.List(ZR.ServiceCore.Model.Dto.SysPostQueryDto)">
+            <summary>
+            岗位列表查询
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysPostController.Query(System.Int64)">
+            <summary>
+            岗位查询
+            </summary>
+            <param name="postId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysPostController.Add(ZR.Model.System.SysPost)">
+            <summary>
+            岗位管理
+            </summary>
+            <param name="post"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysPostController.Update(ZR.Model.System.SysPost)">
+            <summary>
+            岗位管理
+            </summary>
+            <param name="post"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysPostController.Delete(System.String)">
+            <summary>
+            岗位删除
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysPostController.Optionselect">
+            <summary>
+            获取岗位选择框列表
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysPostController.Export">
+            <summary>
+            岗位导出
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.System.SysProfileController">
+            <summary>
+            个人中心
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysProfileController.Profile">
+            <summary>
+            个人中心用户信息获取
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysProfileController.UpdateProfile(ZR.Model.System.Dto.SysUserDto)">
+            <summary>
+            修改用户
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysProfileController.UpdatePwd(System.String,System.String)">
+            <summary>
+            修改密码
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysProfileController.Avatar(Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>
+            修改头像
+            </summary>
+            <param name="picture"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.System.SysRoleController">
+            <summary>
+            角色信息
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysRoleController.List(ZR.Model.System.SysRole,ZR.Model.PagerInfo)">
+            <summary>
+            获取系统角色管理
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysRoleController.GetInfo(System.Int64)">
+            <summary>
+            根据角色编号获取详细信息
+            </summary>
+            <param name="roleId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysRoleController.RoleAdd(ZR.Model.System.Dto.SysRoleDto)">
+            <summary>
+            添加角色
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysRoleController.RoleEdit(ZR.Model.System.Dto.SysRoleDto)">
+            <summary>
+            修改角色
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysRoleController.DataScope(ZR.Model.System.Dto.SysRoleDto)">
+            <summary>
+            根据角色分配菜单
+            </summary>
+            <param name="sysRoleDto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysRoleController.Remove(System.String)">
+            <summary>
+            角色删除
+            </summary>
+            <param name="roleId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysRoleController.ChangeStatus(ZR.Model.System.SysRole)">
+            <summary>
+            修改角色状态
+            </summary>
+            <param name="roleDto">角色对象</param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysRoleController.Export">
+            <summary>
+            角色导出
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysRoleController.ExportRoleMenu(System.Int32)">
+            <summary>
+            导出角色菜单
+            </summary>
+            <param name="roleId"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.System.SysSmsController">
+            <summary>
+            短信发送
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysSmsController.Send(ZR.ServiceCore.Sms.SmsSendDto)">
+            <summary>
+            发送短信（支持直发内容或模板发送，落库短信记录）。
+            未配置短信服务商（SmsOptions.Enabled=false）时为模拟发送，仅记录日志。
+            </summary>
+            <param name="dto">发送参数</param>
+            <returns>发送结果（含 Simulated 是否模拟、BizId 回执ID）</returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.System.SysUserController">
+            <summary>
+            用户管理
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysUserController.List(ZR.Model.System.Dto.SysUserQueryDto,ZR.Model.PagerInfo)">
+            <summary>
+            用户管理 -> 获取用户
+            /system/user/list
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysUserController.WechatOptions">
+            <summary>
+            客户档案选择员工微信：只返回在职、启用且未删除员工维护的有效微信。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysUserController.SelectUserList(ZR.Model.System.Dto.SysUserQueryDto,ZR.Model.PagerInfo)">
+            <summary>
+            工作流选择用户 -> 获取用户
+            /system/user/seletList
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysUserController.GetInfo(System.Int32)">
+            <summary>
+            用户管理 -> 编辑、添加用户获取用户，信息查询
+            </summary>
+            <param name="userId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysUserController.AddUser(ZR.Model.System.Dto.SysUserDto)">
+            <summary>
+            添加用户
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysUserController.UpdateUser(ZR.Model.System.Dto.SysUserDto)">
+            <summary>
+            修改用户
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysUserController.ChangeStatus(ZR.Model.System.SysUser)">
+            <summary>
+            改变用户状态
+            </summary>
+            <param name="user"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysUserController.Remove(System.Int32)">
+            <summary>
+            删除用户
+            </summary>
+            <param name="userid"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysUserController.ResetPwd(ZR.Model.System.Dto.SysUserDto)">
+            <summary>
+            重置密码
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysUserController.ImportData(Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>
+            导入
+            </summary>
+            <param name="file">使用IFromFile必须使用name属性否则获取不到文件</param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysUserController.ImportTemplateExcel">
+            <summary>
+            用户导入模板下载
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysUserController.UserExport(ZR.Model.System.Dto.SysUserQueryDto)">
+            <summary>
+            用户导出
+            </summary>
+            <param name="user"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.System.SysUserMsgController">
+            <summary>
+            用户系统消息
+            </summary>
+        </member>
+        <member name="F:ZR.Admin.WebApi.Controllers.System.SysUserMsgController._SysUserMsgService">
+            <summary>
+            用户系统消息接口
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysUserMsgController.QuerySysUserMsg(ZR.Model.Dto.SysUserMsgQueryDto)">
+            <summary>
+            查询用户系统消息列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysUserMsgController.QueryMySysUserMsg(ZR.Model.Dto.SysUserMsgQueryDto)">
+            <summary>
+            查询我的系统消息
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysUserMsgController.QueryMyUnReadMsg(ZR.Model.Dto.SysUserMsgQueryDto)">
+            <summary>
+            查询我的未读消息数（租户由 DataPermi 全局过滤）
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysUserMsgController.GetSysUserMsg(System.Int64)">
+            <summary>
+            查询用户系统消息详情
+            </summary>
+            <param name="MsgId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysUserMsgController.AddSysUserMsg(ZR.Model.Dto.SysUserMsgDto)">
+            <summary>
+            添加用户系统消息
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysUserMsgController.DeleteSysUserMsg(System.String)">
+            <summary>
+            删除用户系统消息
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysUserMsgController.ReadMsg(System.Int64,UserMsgType)">
+            <summary>
+            已读消息
+            </summary>
+            <param name="msgId"></param>
+            <param name="msgType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysUserMsgController.ReadAllMsg">
+            <summary>
+            当前用户全部消息标记为已读
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysUserMsgController.Export(ZR.Model.Dto.SysUserMsgQueryDto)">
+            <summary>
+            导出用户系统消息
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysUserMsgController.Clear">
+            <summary>
+            清空用户系统消息
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.System.SysUserRoleController">
+            <summary>
+            用户角色管理
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysUserRoleController.GetList(ZR.Model.System.Dto.RoleUserQueryDto)">
+            <summary>
+            根据角色编号获取已分配的用户
+            </summary>
+            <param name="roleUserQueryDto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysUserRoleController.Create(ZR.Model.System.Dto.RoleUsersCreateDto)">
+            <summary>
+            添加角色用户
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysUserRoleController.Delete(ZR.Model.System.Dto.RoleUsersCreateDto)">
+            <summary>
+            删除角色用户
+            </summary>
+            <param name="roleUsersCreateDto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.SysUserRoleController.GetExcludeUsers(ZR.Model.System.Dto.RoleUserQueryDto)">
+            <summary>
+            获取未分配用户角色
+            </summary>
+            <param name="roleUserQueryDto"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.System.TasksLogController">
+            <summary>
+            任务日志
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.TasksLogController.GetList(ZR.Model.PagerInfo,ZR.Model.System.Dto.TasksLogQueryDto)">
+            <summary>
+            查询日志
+            </summary>
+            <param name="queryDto"></param>
+            <param name="pager"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.TasksLogController.Delete(System.String)">
+            <summary>
+            删除定时任务调用日志
+            </summary>
+            <param name="jobIds"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.TasksLogController.Clean">
+            <summary>
+            清空日志
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.TasksLogController.Export">
+            <summary>
+            定时任务日志导出
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantController">
+            <summary>
+            租户管理
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantController.#ctor(ZR.ServiceCore.Services.ISysTenantService)">
+            <summary>
+            saas租户管理接口
+            </summary>
+            <param name="sysTenantService"></param>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantController.QueryList(ZR.Model.System.Dto.SysTenantQueryDto)">
+            <summary>
+            查询租户列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantController.ExpireReminders(System.Int32)">
+            <summary>
+            租户到期提醒。
+            </summary>
+            <param name="withinDays"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantController.Broadcast(ZR.Model.System.Dto.TenantBroadcastDto)">
+            <summary>
+            租户公告群发（发给目标租户管理员的站内信）。
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantController.IsolationCheck">
+            <summary>
+            租户数据隔离自检：报告主库共享实体中带 TenantId 但未注册租户过滤的可疑清单。
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantController.My">
+            <summary>
+            当前租户查看本租户信息（到期时间、套餐用量等）
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantController.GetInfo(System.Int64)">
+            <summary>
+            查询租户详情
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantController.Add(ZR.Model.System.Dto.SysTenantDto)">
+            <summary>
+            新增租户
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantController.Provision(ZR.Model.System.Dto.TenantProvisionDto)">
+            <summary>
+            租户开通（自动编排：建档 + 可选初始化）。
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantController.Edit(ZR.Model.System.Dto.SysTenantDto)">
+            <summary>
+            修改租户
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantController.ChangeStatus(System.Int64,System.Int32)">
+            <summary>
+            修改租户状态
+            </summary>
+            <param name="id"></param>
+            <param name="status"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantController.Initialize(ZR.Model.System.Dto.TenantInitializeDto)">
+            <summary>
+            租户初始化（数据库连通与基础表初始化）。
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantController.Suspend(System.String,System.String)">
+            <summary>
+            租户停服。
+            </summary>
+            <param name="tenantId"></param>
+            <param name="remark"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantController.Renew(ZR.Model.System.Dto.TenantRenewDto)">
+            <summary>
+            租户续费。
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantController.Decommission(ZR.Model.System.Dto.TenantDecommissionDto)">
+            <summary>
+            租户删除（默认停服保留，可选删除记录）。
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantController.Remove(System.String)">
+            <summary>
+            删除租户
+            </summary>
+            <param name="ids"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantPlanController">
+            <summary>
+            套餐管理
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantPlanController.PlanList">
+            <summary>
+            查询套餐列表。
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantPlanController.PlanDetail(System.Int64)">
+            <summary>
+            获取套餐详情。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantPlanController.AddPlan(ZR.Model.System.Tenant.SysTenantPlan)">
+            <summary>
+            新增套餐。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantPlanController.EditPlan(ZR.Model.System.Tenant.SysTenantPlan)">
+            <summary>
+            编辑套餐。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantPlanController.DeletePlan(System.Int64)">
+            <summary>
+            删除套餐。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantPlanController.CurrentPlan(System.String)">
+            <summary>
+            查询租户当前套餐。
+            </summary>
+            <param name="tenantId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantPlanController.Usage(System.String)">
+            <summary>
+            查询租户套餐用量面板。
+            </summary>
+            <param name="tenantId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantPlanController.AssignPlan(ZR.Model.System.Dto.TenantPlanAssignDto)">
+            <summary>
+            分配租户套餐。
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantPlanMenuController">
+            <summary>
+            套餐菜单管理
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantPlanMenuController.GetPlanMenuTree(System.String)">
+            <summary>
+            获取套餐菜单树（供勾选）
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantPlanMenuController.GetMyPlanMenuTree">
+            <summary>
+            获取当前租户套餐菜单树（子租户查看本租户菜单）
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantPlanMenuController.SavePlanMenus(ZR.Admin.WebApi.Controllers.System.tenant.TenantPlanMenuSaveDto)">
+            <summary>
+            保存套餐菜单（全量替换）
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantPlanMenuController.CopyPlanMenus(ZR.Admin.WebApi.Controllers.System.tenant.TenantPlanMenuCopyDto)">
+            <summary>
+            复制套餐菜单
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.SysTenantPlanMenuController.GetPlanPerms(System.String)">
+            <summary>
+            获取套餐菜单权限列表（供套餐能力展示）
+            </summary>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.System.tenant.TenantPlanMenuSaveDto">
+            <summary>
+            套餐菜单保存请求
+            </summary>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.System.tenant.TenantPlanMenuCopyDto">
+            <summary>
+            套餐菜单复制请求
+            </summary>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.System.tenant.TenantPayController">
+            <summary>
+            租户在线续费支付接口。租户管理员在"我的租户"发起微信 H5 支付续费；
+            支付结果回调复用商城回调入口（WechatPayGateway 按单号前缀 TO 分发到 TenantRenewalPayHandler）。
+            金额由服务端按套餐单价计算，前端仅传时长，不可传金额。
+            </summary>
+        </member>
+        <member name="F:ZR.Admin.WebApi.Controllers.System.tenant.TenantPayController.DailyPrice">
+            <summary>
+            续费单价（元/天）。暂用固定价目，后续可挂套餐计价表。
+            </summary>
+        </member>
+        <member name="F:ZR.Admin.WebApi.Controllers.System.tenant.TenantPayController.MinDays">
+            <summary>
+            单次续费允许的时长范围（天）
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.TenantPayController.Create(System.Int32)">
+            <summary>
+            创建微信 H5 在线续费支付单，返回 h5_url 供前端跳转拉起微信支付。
+            </summary>
+            <param name="durationDays">续费时长（天），30~730</param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.TenantPayController.CreateJsapi(System.Int32,System.String)">
+            <summary>
+            创建微信小程序（JSAPI）在线续费支付单，返回 wx.requestPayment 所需的全部参数。
+            小程序内无法使用 H5 支付，必须走此通道；OpenId 由 wx.login 的 code 现场换取。
+            </summary>
+            <param name="durationDays">续费时长（天），30~730</param>
+            <param name="code">wx.login 获取的临时登录凭证</param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.TenantPayController.MockNotify(System.String,System.Nullable{System.Int32})">
+            <summary>
+            【仅 Development 环境】模拟微信支付成功回调，用于无商户号时验证回调全链路。
+            用与真实回调相同的密钥生成签名与加密体，再 HTTP 自调用商城的 wechat/notify 入口，
+            因此验签、解密、分发、金额比对、幂等、续费、置付等逻辑与线上完全一致。
+            </summary>
+            <param name="orderNo">待支付的续费流水单号</param>
+            <param name="totalFen">模拟支付金额（分）；不传则取流水应付金额，传错值用于验证金额不符被拒</param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.System.tenant.TenantPayController.Status(System.String)">
+            <summary>
+            查询续费支付状态（前端跳转微信支付后轮询用）。已支付返回 paid=true。
+            </summary>
+            <param name="orderNo">下单接口返回的流水单号</param>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.monitor.MonitorController">
+            <summary>
+            系统监控
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.monitor.MonitorController.GetCache">
+            <summary>
+            获取缓存监控数据
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.monitor.MonitorController.Server">
+            <summary>
+            获取服务器信息
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.monitor.SysLogininforController">
+            <summary>
+            系统访问记录
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.monitor.SysLogininforController.LoignLogList(ZR.Model.System.Dto.SysLogininfoQueryDto)">
+            <summary>
+            查询登录日志
+            </summary>
+            <param name="param"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.monitor.SysLogininforController.QueryMyLoignLogList(ZR.Model.System.Dto.SysLogininfoQueryDto)">
+            <summary>
+            查询我的登录日志
+            </summary>
+            <param name="param"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.monitor.SysLogininforController.CleanLoginInfo">
+            <summary>
+            清空登录日志
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.monitor.SysLogininforController.Remove(System.String)">
+            <summary>
+            </summary>
+            <param name="infoIds"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.monitor.SysLogininforController.Export(ZR.Model.System.SysLogininfor)">
+            <summary>
+            登录日志导出
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.monitor.SysLogininforController.QueryStatiLoginLog">
+            <summary>
+            查询登录日志统计
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.monitor.SysLogininforController.AiSecurity(ZR.Model.System.Dto.LogAiAnalysisInput)">
+            <summary>
+            AI 登录日志安全分析：服务端固定 SQL 聚合指标后交由大模型解读，返回 Markdown 报告（不落库）
+            </summary>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.monitor.SysOperlogController">
+            <summary>
+            操作日志记录
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.monitor.SysOperlogController.OperList(ZR.Model.System.Dto.SysOperLogQueryDto)">
+            <summary>
+            查询操作日志
+            </summary>
+            <param name="sysOperLog"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.monitor.SysOperlogController.Remove(System.String)">
+            <summary>
+            删除操作日志
+            </summary>
+            <param name="operIds"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.monitor.SysOperlogController.ClearOperLog">
+            <summary>
+            清空操作日志
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.monitor.SysOperlogController.Export(ZR.Model.System.Dto.SysOperLogQueryDto)">
+            <summary>
+            导出操作日志
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.monitor.SysOperlogController.AiHealth(ZR.Model.System.Dto.LogAiAnalysisInput)">
+            <summary>
+            AI 操作日志健康分析：慢操作/错误聚类等指标交由大模型解读，返回 Markdown 报告（不落库）。
+            非管理员强制只分析本人日志（按 UserId 过滤），与列表页口径一致。
+            </summary>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.monitor.SysUserOnlineController">
+            <summary>
+            在线用户
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.monitor.SysUserOnlineController.Index(ZR.Model.PagerInfo)">
+            <summary>
+            获取在线用户列表（多租户模式下按当前租户过滤）
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.monitor.SysUserOnlineController.Force(ZR.Model.System.Dto.LockUserDto)">
+            <summary>
+            单个强退
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.monitor.SysUserOnlineController.BatchforceLogout(ZR.Model.System.Dto.LockUserDto)">
+            <summary>
+            批量强退
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.SqlDiffLogController">
+            <summary>
+            数据差异日志
+            </summary>
+        </member>
+        <member name="F:ZR.Admin.WebApi.Controllers.SqlDiffLogController._SqlDiffLogService">
+            <summary>
+            数据差异日志接口
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.SqlDiffLogController.QuerySqlDiffLog(ZR.Model.System.Dto.SqlDiffLogQueryDto)">
+            <summary>
+            查询数据差异日志列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.SqlDiffLogController.DeleteSqlDiffLog(System.String)">
+            <summary>
+            删除数据差异日志
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.SqlDiffLogController.Export(ZR.Model.System.Dto.SqlDiffLogQueryDto)">
+            <summary>
+            导出数据差异日志
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.UserOnlineLogController">
+            <summary>
+            用户在线时长
+            </summary>
+        </member>
+        <member name="F:ZR.Admin.WebApi.Controllers.UserOnlineLogController._UserOnlineLogService">
+            <summary>
+            用户在线时长接口
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.UserOnlineLogController.QueryUserOnlineLog(ZR.Model.Dto.UserOnlineLogQueryDto)">
+            <summary>
+            查询用户在线时长列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.UserOnlineLogController.DeleteUserOnlineLog(System.String)">
+            <summary>
+            删除用户在线时长
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.UserOnlineLogController.Export(ZR.Model.Dto.UserOnlineLogQueryDto)">
+            <summary>
+            导出用户在线时长
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.SysConfigController">
+            <summary>
+            参数配置Controller
+            </summary>
+        </member>
+        <member name="F:ZR.Admin.WebApi.Controllers.SysConfigController._SysConfigService">
+            <summary>
+            参数配置接口
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.SysConfigController.QuerySysConfig(ZR.Model.System.Dto.SysConfigQueryDto)">
+            <summary>
+            查询参数配置列表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.SysConfigController.GetSysConfig(System.Int32)">
+            <summary>
+            查询参数配置详情
+            </summary>
+            <param name="ConfigId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.SysConfigController.GetConfigKey(System.String)">
+            <summary>
+            根据参数键名查询参数值
+            </summary>
+            <param name="configKey"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.SysConfigController.AddSysConfig(ZR.Model.System.Dto.SysConfigDto)">
+            <summary>
+            添加参数配置
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.SysConfigController.UpdateSysConfig(ZR.Model.System.Dto.SysConfigDto)">
+            <summary>
+            更新参数配置
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.SysConfigController.DeleteSysConfig(System.String)">
+            <summary>
+            删除参数配置
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.SysFileController">
+            <summary>
+            文件存储Controller
+            </summary>
+        </member>
+        <member name="F:ZR.Admin.WebApi.Controllers.SysFileController._SysFileService">
+            <summary>
+            文件存储接口
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.SysFileController.QuerySysFile(ZR.Model.System.Dto.SysFileQueryDto)">
+            <summary>
+            查询文件存储列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.SysFileController.QueryFile(ZR.Model.System.Dto.SysFileQueryDto)">
+            <summary>
+            查询文件存储列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.SysFileController.GetSysFile(System.Int64)">
+            <summary>
+            查询文件存储详情
+            </summary>
+            <param name="Id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.SysFileController.UpdateFile(ZR.Model.System.Dto.SysFileDto)">
+            <summary>
+            更新
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.SysFileController.DeleteSysFile(System.String)">
+            <summary>
+            删除文件存储
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.SysFileController.Export(ZR.Model.System.Dto.SysFileQueryDto)">
+            <summary>
+            文件存储导出
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.SysFileController.MoveSysFile(ZR.Model.System.Dto.FileGroupMoveRequest)">
+            <summary>
+            移动文件
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.TasksController">
+            <summary>
+            计划任务
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.TasksController.ListTask(ZR.Model.System.Dto.TasksQueryDto)">
+            <summary>
+            查询计划任务列表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.TasksController.Get(System.String)">
+            <summary>
+            查询单个计划任务
+            </summary>
+            <param name="id">编码</param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.TasksController.Create(ZR.Model.System.Dto.TasksCreateDto)">
+            <summary>
+            添加任务
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.TasksController.Update(ZR.Model.System.Dto.TasksCreateDto)">
+            <summary>
+            更新任务
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.TasksController.Delete(System.String)">
+            <summary>
+            删除任务
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.TasksController.Start(System.String)">
+            <summary>
+            启动任务
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.TasksController.Stop(System.String)">
+            <summary>
+            停止任务
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.TasksController.Run(System.String)">
+            <summary>
+            定时任务立即执行一次
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.TasksController.AiCron(ZR.Model.System.Dto.SysAiCronParseInput)">
+            <summary>
+            AI 自然语言调度描述转 Cron 表达式。AI 只负责生成，表达式合法性与执行时间由服务端用 Quartz 复核。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.TasksController.GetNextFireTimes(System.String,System.Int32)">
+            <summary>
+            按 Quartz 计算接下来若干次执行时间，便于用户核对 AI 生成的表达式是否符合预期。
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.TasksController.Export">
+            <summary>
+            定时任务导出
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Controllers.WxOpenController">
+            <summary>
+            微信公众号
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Controllers.WxOpenController.GetSignature(System.String)">
+            <summary>
+            获取签名
+            </summary>
+            <param name="url"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Extensions.SwaggerExtension.UseSwagger(Microsoft.AspNetCore.Builder.IApplicationBuilder)">
+            <summary>
+            
+            </summary>
+            <param name="app"></param>
+        </member>
+        <member name="T:ZR.Admin.WebApi.Extensions.TasksExtension">
+            <summary>
+            定时任务扩展方法
+            </summary>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Extensions.TasksExtension.AddTaskSchedulers(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            注册任务
+            </summary>
+            <param name="services"></param>
+            <exception cref="T:System.ArgumentNullException"></exception>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Extensions.TasksExtension.UseAddTaskSchedulers(Microsoft.AspNetCore.Builder.IApplicationBuilder)">
+            <summary>
+            程序启动后添加任务计划
+            </summary>
+            <param name="app"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Admin.WebApi.Extensions.TasksExtension.UseInit(Microsoft.AspNetCore.Builder.IApplicationBuilder)">
+            <summary>
+            初始化字典
+            </summary>
+            <param name="app"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

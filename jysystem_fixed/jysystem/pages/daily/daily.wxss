@@ -1,0 +1,11 @@
+.daily-hero .money { font-size: 44rpx; }
+.daily-list { display: flex; flex-direction: column; gap: 16rpx; }
+.daily-item { display: flex; align-items: center; gap: 18rpx; margin: 0; transition: opacity .2s ease, transform .2s ease; }
+.daily-item.done { opacity: .72; }
+.daily-item.updating { transform: scale(.99); }
+.check-dot { display: flex; width: 52rpx; height: 52rpx; flex: none; align-items: center; justify-content: center; border: 2rpx solid var(--jade); border-radius: 50%; background: var(--jade-soft); color: var(--jade); font-size: 22rpx; font-weight: 700; }
+.check-dot.on { background: var(--jade); color: var(--btn-text); }
+.daily-title { font-size: 26rpx; font-weight: 700; line-height: 1.35; }
+.daily-content { margin-top: 5rpx; color: var(--muted); font-size: 21rpx; line-height: 1.5; }
+.daily-meta { margin-top: 7rpx; color: var(--muted); font-size: 18rpx; }
+.seg-tabs { margin-top: 4rpx; }

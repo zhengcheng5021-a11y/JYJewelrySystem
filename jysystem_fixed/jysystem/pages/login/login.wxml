@@ -1,0 +1,236 @@
+<view class="login-page" style="{{theme.style}}" bindtouchstart="onPageTouch">
+  <view class="petal-field">
+    <view
+      wx:for="{{petals}}"
+      wx:key="id"
+      class="petal"
+      style="left:{{item.left}}%;animation-duration:{{item.duration}}s;animation-delay:{{item.delay}}s;opacity:{{item.alpha}};"
+    >
+      <view
+        class="petal-shape"
+        style="width:{{item.size}}rpx;height:{{item.size}}rpx;background:{{item.color}};animation-duration:{{item.swayDuration}}s;"
+      ></view>
+    </view>
+    <view
+      wx:for="{{dust}}"
+      wx:key="id"
+      class="dust"
+      style="left:{{item.left}}%;top:{{item.top}}%;width:{{item.size}}rpx;height:{{item.size}}rpx;animation-duration:{{item.duration}}s;animation-delay:{{item.delay}}s;opacity:{{item.alpha}};"
+    ></view>
+  </view>
+
+  <view class="atmosphere">
+    <view class="ambient-orb" style="background:{{theme.orbGradient}};"></view>
+    <view class="mountain mountain-far" style="background:{{theme.mountainColor}};"></view>
+    <view class="mountain mountain-near" style="background:{{theme.mountainColor}};"></view>
+  </view>
+
+  <view class="nav-shell" style="padding-top:{{navTop}}px;">
+    <view class="nav-row" style="height:{{navHeight}}px;padding-right:{{capsuleSpace}}px;">
+      <view class="nav-left">
+        <button
+          class="theme-pill"
+          style="background:{{theme.capsuleBg}};border-color:{{theme.capsuleBorder}};color:{{theme.capsuleColor}};"
+          bindtap="toggleMenu"
+        >
+          <view class="palette-icon">
+            <view class="palette-pip p1"></view>
+            <view class="palette-pip p2"></view>
+            <view class="palette-pip p3"></view>
+          </view>
+          <text class="theme-pill-label">{{theme.label}}</text>
+          <text class="caret {{menuOpen ? 'up' : ''}}">⌄</text>
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <view class="screen screen-{{screenTier}}">
+    <view class="nav-spacer" style="height:{{topBarHeight}}px;"></view>
+    <view class="brand" bindtap="pulseSparkles">
+      <view class="logo-stage">
+        <view class="logo-halo" style="background:{{theme.logoGlow}};"></view>
+        <image class="logo-art" src="/images/logo.png" mode="aspectFit"></image>
+        <view class="gem-glint"></view>
+        <view
+          wx:for="{{burst}}"
+          wx:key="id"
+          class="burst-spark"
+          style="--angle:{{item.angle}}deg;--distance:{{item.distance}}rpx;background:{{item.color}};"
+        ></view>
+      </view>
+      <text class="brand-title" style="color:{{theme.textColor}};">静悦中式珠宝</text>
+      <view class="brand-slogan" style="color:{{theme.subTextColor}};">
+        <text class="slogan-line" style="background:{{theme.sloganLine}};"></text>
+        <text>东方美学 · 为你而饰</text>
+        <text class="slogan-line" style="background:{{theme.sloganLine}};"></text>
+      </view>
+      <view class="knot" style="color:{{theme.knotColor}};">
+        <text class="knot-line"></text>
+        <text class="infinity">∞</text>
+        <text class="knot-line"></text>
+      </view>
+    </view>
+
+    <view class="login-wrap">
+      <view class="form-card" style="background:{{theme.cardBg}};border-color:{{theme.cardBorder}};box-shadow:{{theme.cardShadow}};">
+        <view class="card-glow" style="background:{{theme.cardGlow}};"></view>
+
+        <view class="card-head" style="border-color:{{theme.headBorder}};">
+          <view class="head-left">
+            <view class="seal" style="background:{{theme.seal}};"></view>
+            <text class="form-title" style="color:{{theme.textColor}};">会员账号登录</text>
+          </view>
+          <view class="official-badge" style="color:{{theme.subTextColor}};">
+            <text class="shield-mark" style="border-color:{{theme.linkColor}};color:{{theme.linkColor}};">✓</text>
+            <text>官方认证通道</text>
+          </view>
+        </view>
+
+        <view class="field-group">
+          <view class="field">
+            <text class="field-label" style="color:{{theme.labelColor}};">账号 / 手机号</text>
+            <view class="field-box" style="background:{{theme.inputBg}};border-color:{{theme.inputBorder}};">
+              <view class="field-icon user-icon" style="color:{{theme.iconColor}};"></view>
+              <input
+                class="field-input"
+                value="{{username}}"
+                style="color:{{theme.inputColor}};"
+                placeholder="请输入用户名或手机号"
+                placeholder-style="color:{{theme.inputPlaceholder}}"
+                cursor-spacing="24"
+                confirm-type="next"
+                bindinput="onUser"
+              />
+              <button wx:if="{{username}}" class="field-action clear-action" style="color:{{theme.iconColor}};" bindtap="clearUser" aria-label="清空账号">×</button>
+            </view>
+          </view>
+
+          <view class="field">
+            <text class="field-label" style="color:{{theme.labelColor}};">登录密码</text>
+            <view class="field-box" style="background:{{theme.inputBg}};border-color:{{theme.inputBorder}};">
+              <view class="field-icon lock-icon" style="color:{{theme.iconColor}};"></view>
+              <input
+                class="field-input"
+                password="{{!passwordVisible}}"
+                value="{{password}}"
+                style="color:{{theme.inputColor}};"
+                placeholder="请输入登录密码"
+                placeholder-style="color:{{theme.inputPlaceholder}}"
+                cursor-spacing="24"
+                confirm-type="done"
+                bindinput="onPass"
+                bindconfirm="submitLogin"
+              />
+              <button class="field-action eye-action" bindtap="togglePassword" aria-label="显示或隐藏密码">
+                <view class="eye-icon {{passwordVisible ? 'open' : ''}}" style="color:{{passwordVisible ? theme.accent : theme.iconColor}};">
+                  <view class="eye-pupil"></view>
+                </view>
+              </button>
+            </view>
+          </view>
+        </view>
+
+        <view class="aux-row" style="color:{{theme.subTextColor}};">
+          <view class="remember" bindtap="toggleRemember">
+            <view
+              class="check-box {{remember ? 'checked' : ''}}"
+              style="{{remember ? 'background:' + theme.checkColor + ';border-color:' + theme.checkColor : 'border-color:' + theme.inputPlaceholder}}"
+            >
+              <text wx:if="{{remember}}" class="tick" style="color:{{theme.checkTextColor}};">✓</text>
+            </view>
+            <text>记住账号</text>
+          </view>
+          <button class="text-button" style="color:{{theme.subTextColor}};" bindtap="forgot">忘记密码？</button>
+        </view>
+
+        <button
+          class="login-btn shimmer"
+          style="background:{{theme.buttonGradient}};color:{{theme.buttonTextColor}};box-shadow:{{theme.buttonShadow}};"
+          loading="{{loading}}"
+          disabled="{{loading}}"
+          bindtap="submitLogin"
+        >
+          <view class="key-icon" style="color:{{theme.buttonIconColor}};">
+            <view class="key-ring"></view>
+            <view class="key-stem"></view>
+          </view>
+          <text class="login-btn-text" style="color:{{theme.buttonTextColor}};">{{loading ? '正在登录' : '立 即 登 录'}}</text>
+          <text class="login-arrow" style="color:{{theme.buttonIconColor}};">→</text>
+        </button>
+
+        <view class="secondary-row" style="color:{{theme.subTextColor}};">
+          <button class="text-button" style="color:{{theme.subTextColor}};" bindtap="register">新用户注册</button>
+          <text class="pipe" style="color:{{theme.headBorder}};">|</text>
+          <button class="text-button guest-link" style="color:{{theme.subTextColor}};" bindtap="guest">暂不登录，先去手作集市逛逛 <text class="guest-arrow">›</text></button>
+        </view>
+
+        <view class="agreement-row">
+          <view
+            class="check-box agreement-check {{agree ? 'checked' : ''}}"
+            style="{{agree ? 'background:' + theme.checkColor + ';border-color:' + theme.checkColor : 'border-color:' + theme.inputPlaceholder}}"
+            bindtap="toggleAgree"
+          >
+            <text wx:if="{{agree}}" class="tick" style="color:{{theme.checkTextColor}};">✓</text>
+          </view>
+          <view class="agreement-copy" style="color:{{theme.subTextColor}};">
+            <text>已阅读并同意 </text>
+            <text class="agreement-link" style="color:{{theme.linkColor}};" data-type="user" bindtap="openModal">《用户服务协议》</text>
+            <text> 与 </text>
+            <text class="agreement-link" style="color:{{theme.linkColor}};" data-type="privacy" bindtap="openModal">《隐私保护政策》</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view
+    wx:for="{{ripples}}"
+    wx:key="id"
+    class="touch-ripple"
+    style="left:{{item.left}}%;top:{{item.top}}%;"
+  ></view>
+
+  <view wx:if="{{menuOpen}}" class="mask" style="{{theme.varsStyle}}" bindtap="closeMenu">
+    <view class="theme-menu" style="top:{{menuTop}}px;" catchtap="noop">
+      <view class="menu-kicker">画境 · 意境切换</view>
+      <view
+        wx:for="{{themes}}"
+        wx:key="id"
+        class="menu-item {{theme.id === item.id ? 'active' : ''}}"
+        data-id="{{item.id}}"
+        bindtap="chooseTheme"
+      >
+        <view class="menu-left">
+          <view class="menu-dot" style="background:{{item.dot}};"></view>
+          <view class="menu-copy">
+            <text class="menu-name">{{item.name}}</text>
+            <text class="menu-caption">{{item.caption}}</text>
+          </view>
+        </view>
+        <text wx:if="{{theme.id === item.id}}" class="menu-check" style="color:{{item.accent}};">✓</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{modal}}" class="modal-mask" style="{{theme.varsStyle}}" bindtap="closeModal" catchtouchmove="noop">
+    <view class="modal-card" catchtap="noop">
+      <view class="modal-head">
+        <view>
+          <text class="modal-kicker">JY ATELIER</text>
+          <text class="modal-title">{{modalTitle}}</text>
+        </view>
+        <button class="modal-close" bindtap="closeModal">×</button>
+      </view>
+      <scroll-view scroll-y class="modal-body">
+        <text class="modal-text">{{modalBody}}</text>
+      </scroll-view>
+      <button class="modal-ok" bindtap="closeModal">已阅读并同意</button>
+    </view>
+  </view>
+
+  <view class="toast {{toastShow ? 'show' : ''}}" style="top:{{toastTop}}px;">
+    <view class="toast-dot {{toastSuccess ? 'ok' : 'warn'}}"></view>
+    <text class="toast-text">{{toastMessage}}</text>
+  </view>
+</view>

@@ -1,0 +1,111 @@
+<app-nav title="现场开单" back="{{true}}"></app-nav>
+<view class="app-page {{mode==='pos'?'with-sticky':''}}" style="{{theme.style}}">
+  <view class="top-bar"><theme-switch bind:change="onTheme"></theme-switch><text class="top-meta">柜面 POS 收银台</text></view>
+  <view class="page-head">
+    <view><view class="eyebrow-row"><text class="seal-dot"></text><text class="eyebrow">COUNTER POS</text></view><view class="page-title">现场开单</view><view class="page-sub">识客 · 挑货 · 改价与优惠预览一站式完成。</view></view>
+  </view>
+  <view class="seg-tabs">
+    <button class="seg-tab {{mode==='pos'?'active':''}}" data-mode="pos" bindtap="setMode">✦ 现场新开单</button>
+    <button class="seg-tab {{mode==='history'?'active':''}}" data-mode="history" bindtap="setMode">销售单记录 ({{historyTotal || history.length}})</button>
+  </view>
+
+  <block wx:if="{{mode==='pos'}}">
+    <view class="glass-card">
+      <view class="row-between action-row"><view class="row"><text class="seal-bar"></text><text class="section-title">① 客户识别与绑定</text></view><view class="row"><button class="btn-mini" bindtap="openMemberDrawer">客户库挑人</button><button class="btn-mini" bindtap="walkIn">散客直开</button></view></view>
+      <view class="row" style="margin-top:16rpx;padding:16rpx;border:1rpx solid var(--jade);border-radius:20rpx;background:var(--jade-soft);">
+        <view class="avatar solid" style="width:68rpx;height:68rpx;font-size:26rpx;">{{customerInitial}}</view>
+        <view class="grow"><view class="row"><text style="font-size:27rpx;font-weight:700;">{{customer.memberName || customer.customerName || '未识别客户'}}</text><text class="tag tag-gold">{{customer.levelName || '待识别'}}</text></view><view class="muted small" style="margin-top:4rpx;">{{customer.phone || '可输入姓名或手机号识别'}}</view></view>
+      </view>
+      <view class="row search-row" style="margin-top:14rpx;"><input class="input-mini grow" value="{{customerKeyword}}" placeholder="客户姓名或手机号" placeholder-class="placeholder" bindinput="onCustomerKeyword" bindconfirm="matchCustomer" /><button class="btn-mini primary" loading="{{matching}}" bindtap="matchCustomer">识别</button></view>
+    </view>
+
+    <view class="glass-card">
+      <view class="row-between action-row"><view class="row"><text class="seal-bar"></text><text class="section-title">② 选品与实价 ({{lines.length}})</text></view><button class="btn-mini primary" bindtap="openGoodsDrawer">+ 浏览在库挑货</button></view>
+      <view class="row search-row" style="margin-top:14rpx;"><input class="input-mini grow" value="{{goodsKeyword}}" placeholder="货号、条码或名称" placeholder-class="placeholder" bindinput="onGoodsKeyword" bindconfirm="findGoods" /><button class="btn-mini" loading="{{finding}}" bindtap="findGoods">加货</button></view>
+      <view wx:if="{{!lines.length}}" class="empty-inline">请从在库现货中挑选，或直接搜索货号加入本单</view>
+      <view wx:for="{{lines}}" wx:key="goodsItemId" class="soft-panel" style="margin-top:14rpx;">
+        <view class="row-between sale-line-row">
+          <view class="grow sale-line-copy"><view class="row"><text class="sale-line-name" style="font-size:25rpx;font-weight:700;">{{item.goodsName}}</text><text wx:if="{{item.isGift}}" class="tag tag-gold">赠品</text></view><view class="muted small" style="margin-top:4rpx;">编码 {{item.goodsNo}} · 标价 ¥{{item.saleText}}</view></view>
+          <view class="row action-row"><button class="btn-mini" data-index="{{index}}" bindtap="toggleGift">{{item.isGift ? '取消赠品' : '设为赠品'}}</button><button class="btn-mini danger" data-index="{{index}}" bindtap="removeLine">移除</button></view>
+        </view>
+        <view class="row-between dashed-top"><text class="muted small">本件成交实价 (¥)</text><input class="input-bare money" style="width:180rpx;text-align:right;" type="digit" value="{{item.dealPrice}}" disabled="{{item.isGift}}" data-index="{{index}}" bindinput="onPrice" /></view>
+      </view>
+    </view>
+
+    <view class="glass-card">
+      <view class="row" style="margin-bottom:10rpx;"><text class="seal-bar"></text><text class="section-title">③ 会员折扣与议价抹零</text></view>
+      <view class="row-between sale-setting-row" style="padding:10rpx 0;border-bottom:1rpx solid var(--line);"><view class="grow"><text class="small sale-setting-label">应用会员等级折扣</text><view class="muted small" style="margin-top:4rpx;">{{discountHint}}</view></view><button class="btn-mini {{memberDiscount?'primary':''}}" bindtap="toggleDiscount">{{memberDiscount ? '已开启 ✓' : '未开启'}}</button></view>
+      <view class="row-between sale-setting-row" style="padding-top:14rpx;"><text class="small sale-setting-label">现场议价抹零立减 (¥)</text><input class="input-bare money sale-setting-input" style="width:160rpx;text-align:right;" type="digit" value="{{roundOff}}" bindinput="onRoundOff" /></view>
+      <view class="soft-panel sale-amount-breakdown">
+        <view class="row-between"><text class="muted small">商品成交价合计</text><text class="money">¥{{rawTotalText}}</text></view>
+        <view class="row-between"><text class="muted small">会员等级折扣</text><text class="money" style="color:var(--red);">-¥{{discountText}}</text></view>
+        <view class="row-between"><text class="muted small">折后金额</text><text class="money">¥{{basePayText}}</text></view>
+        <view class="row-between"><text class="muted small">抹零金额</text><text class="money" style="color:var(--gold);">-¥{{roundOffText}}</text></view>
+        <view class="row-between sale-amount-final"><text class="small">应收金额</text><text class="money">¥{{previewText}}</text></view>
+      </view>
+      <view wx:if="{{customOrderId}}" class="soft-panel" style="margin-top:12rpx;">
+        <view class="row-between action-row"><text class="small">定制单 {{customOrderNo}}</text><view class="row"><text class="tag tag-gold">尾款 ¥{{customRemain}}</text><button class="btn-mini danger" bindtap="clearCustomOffset">取消对冲</button></view></view>
+        <view class="row-between dashed-top"><text class="muted small">本单可对冲尾款</text><text class="money" style="font-size:26rpx;">¥{{customOffsetText}}</text></view>
+        <view class="row-between" style="margin-top:6rpx;"><text class="muted small">仍需现金收款</text><text class="money" style="font-size:26rpx;">¥{{customCashText}}</text></view>
+        <view wx:if="{{!customHasGoods}}" class="muted small" style="margin-top:8rpx;">这张定制单未锁定库存货品，请先在第②步挑选本次交付货品。</view>
+      </view>
+    </view>
+    <view wx:if="{{error}}" class="glass-card small" style="color:var(--red);">{{error}}</view>
+  </block>
+
+  <block wx:else>
+    <view wx:if="{{!history.length}}" class="state"><view class="state-title">暂无销售单记录</view><view>现场开单后会在这里显示草稿和已收款单据。</view></view>
+    <view wx:for="{{history}}" wx:key="id" class="glass-card">
+      <view class="row-between"><text style="font-size:26rpx;font-weight:700;">{{item.orderNo}}</text><text class="tag {{item.status===1?'':'tag-gold'}}">{{item.status===1?'已收款':'草稿待收'}}</text></view>
+      <view class="muted small" style="margin-top:6rpx;">客户：{{item.customerText}} · {{item.timeText}}</view>
+      <view class="row-between dashed-top"><view><text class="money" style="font-size:30rpx;">¥{{item.payText}}</text><view class="muted small" style="margin-top:4rpx;">合计 ¥{{item.totalText}} · 折扣 -¥{{item.discountText}} · 抹零 -¥{{item.roundOffText}}</view></view><button wx:if="{{item.status!==1}}" class="btn-mini primary" data-id="{{item.id}}" bindtap="confirmHistory">确认收款</button><text wx:else class="muted small">已核销库存</text></view>
+    </view>
+    <view wx:if="{{history.length}}" class="pager-bar">
+      <view class="pager-info">已显示 {{history.length}} / {{historyTotal}} 单（第 {{historyPage}} 页）</view>
+      <view class="pager-actions">
+        <button wx:if="{{historyHasMore}}" class="pager-btn" loading="{{historyLoadingMore}}" bindtap="loadMoreHistory">{{historyLoadingMore ? '加载中...' : '加载更多记录 ↓'}}</button>
+        <text wx:else class="muted small">—— 已展示全部销售记录 ——</text>
+        <button wx:if="{{historyPage > 1 || history.length > 8}}" class="pager-btn" bindtap="scrollTop">回到顶部 ↑</button>
+      </view>
+    </view>
+  </block>
+</view>
+
+<view wx:if="{{mode==='pos'}}" class="sticky-bar">
+  <view><view class="muted small">应收金额 <text class="money" style="font-size:34rpx;color:var(--ink);">¥{{previewText}}</text></view><view class="muted small">合计 ¥{{rawTotalText}} · 折扣 -¥{{discountText}} · 抹零 -¥{{roundOffText}}</view></view>
+      <view class="row action-row"><button class="btn-mini" loading="{{saving}}" bindtap="save">存草稿</button><button class="btn-mini primary" loading="{{confirming}}" bindtap="confirm">确认收款</button></view>
+</view>
+
+<view wx:if="{{drawer==='member'}}" class="drawer-mask" bindtap="closeDrawer">
+  <view class="drawer-panel" catchtap="noop">
+    <view class="drawer-handle"></view>
+    <view class="drawer-head"><text class="drawer-title">选择藏家会员绑定本单</text><button class="btn-mini" bindtap="closeDrawer">关闭 ×</button></view>
+    <view class="row search-row"><input class="input-mini grow" value="{{drawerKeyword}}" placeholder="搜索客户姓名或手机号" placeholder-class="placeholder" bindinput="onDrawerKeyword" bindconfirm="searchDrawerMembers" /><button class="btn-mini primary" bindtap="searchDrawerMembers">搜索</button></view>
+    <view style="height:14rpx;"></view>
+    <view wx:for="{{drawerMembers}}" wx:key="id" class="drawer-item" data-id="{{item.id}}" bindtap="selectMember">
+      <view class="row-between"><view><view style="font-size:26rpx;font-weight:700;">{{item.memberName}}</view><view class="muted small" style="margin-top:4rpx;">{{item.phone || '无手机'}} · {{item.levelName || '无等级'}}</view></view><text class="tag tag-gold">选定 ›</text></view>
+    </view>
+    <view wx:if="{{drawerMemberHasMore}}" style="text-align:center;margin-top:16rpx;">
+      <button class="btn-mini" loading="{{drawerLoadingMore}}" bindtap="loadMoreDrawerMembers">加载更多客户 ↓</button>
+    </view>
+    <view wx:if="{{!drawerMembers.length}}" class="empty-inline">没有匹配客户，可先到客户档案建档。</view>
+  </view>
+</view>
+
+<view wx:if="{{drawer==='goods'}}" class="drawer-mask" bindtap="closeDrawer">
+  <view class="drawer-panel" catchtap="noop">
+    <view class="drawer-handle"></view>
+    <view class="drawer-head"><text class="drawer-title">挑选中意在库现货入单</text><button class="btn-mini" bindtap="closeDrawer">关闭 ×</button></view>
+    <view class="row search-row"><input class="input-mini grow" value="{{drawerKeyword}}" placeholder="搜索货号、条码或名称" placeholder-class="placeholder" bindinput="onDrawerKeyword" bindconfirm="searchDrawerGoods" /><button class="btn-mini primary" bindtap="searchDrawerGoods">搜索</button></view>
+    <view style="height:14rpx;"></view>
+    <view wx:for="{{drawerGoods}}" wx:key="id" class="drawer-item" data-index="{{index}}" bindtap="selectGoods">
+      <view class="row-between"><view class="grow"><view style="font-size:26rpx;font-weight:700;">{{item.goodsName}}</view><view class="muted small" style="margin-top:4rpx;">编码 {{item.goodsNo}} · {{item.styleItemName || '未分类'}}</view></view><view style="text-align:right;"><view class="money">¥{{item.saleText}}</view><text class="tag">+ 加入本单</text></view></view>
+    </view>
+    <view wx:if="{{drawerGoodsHasMore}}" style="text-align:center;margin-top:16rpx;">
+      <button class="btn-mini" loading="{{drawerLoadingMore}}" bindtap="loadMoreDrawerGoods">加载更多在库现货 ↓</button>
+    </view>
+    <view wx:if="{{!drawerGoods.length}}" class="empty-inline">没有可售现货。</view>
+  </view>
+</view>
+
+<bottom-nav active=""></bottom-nav>

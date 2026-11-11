@@ -1,0 +1,507 @@
+
+    /* ================= 1. Real-time Clock ================= */
+    function updateClock() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const timeElem = document.getElementById('currentTime');
+      if (timeElem) timeElem.textContent = `${hours}:${minutes}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    /* ================= 2. Theme Definitions & State Management ================= */
+    const themes = {
+      blush: {
+        id: 'blush',
+        label: '画境 · 绯粉',
+        gradient: 'linear-gradient(to bottom, #FDF5F2, #F8E8E4, #F1DAD4)',
+        textColor: '#3A2624',
+        subTextColor: '#553634',
+        cardBg: 'rgba(255, 255, 255, 0.55)',
+        cardBorder: 'rgba(255, 255, 255, 0.7)',
+        inputBg: 'rgba(255, 255, 255, 0.85)',
+        inputBorder: 'rgba(216, 156, 146, 0.3)',
+        inputColor: '#2A2022',
+        inputPlaceholder: '#A89495',
+        buttonGradient: 'linear-gradient(to right, #3C2827, #5A3835, #3C2827)',
+        buttonTextColor: '#FDF7F2',
+        capsuleBg: 'rgba(0, 0, 0, 0.1)',
+        capsuleBorder: 'rgba(0, 0, 0, 0.15)',
+        capsuleColor: '#332324',
+        mountainColor: 'rgba(216, 156, 146, 0.35)',
+        orbGradient: 'radial-gradient(circle, rgba(244,166,184,0.4) 0%, rgba(223,176,122,0.2) 60%, transparent 100%)',
+        indicatorColor: 'rgba(60, 40, 39, 0.3)',
+        petalColors: ['#F4A6B8', '#FBC1CD', '#E88B9E', '#FBECEB'],
+        dustColor: '#DFB07A',
+        rippleColor: '#D9A392',
+        hasBlossoms: true
+      },
+      dark: {
+        id: 'dark',
+        label: '画境 · 玄黛',
+        gradient: 'linear-gradient(to bottom, #1D1618, #2A1F22, #181113)',
+        textColor: '#FBE9DC',
+        subTextColor: '#D8BEAA',
+        cardBg: 'rgba(35, 27, 30, 0.65)',
+        cardBorder: 'rgba(223, 176, 122, 0.25)',
+        inputBg: 'rgba(20, 15, 17, 0.7)',
+        inputBorder: 'rgba(223, 176, 122, 0.25)',
+        inputColor: '#FDF5F2',
+        inputPlaceholder: '#877074',
+        buttonGradient: 'linear-gradient(to right, #DFB07A, #C79558, #DFB07A)',
+        buttonTextColor: '#2B1B15',
+        capsuleBg: 'rgba(255, 255, 255, 0.12)',
+        capsuleBorder: 'rgba(255, 255, 255, 0.2)',
+        capsuleColor: '#F5E4CE',
+        mountainColor: 'rgba(223, 176, 122, 0.15)',
+        orbGradient: 'radial-gradient(circle, rgba(223,176,122,0.35) 0%, rgba(200,120,100,0.15) 60%, transparent 100%)',
+        indicatorColor: 'rgba(255, 255, 255, 0.4)',
+        petalColors: ['#DFB07A', '#FBE6D0', '#D9A392', '#EED5C8'],
+        dustColor: '#FFE3B5',
+        rippleColor: '#DFB07A',
+        hasBlossoms: true
+      },
+      celadon: {
+        id: 'celadon',
+        label: '画境 · 天青',
+        gradient: 'linear-gradient(to bottom, #EFF6F3, #E3EEE9, #D4E4DC)',
+        textColor: '#21352E',
+        subTextColor: '#3E564E',
+        cardBg: 'rgba(255, 255, 255, 0.6)',
+        cardBorder: 'rgba(164, 196, 184, 0.5)',
+        inputBg: 'rgba(255, 255, 255, 0.85)',
+        inputBorder: 'rgba(144, 180, 168, 0.35)',
+        inputColor: '#182B24',
+        inputPlaceholder: '#7A968D',
+        buttonGradient: 'linear-gradient(to right, #243831, #3B564C, #243831)',
+        buttonTextColor: '#F0F7F4',
+        capsuleBg: 'rgba(0, 0, 0, 0.08)',
+        capsuleBorder: 'rgba(0, 0, 0, 0.12)',
+        capsuleColor: '#21352E',
+        mountainColor: 'rgba(124, 162, 150, 0.35)',
+        orbGradient: 'radial-gradient(circle, rgba(168,212,198,0.4) 0%, rgba(216,190,140,0.2) 60%, transparent 100%)',
+        indicatorColor: 'rgba(33, 53, 46, 0.3)',
+        petalColors: ['#C8E3D8', '#F5ECEB', '#9BBCAE', '#E4F0EB'],
+        dustColor: '#A7C7B9',
+        rippleColor: '#7CA296',
+        hasBlossoms: true
+      }
+    };
+
+    let activeTheme = themes.blush;
+
+    function applyTheme(theme) {
+      activeTheme = theme;
+      const screen = document.getElementById('screenContainer');
+      const brandTitle = document.getElementById('brandTitle');
+      const brandSlogan = document.getElementById('brandSlogan');
+      const formCard = document.getElementById('formCard');
+      const formTitle = document.getElementById('formTitle');
+      const statusBar = document.getElementById('statusBar');
+      const wechatCapsule = document.getElementById('wechatCapsule');
+      const mountainSvg = document.getElementById('mountainSvg');
+      const ambientOrb = document.getElementById('ambientOrb');
+      const loginBtn = document.getElementById('loginBtn');
+      const homeIndicator = document.getElementById('homeIndicator');
+      const currentThemeLabel = document.getElementById('currentThemeLabel');
+
+      // Update Label
+      currentThemeLabel.textContent = theme.label;
+
+      // Update Container & Card
+      screen.style.background = theme.gradient;
+      brandTitle.style.color = theme.textColor;
+      brandSlogan.style.color = theme.subTextColor;
+      formTitle.style.color = theme.textColor;
+      statusBar.style.color = theme.textColor;
+      mountainSvg.style.color = theme.mountainColor;
+      ambientOrb.style.background = theme.orbGradient;
+      homeIndicator.style.backgroundColor = theme.indicatorColor;
+
+      // Card & Inputs
+      formCard.style.backgroundColor = theme.cardBg;
+      formCard.style.borderColor = theme.cardBorder;
+
+      const userBox = document.getElementById('usernameBox');
+      const passBox = document.getElementById('passwordBox');
+      userBox.style.backgroundColor = theme.inputBg;
+      userBox.style.borderColor = theme.inputBorder;
+      passBox.style.backgroundColor = theme.inputBg;
+      passBox.style.borderColor = theme.inputBorder;
+
+      const userInput = document.getElementById('usernameInput');
+      const passInput = document.getElementById('passwordInput');
+      userInput.style.color = theme.inputColor;
+      passInput.style.color = theme.inputColor;
+
+      // Primary Button
+      loginBtn.style.background = theme.buttonGradient;
+      loginBtn.querySelector('span').style.color = theme.buttonTextColor;
+
+      // WeChat Capsule
+      wechatCapsule.style.backgroundColor = theme.capsuleBg;
+      wechatCapsule.style.borderColor = theme.capsuleBorder;
+      wechatCapsule.style.color = theme.capsuleColor;
+
+      // Update checkmarks in dropdown
+      document.querySelector('.theme-check-blush').classList.toggle('hidden', theme.id !== 'blush');
+      document.querySelector('.theme-check-dark').classList.toggle('hidden', theme.id !== 'dark');
+      document.querySelector('.theme-check-celadon').classList.toggle('hidden', theme.id !== 'celadon');
+
+      // Re-tint particle colors
+      petals.forEach(p => p.reset(true));
+      stardust.forEach(d => d.reset());
+    }
+
+    // Dropdown toggling
+    const themeMenuBtn = document.getElementById('themeMenuBtn');
+    const themeMenu = document.getElementById('themeMenu');
+
+    themeMenuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      themeMenu.classList.toggle('hidden');
+      themeMenu.classList.toggle('flex');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!themeMenu.contains(e.target) && !themeMenuBtn.contains(e.target)) {
+        themeMenu.classList.add('hidden');
+        themeMenu.classList.remove('flex');
+      }
+    });
+
+    function switchTheme(type) {
+      if (themes[type]) {
+        applyTheme(themes[type]);
+        themeMenu.classList.add('hidden');
+        themeMenu.classList.remove('flex');
+        showToast(`已切换至：${themes[type].label}`);
+      }
+    }
+
+    /* ================= 3. Interactive Falling Petal & Golden Dust Canvas ================= */
+    const canvas = document.getElementById('zenCanvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let petals = [];
+    let stardust = [];
+    let touchRipples = [];
+
+    function resizeCanvas() {
+      const parent = canvas.parentElement;
+      width = canvas.width = parent.clientWidth;
+      height = canvas.height = parent.clientHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Petal {
+      constructor() {
+        this.reset(true);
+      }
+      reset(init = false) {
+        this.x = init ? Math.random() * width : Math.random() * width * 1.2 - width * 0.1;
+        this.y = init ? Math.random() * height : -20;
+        this.size = Math.random() * 7 + 6;
+        this.speedY = Math.random() * 0.8 + 0.55;
+        this.speedX = (Math.random() - 0.2) * 0.6 + 0.3;
+        this.rotation = Math.random() * 360;
+        this.rotationSpeed = (Math.random() - 0.5) * 1.6;
+        this.flip = Math.random() * 360;
+        this.flipSpeed = Math.random() * 2 + 1;
+        this.alpha = Math.random() * 0.45 + 0.45;
+        
+        const palette = activeTheme.petalColors;
+        this.color = palette[Math.floor(Math.random() * palette.length)];
+      }
+      update() {
+        this.y += this.speedY;
+        this.x += this.speedX + Math.sin(this.y * 0.015) * 0.5;
+        this.rotation += this.rotationSpeed;
+        this.flip += this.flipSpeed;
+
+        if (this.y > height + 25 || this.x > width + 40 || this.x < -40) {
+          this.reset();
+        }
+      }
+      draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate((this.rotation * Math.PI) / 180);
+        ctx.scale(Math.cos((this.flip * Math.PI) / 180), 1);
+
+        ctx.beginPath();
+        ctx.moveTo(0, -this.size);
+        ctx.bezierCurveTo(this.size * 0.9, -this.size * 0.9, this.size * 0.9, this.size * 0.5, 0, this.size);
+        ctx.bezierCurveTo(-this.size * 0.9, this.size * 0.5, -this.size * 0.9, -this.size * 0.9, 0, -this.size);
+        
+        ctx.fillStyle = this.color;
+        ctx.globalAlpha = this.alpha;
+        ctx.shadowColor = activeTheme.rippleColor;
+        ctx.shadowBlur = 4;
+        ctx.fill();
+
+        // Inner Petal Vein
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.lineWidth = 0.7;
+        ctx.beginPath();
+        ctx.moveTo(0, -this.size * 0.7);
+        ctx.lineTo(0, this.size * 0.6);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+    }
+
+    class Dust {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.radius = Math.random() * 1.5 + 0.6;
+        this.alpha = Math.random() * 0.7 + 0.2;
+        this.alphaChange = (Math.random() - 0.5) * 0.015;
+        this.speedY = -Math.random() * 0.3 - 0.1;
+        this.speedX = (Math.random() - 0.5) * 0.3;
+      }
+      update() {
+        this.y += this.speedY;
+        this.x += this.speedX;
+        this.alpha += this.alphaChange;
+        if (this.alpha <= 0.15 || this.alpha >= 0.85) {
+          this.alphaChange = -this.alphaChange;
+        }
+        if (this.y < -10) this.y = height + 10;
+        if (this.x < -10) this.x = width + 10;
+        if (this.x > width + 10) this.x = -10;
+      }
+      draw() {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = activeTheme.dustColor;
+        ctx.shadowColor = '#FFFFFF';
+        ctx.shadowBlur = 5;
+        ctx.globalAlpha = Math.max(0, this.alpha);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    class Ripple {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.radius = 2;
+        this.maxRadius = 50;
+        this.alpha = 0.6;
+      }
+      update() {
+        this.radius += 1.6;
+        this.alpha -= 0.018;
+      }
+      draw() {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.strokeStyle = activeTheme.rippleColor;
+        ctx.lineWidth = 1.2;
+        ctx.globalAlpha = Math.max(0, this.alpha);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    // Initialize particles
+    for (let i = 0; i < 26; i++) petals.push(new Petal());
+    for (let i = 0; i < 30; i++) stardust.push(new Dust());
+
+    function renderLoop() {
+      ctx.clearRect(0, 0, width, height);
+
+      stardust.forEach(d => {
+        d.update();
+        d.draw();
+      });
+
+      petals.forEach(p => {
+        p.update();
+        p.draw();
+      });
+
+      for (let i = touchRipples.length - 1; i >= 0; i--) {
+        const r = touchRipples[i];
+        r.update();
+        r.draw();
+        if (r.alpha <= 0 || r.radius >= r.maxRadius) {
+          touchRipples.splice(i, 1);
+        }
+      }
+
+      requestAnimationFrame(renderLoop);
+    }
+    renderLoop();
+
+    function addRipple(clientX, clientY) {
+      const rect = canvas.getBoundingClientRect();
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+      if (x >= 0 && x <= width && y >= 0 && y <= height) {
+        touchRipples.push(new Ripple(x, y));
+      }
+    }
+    window.addEventListener('pointerdown', (e) => addRipple(e.clientX, e.clientY));
+
+    /* ================= 4. Form Interactions & Controls ================= */
+    
+    // Clear Input
+    function clearInput(inputId, btnId) {
+      document.getElementById(inputId).value = '';
+      document.getElementById(btnId).classList.add('hidden');
+    }
+
+    const usernameInput = document.getElementById('usernameInput');
+    const clearUserBtn = document.getElementById('clearUserBtn');
+    usernameInput.addEventListener('input', () => {
+      if (usernameInput.value.length > 0) {
+        clearUserBtn.classList.remove('hidden');
+      } else {
+        clearUserBtn.classList.add('hidden');
+      }
+    });
+
+    // Toggle Password Visibility
+    let passwordVisible = false;
+    function togglePasswordVisibility() {
+      const passwordInput = document.getElementById('passwordInput');
+      const passwordEyeIcon = document.getElementById('passwordEyeIcon');
+      passwordVisible = !passwordVisible;
+      if (passwordVisible) {
+        passwordInput.type = 'text';
+        passwordEyeIcon.className = 'ph ph-eye text-base text-rose-600';
+      } else {
+        passwordInput.type = 'password';
+        passwordEyeIcon.className = 'ph ph-eye-slash text-base text-stone-400';
+      }
+    }
+
+    // Toast function
+    function showToast(message, isSuccess = true) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      const toastIcon = document.getElementById('toastIcon');
+
+      toastMsg.textContent = message;
+      if (isSuccess) {
+        toastIcon.className = "ph-fill ph-check-circle text-emerald-400 text-base";
+      } else {
+        toastIcon.className = "ph-fill ph-warning-circle text-amber-400 text-base";
+      }
+
+      toast.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-6');
+      toast.classList.add('opacity-100', 'translate-y-0');
+
+      setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', 'pointer-events-none', '-translate-y-6');
+      }, 2400);
+    }
+
+    // Sparkle pulse on logo tap
+    function pulseSparkles(e) {
+      for (let i = 0; i < 8; i++) {
+        const p = new Petal();
+        p.x = width / 2 + (Math.random() - 0.5) * 50;
+        p.y = height * 0.32 + (Math.random() - 0.5) * 50;
+        p.speedY = (Math.random() - 0.3) * 2.2;
+        p.speedX = (Math.random() - 0.5) * 3;
+        petals.push(p);
+      }
+      addRipple(e.clientX, e.clientY);
+      showToast('🌸 触碰东方灵韵 · 晶石生辉', true);
+    }
+
+    // Login Submission Logic
+    document.getElementById('loginBtn').addEventListener('click', () => {
+      const user = usernameInput.value.trim();
+      const pass = document.getElementById('passwordInput').value.trim();
+      const agree = document.getElementById('agreementCheck').checked;
+
+      if (!agree) {
+        showToast('请先勾选同意用户与隐私政策', false);
+        return;
+      }
+      if (!user) {
+        showToast('请输入您的账号或手机号', false);
+        usernameInput.focus();
+        return;
+      }
+      if (!pass) {
+        showToast('请输入您的登录密码', false);
+        document.getElementById('passwordInput').focus();
+        return;
+      }
+
+      showToast('正在登入静悦手作珠宝平台...', true);
+      setTimeout(() => {
+        showToast(`欢迎归来，${user}！登录成功`, true);
+      }, 1000);
+    });
+
+    // Agreement Modal Controls
+    const textModal = document.getElementById('textModal');
+    const textModalTitle = document.getElementById('textModalTitle');
+    const textModalBody = document.getElementById('textModalBody');
+
+    function openModal(type) {
+      if (type === 'userAgreement') {
+        textModalTitle.textContent = '静悦手作珠宝 · 用户服务协议';
+        textModalBody.innerHTML = `
+          <p class="mb-2"><strong>欢迎来到静悦（JY手作珠宝）平台。</strong></p>
+          <p class="mb-2">1. <strong>手工甄选与孤品特性</strong>：平台所有沙金、纯银、古法金、老檀木及晶石手串均为独立匠人手作打造，天然材质微小纹理与雕刻细节均属正常东方手工美学范畴。</p>
+          <p class="mb-2">2. <strong>真品保证与证书</strong>：所有贵金属及高价值宝石配饰均经过国家级检测机构认证。</p>
+          <p>3. <strong>定制与养护</strong>：部分手围或手工编绳可享受终身免费养护与换线服务。</p>
+        `;
+      } else {
+        textModalTitle.textContent = '静悦手作珠宝 · 隐私保护政策';
+        textModalBody.innerHTML = `
+          <p class="mb-2"><strong>我们深知个人信息对您的重要性。</strong></p>
+          <p class="mb-2">1. 我们仅在您使用账号登录时，收集必要的联系方式与收货地址，用于专属珠宝订单鉴赏与安全发货服务。</p>
+          <p>2. 严格采用银行级高强度加密技术守护您的个人数据与专属定制记录，绝不向任何第三方透露。</p>
+        `;
+      }
+      textModal.classList.remove('opacity-0', 'pointer-events-none');
+    }
+
+    function closeTextModal() {
+      textModal.classList.add('opacity-0', 'pointer-events-none');
+    }
+
+    textModal.addEventListener('click', (e) => {
+      if (e.target === textModal) closeTextModal();
+    });
+
+    // Device Frame Toggle (Phone vs Fullscreen)
+    const deviceWrapper = document.getElementById('deviceWrapper');
+    const toggleDeviceBtn = document.getElementById('toggleDeviceBtn');
+    const deviceText = document.getElementById('deviceText');
+    let isPhoneMode = true;
+
+    toggleDeviceBtn.addEventListener('click', () => {
+      isPhoneMode = !isPhoneMode;
+      if (!isPhoneMode) {
+        deviceWrapper.className = "relative w-full h-[100dvh] overflow-hidden flex flex-col transition-all duration-500";
+        deviceText.textContent = "全屏浏览模式";
+      } else {
+        deviceWrapper.className = "relative w-full sm:w-[416px] h-[100dvh] sm:h-[860px] sm:max-h-[94vh] sm:rounded-[48px] overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.7)] border-0 sm:border-[8px] sm:border-[#382b2d] ring-1 ring-white/20 transition-all duration-500 bg-[#FAF1ED] flex flex-col";
+        deviceText.textContent = "手机框模式";
+      }
+      setTimeout(resizeCanvas, 520);
+    });
+
+    // Initial theme apply
+    applyTheme(themes.blush);
+  

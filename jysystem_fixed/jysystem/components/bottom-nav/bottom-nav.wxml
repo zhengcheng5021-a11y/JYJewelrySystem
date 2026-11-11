@@ -1,0 +1,7 @@
+<view class="bottom-nav" style="{{theme.varsStyle}}">
+  <button wx:for="{{tabs}}" wx:key="id" class="tab-item {{active===item.id?'active':''}}" data-path="{{item.path}}" bindtap="open">
+    <text class="tab-icon">{{item.icon}}</text>
+    <text class="tab-label">{{item.label}}</text>
+  </button>
+  <view class="safe-area"></view>
+</view>

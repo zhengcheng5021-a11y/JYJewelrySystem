@@ -1,0 +1,42 @@
+/* 静悦统一字体与可读字号。参考原 uniapp 的 11-13.5px 正文层级。 */
+.app-main,
+.el-overlay,
+.el-dialog,
+.el-drawer,
+.el-message-box,
+.el-select-dropdown,
+.el-picker-panel {
+  font-family: "Microsoft YaHei", "微软雅黑", "PingFang SC", "Segoe UI", sans-serif;
+}
+
+.app-main :is(.jy-member, .jy-sale, .jy-records, .jy-return, .jy-stock, .jy-inbound, .jy-goods, .jy-activity, .jy-bill, .jy-sheet, .jy-custom, .jy-workbench, .review-page, .jy-home, .console-page) {
+  font-family: "Microsoft YaHei", "微软雅黑", "PingFang SC", "Segoe UI", sans-serif;
+  font-size: 13px;
+}
+
+.app-main :is(.jy-member, .jy-sale, .jy-records, .jy-return, .jy-stock, .jy-inbound, .jy-goods, .jy-activity, .jy-bill, .jy-sheet, .jy-custom, .jy-workbench, .review-page, .jy-home, .console-page) small {
+  font-size: 11px;
+}
+
+.app-main :is(.jy-member, .jy-sale, .jy-records, .jy-return, .jy-stock, .jy-inbound, .jy-goods, .jy-activity, .jy-bill, .jy-sheet, .jy-custom, .jy-workbench, .review-page, .jy-home, .console-page) :is(.el-form-item__label, .el-table, .el-table th.el-table__cell, .el-table td.el-table__cell, .el-descriptions__label, .el-descriptions__content) {
+  font-size: 12px;
+}
+
+.app-main :is(.jy-member, .jy-sale, .jy-records, .jy-return, .jy-stock, .jy-inbound, .jy-goods, .jy-activity, .jy-bill, .jy-sheet, .jy-custom, .jy-workbench, .review-page, .jy-home, .console-page) :is(input, textarea, .el-select__placeholder, .el-select__selected-item) {
+  font-size: 13px;
+}
+
+.app-main :is(.jy-member, .jy-sale, .jy-records, .jy-return, .jy-stock, .jy-inbound, .jy-goods, .jy-activity, .jy-bill, .jy-sheet, .jy-custom, .jy-workbench, .review-page, .jy-home, .console-page) :is(h1, h2, h3, h4, strong, b) {
+  font-family: "Microsoft YaHei", "微软雅黑", "PingFang SC", "Segoe UI", sans-serif;
+}
+
+.sidebar-container .el-menu-item,
+.sidebar-container .el-sub-menu__title {
+  font-family: "Microsoft YaHei", "微软雅黑", "PingFang SC", sans-serif;
+  font-size: 13px;
+}
+
+.sidebar-container .el-menu-item.is-active,
+.sidebar-container .el-sub-menu.is-active > .el-sub-menu__title {
+  font-weight: 600;
+}

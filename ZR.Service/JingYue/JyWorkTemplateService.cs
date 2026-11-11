@@ -1,0 +1,237 @@
+using Infrastructure;
+using Infrastructure.Attribute;
+using SqlSugar;
+using System.Text.Json;
+using ZR.Model.JingYue;
+using ZR.Model.JingYue.Dto;
+
+namespace ZR.Service.JingYue
+{
+    /// <summary>目标模板维护与应用。</summary>
+    [AppService]
+    public class JyWorkTemplateService : BaseService<JyWorkTemplate>
+    {
+        private readonly JyWorkItemService _workItem;
+
+        public JyWorkTemplateService(JyWorkItemService workItem)
+        {
+            _workItem = workItem;
+        }
+
+        public PagedInfo<JyWorkTemplateDto> List(JyActor actor, int pageNum = 1, int pageSize = 50)
+        {
+            pageNum = pageNum <= 0 ? 1 : pageNum;
+            pageSize = pageSize <= 0 ? 50 : Math.Min(pageSize, 100);
+            var total = 0;
+            var rows = Context.Queryable<JyWorkTemplate>()
+                .Where(it => it.TenantId == actor.TenantId && it.DelFlag == 0)
+                .OrderBy(it => it.Id, OrderByType.Desc).ToPageList(pageNum, pageSize, ref total);
+            var ids = rows.Select(it => it.Id).ToList();
+            var items = ids.Count == 0 ? new List<JyWorkTemplateItem>() : Context.Queryable<JyWorkTemplateItem>()
+                .Where(it => it.TenantId == actor.TenantId && ids.Contains(it.TemplateId)).OrderBy(it => it.SortNo).ToList();
+            var itemMap = items.GroupBy(it => it.TemplateId).ToDictionary(g => g.Key, g => g.ToList());
+            return new PagedInfo<JyWorkTemplateDto>
+            {
+                PageIndex = pageNum, PageSize = pageSize, TotalNum = total,
+                Result = rows.Select(it => ToDto(it, itemMap.GetValueOrDefault(it.Id) ?? new List<JyWorkTemplateItem>())).ToList()
+            };
+        }
+
+        public JyWorkTemplateDto Detail(JyActor actor, long id)
+        {
+            var row = Must(actor.TenantId, id);
+            var items = Context.Queryable<JyWorkTemplateItem>()
+                .Where(it => it.TenantId == actor.TenantId && it.TemplateId == id).OrderBy(it => it.SortNo).ToList();
+            return ToDto(row, items);
+        }
+
+        public long Save(JyActor actor, JyWorkTemplateEditDto dto)
+        {
+            if (dto == null) throw new CustomException("模板内容不能为空");
+            var name = (dto.TemplateName ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(name) || name.Length > 100) throw new CustomException("模板名称不能为空且不能超过 100 个字");
+            if (dto.Items == null || dto.Items.Count == 0) throw new CustomException("模板至少需要一条目标");
+            if (dto.Items.Count > 100) throw new CustomException("一个模板最多 100 条目标");
+            var now = DateTime.Now;
+            long id = 0;
+            var tran = UseTran(() =>
+            {
+                if (dto.Id > 0)
+                {
+                    var row = Must(actor.TenantId, dto.Id);
+                    row.TemplateName = name;
+                    row.Description = Trim(dto.Description, 500);
+                    row.Status = dto.Status;
+                    row.Update_by = actor.UserName;
+                    row.Update_time = now;
+                    Context.Updateable(row).UpdateColumns(it => new
+                    { it.TemplateName, it.Description, it.Status, it.Update_by, it.Update_time }).ExecuteCommand();
+                    Context.Deleteable<JyWorkTemplateItem>().Where(it => it.TenantId == actor.TenantId && it.TemplateId == row.Id).ExecuteCommand();
+                    id = row.Id;
+                }
+                else
+                {
+                    var row = new JyWorkTemplate
+                    {
+                        TenantId = actor.TenantId, TemplateName = name, Description = Trim(dto.Description, 500),
+                        Status = dto.Status, DelFlag = 0, Create_by = actor.UserName, Create_time = now
+                    };
+                    id = Context.Insertable(row).ExecuteReturnBigIdentity();
+                }
+                var items = dto.Items.Select((it, index) => new JyWorkTemplateItem
+                {
+                    TenantId = actor.TenantId, TemplateId = id, SortNo = index + 1,
+                    Title = (it.Title ?? string.Empty).Trim(), ItemKind = it.ItemKind, PeriodType = it.PeriodType,
+                    Priority = it.Priority, MetricCode = it.MetricCode, TargetValue = it.TargetValue,
+                    TargetMode = it.TargetMode, CategoryId = it.CategoryId, CategoryName = it.CategoryName,
+                    ScopeJson = it.ScopeJson, Remark = Trim(it.Remark, 500)
+                }).ToList();
+                if (items.Any(it => string.IsNullOrEmpty(it.Title) || it.Title.Length > 200))
+                    throw new CustomException("模板目标标题不能为空且不能超过 200 个字");
+                Context.Insertable(items).ExecuteCommand();
+            });
+            if (!tran.IsSuccess) throw new CustomException(tran.ErrorMessage ?? "模板保存失败");
+            return id;
+        }
+
+        public int Delete(JyActor actor, long id)
+        {
+            Must(actor.TenantId, id);
+            return Context.Updateable<JyWorkTemplate>()
+                .SetColumns(it => it.DelFlag == 2).SetColumns(it => it.Update_by == actor.UserName)
+                .SetColumns(it => it.Update_time == DateTime.Now)
+                .Where(it => it.Id == id && it.TenantId == actor.TenantId && it.DelFlag == 0).ExecuteCommand();
+        }
+
+        public JyWorkTemplateApplyResultDto Apply(JyActor actor, long id, JyWorkTemplateApplyDto dto)
+        {
+            var template = Must(actor.TenantId, id);
+            var items = Context.Queryable<JyWorkTemplateItem>()
+                .Where(it => it.TenantId == actor.TenantId && it.TemplateId == id).OrderBy(it => it.SortNo).ToList();
+            if (items.Count == 0) throw new CustomException("模板没有可应用的目标");
+            dto ??= new JyWorkTemplateApplyDto();
+            var start = dto.StartDate?.Date ?? DateTime.Today;
+            var end = dto.EndDate?.Date ?? GetPeriodEnd(start, dto.PeriodType ?? 3);
+            if (end < start) throw new CustomException("结束日期不能早于开始日期");
+            var title = string.IsNullOrWhiteSpace(dto.Title) ? template.TemplateName : dto.Title.Trim();
+            if (title.Length > 200) throw new CustomException("父目标标题不能超过 200 个字");
+            // 模板中的品类/目标口径本身就是业绩信号。前端遗漏标志时由服务端兜底，
+            // 避免生成“有业绩子目标、父事项却不是业绩目标”的不一致数据。
+            var isPerformanceRelated = dto.IsPerformanceRelated == 1
+                || items.Any(it => it.CategoryId.HasValue
+                    || it.MetricCode is "sales_net_amount" or "category_sales_amount" or "category_sales_qty") ? 1 : 0;
+            var hasDateRange = isPerformanceRelated == 1 || dto.HasDateRange == 1 ? 1 : 0;
+            var ownerUserId = dto.OwnerUserId > 0 ? dto.OwnerUserId : null;
+            var ownerName = _workItem.ResolveOwnerName(actor, ownerUserId, dto.OwnerName);
+
+            long parentId = 0;
+            var now = DateTime.Now;
+            var tran = UseTran(() =>
+            {
+                var parent = new JyWorkItem
+                {
+                    TenantId = actor.TenantId, ParentId = null, Title = title, ItemKind = 6,
+                    PeriodType = dto.PeriodType ?? 3, StartDate = start, EndDate = end,
+                    DueTime = hasDateRange == 1 ? end.AddDays(1).AddSeconds(-1) : (DateTime?)null,
+                    Priority = dto.Priority ?? 4, HasDateRange = hasDateRange, IsPerformanceRelated = isPerformanceRelated,
+                    OwnerUserId = ownerUserId,
+                    OwnerName = ownerName, Status = 0, ProgressMode = 3,
+                    TargetValue = 0, CurrentValue = 0, CurrentAuxValue = 0, ProgressPercent = 0,
+                    AutoComplete = 1, SortNo = 0, TemplateId = template.Id, DelFlag = 0,
+                    Create_by = actor.UserName, Create_time = now,
+                    Remark = template.Description
+                };
+                parent.ItemNo = _workItem.NextItemNo(Context, actor.TenantId, now);
+                parentId = Context.Insertable(parent).ExecuteReturnBigIdentity();
+                foreach (var item in items)
+                {
+                    var autoMetric = item.MetricCode is "sales_net_amount" or "category_sales_amount" or "category_sales_qty" or "customer_follow_count" or "customer_deal_count";
+                    var child = new JyWorkItem
+                    {
+                        TenantId = actor.TenantId, ParentId = parentId, Title = item.Title, ItemKind = item.ItemKind,
+                        PeriodType = item.PeriodType, StartDate = start, EndDate = end,
+                        DueTime = hasDateRange == 1 ? end.AddDays(1).AddSeconds(-1) : (DateTime?)null,
+                        TargetFinishDate = hasDateRange == 1 ? end : (DateTime?)null,
+                        Priority = item.Priority, OwnerUserId = ownerUserId,
+                        OwnerName = ownerName, Status = 0,
+                        ProgressMode = autoMetric ? 2 : 1,
+                        MetricCode = autoMetric ? item.MetricCode : null, TargetValue = item.TargetValue, CurrentValue = 0,
+                        CurrentAuxValue = 0, ProgressPercent = 0, AutoComplete = 1, SortNo = item.SortNo,
+                        TemplateId = template.Id, DelFlag = 0, Remark = item.Remark,
+                        HasDateRange = hasDateRange, IsPerformanceRelated = isPerformanceRelated,
+                        TargetMode = item.TargetMode, CategoryId = item.CategoryId, CategoryName = item.CategoryName,
+                        Create_by = actor.UserName, Create_time = now
+                    };
+                    child.ItemNo = _workItem.NextItemNo(Context, actor.TenantId, now);
+                    child.Id = Context.Insertable(child).ExecuteReturnBigIdentity();
+                    if (!string.IsNullOrWhiteSpace(item.ScopeJson))
+                    {
+                        try
+                        {
+                            var scopes = System.Text.Json.JsonSerializer.Deserialize<List<JyWorkScopeEditDto>>(item.ScopeJson);
+                            if (scopes?.Count > 0)
+                                Context.Insertable(scopes.Select(s => new JyWorkItemScope
+                                {
+                                    TenantId = actor.TenantId, WorkItemId = child.Id, ScopeType = s.ScopeType,
+                                    ScopeId = s.ScopeId, SnapshotName = ResolveScopeName(actor, s),
+                                    Create_time = now
+                                }).ToList()).ExecuteCommand();
+                        }
+                        catch (System.Text.Json.JsonException) { }
+                    }
+                }
+            });
+            if (!tran.IsSuccess) throw new CustomException(tran.ErrorMessage ?? "模板应用失败");
+            var children = Context.Queryable<JyWorkItem>()
+                .Where(it => it.TenantId == actor.TenantId && it.ParentId == parentId && it.ProgressMode == 2 && it.DelFlag == 0).ToList();
+            foreach (var child in children) _workItem.TryRecalculateByWorkItem(actor, child.Id);
+            _workItem.TryRecalculateByWorkItem(actor, parentId);
+            return new JyWorkTemplateApplyResultDto { ParentId = parentId, Title = title, ItemCount = items.Count };
+        }
+
+        private string ResolveScopeName(JyActor actor, JyWorkScopeEditDto scope)
+        {
+            if (!string.IsNullOrWhiteSpace(scope.SnapshotName)) return scope.SnapshotName.Trim();
+            if (scope.ScopeType == 1)
+                return Context.Queryable<JyMember>()
+                    .Where(it => it.Id == scope.ScopeId && it.TenantId == actor.TenantId).Select(it => it.MemberName).First();
+            if (scope.ScopeType == 2)
+                return Context.Queryable<JyLookupItem>()
+                    .Where(it => it.Id == scope.ScopeId && it.TenantId == actor.TenantId).Select(it => it.ItemName).First();
+            return null;
+        }
+        private static DateTime GetPeriodEnd(DateTime start, int periodType) => periodType switch
+        {
+            1 => start,
+            2 => start.AddDays(6),
+            3 => new DateTime(start.Year, start.Month, 1).AddMonths(1).AddDays(-1),
+            4 => new DateTime(start.Year, ((start.Month - 1) / 3) * 3 + 1, 1).AddMonths(3).AddDays(-1),
+            5 => new DateTime(start.Year, 12, 31),
+            _ => start
+        };
+
+        private JyWorkTemplate Must(string tenantId, long id) =>
+            Context.Queryable<JyWorkTemplate>().First(it => it.Id == id && it.TenantId == tenantId && it.DelFlag == 0)
+            ?? throw new CustomException("目标模板不存在");
+
+        private static JyWorkTemplateDto ToDto(JyWorkTemplate it, List<JyWorkTemplateItem> items) => new()
+        {
+            Id = it.Id, TemplateName = it.TemplateName, Description = it.Description, Status = it.Status,
+            ItemCount = items.Count, CreateTime = it.Create_time,
+            Items = items.Select(x => new JyWorkTemplateItemDto
+            {
+                Id = x.Id, Title = x.Title, ItemKind = x.ItemKind, PeriodType = x.PeriodType, Priority = x.Priority,
+                MetricCode = x.MetricCode, TargetValue = x.TargetValue, TargetMode = x.TargetMode,
+                CategoryId = x.CategoryId, CategoryName = x.CategoryName, ScopeJson = x.ScopeJson, Remark = x.Remark
+            }).ToList()
+        };
+
+        private static string Trim(string value, int max)
+        {
+            value = (value ?? string.Empty).Trim();
+            if (value.Length > max) throw new CustomException($"文本不能超过 {max} 个字");
+            return string.IsNullOrEmpty(value) ? null : value;
+        }
+    }
+}
+

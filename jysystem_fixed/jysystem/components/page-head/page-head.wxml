@@ -1,0 +1,8 @@
+<view class="head">
+  <view class="copy">
+    <text wx:if="{{eyebrow}}" class="eyebrow">{{eyebrow}}</text>
+    <view class="title">{{title}}</view>
+    <view wx:if="{{subtitle}}" class="subtitle">{{subtitle}}</view>
+  </view>
+  <button wx:if="{{action}}" class="head-action" bindtap="onAction">{{action}}</button>
+</view>

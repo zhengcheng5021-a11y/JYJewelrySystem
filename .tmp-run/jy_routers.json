@@ -1,0 +1,1698 @@
+[
+  {
+    "alwaysShow": false,
+    "hidden": false,
+    "name": "",
+    "path": "/",
+    "redirect": null,
+    "query": null,
+    "meta": null,
+    "children": [
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "Dashboard",
+        "path": "dashboard",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "控制台",
+          "icon": "dashboard",
+          "noCache": false,
+          "titleKey": "menu.dashboard",
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": null,
+          "tagByQuery": false
+        },
+        "component": "dashboard/index"
+      }
+    ],
+    "component": "Layout"
+  },
+  {
+    "alwaysShow": false,
+    "hidden": true,
+    "name": "datascreen",
+    "path": "/dataScreen",
+    "redirect": null,
+    "query": null,
+    "meta": {
+      "title": "数据大屏",
+      "icon": "server",
+      "noCache": false,
+      "titleKey": "menu.dataScreen",
+      "link": "",
+      "isNew": 0,
+      "iconColor": null,
+      "permi": "system:datascreen:list",
+      "tagByQuery": false
+    },
+    "component": "dataScreen/index"
+  },
+  {
+    "alwaysShow": true,
+    "hidden": true,
+    "name": "",
+    "path": "/",
+    "redirect": "noRedirect",
+    "query": null,
+    "meta": {
+      "title": "组件示例",
+      "icon": "zujian",
+      "noCache": false,
+      "titleKey": "menu.zujianDemo",
+      "link": "",
+      "isNew": 0,
+      "iconColor": null,
+      "permi": null,
+      "tagByQuery": false
+    },
+    "children": [
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "icon",
+        "path": "icon",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "图标icon",
+          "icon": "icon1",
+          "noCache": false,
+          "titleKey": "menu.icon",
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": null,
+          "tagByQuery": false
+        },
+        "component": "components/icons/index"
+      }
+    ],
+    "component": "Layout"
+  },
+  {
+    "alwaysShow": true,
+    "hidden": true,
+    "name": "monitor",
+    "path": "/monitor",
+    "redirect": "noRedirect",
+    "query": null,
+    "meta": {
+      "title": "系统监控",
+      "icon": "monitor",
+      "noCache": false,
+      "titleKey": "menu.monitoring",
+      "link": "",
+      "isNew": 0,
+      "iconColor": null,
+      "permi": null,
+      "tagByQuery": false
+    },
+    "children": [
+      {
+        "alwaysShow": false,
+        "hidden": true,
+        "name": "job/log",
+        "path": "job/log",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "任务日志",
+          "icon": "log",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "monitor:job:query",
+          "tagByQuery": false
+        },
+        "component": "monitor/job/log"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "job",
+        "path": "job",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "定时任务",
+          "icon": "job",
+          "noCache": false,
+          "titleKey": "menu.timedTask",
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": null,
+          "tagByQuery": false
+        },
+        "component": "monitor/job/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "useronlinelog",
+        "path": "userOnlineLog",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "用户在线日志",
+          "icon": "log",
+          "noCache": false,
+          "titleKey": "menu.userOnlineLog",
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "useronlinelog:list",
+          "tagByQuery": false
+        },
+        "component": "monitor/UserOnlineLog"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "onlineusers",
+        "path": "onlineusers",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "在线用户",
+          "icon": "online",
+          "noCache": false,
+          "titleKey": "layout.onlineUsers",
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": null,
+          "tagByQuery": false
+        },
+        "component": "monitor/onlineuser/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "server",
+        "path": "server",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "服务监控",
+          "icon": "server",
+          "noCache": false,
+          "titleKey": "menu.serviceMonitor",
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "monitor:server:list",
+          "tagByQuery": false
+        },
+        "component": "monitor/server/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "dbsync",
+        "path": "dbsync",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "数据库同步",
+          "icon": "ele-Refresh",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "system:dbSync:list",
+          "tagByQuery": false
+        },
+        "component": "monitor/DbSync"
+      }
+    ],
+    "component": "Layout"
+  },
+  {
+    "alwaysShow": true,
+    "hidden": true,
+    "name": "tool",
+    "path": "/tool",
+    "redirect": "noRedirect",
+    "query": null,
+    "meta": {
+      "title": "系统工具",
+      "icon": "tool",
+      "noCache": false,
+      "titleKey": "menu.systemTools",
+      "link": "",
+      "isNew": 0,
+      "iconColor": null,
+      "permi": null,
+      "tagByQuery": false
+    },
+    "children": [
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "build",
+        "path": "build",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "表单构建",
+          "icon": "build",
+          "noCache": false,
+          "titleKey": "menu.formBuild",
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "tool:build:list",
+          "tagByQuery": false
+        },
+        "component": "tool/build/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": true,
+        "name": "/gen/edittable",
+        "path": "/gen/editTable",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "生成修改",
+          "icon": "app",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "tool:gen:edit",
+          "tagByQuery": false
+        },
+        "component": "tool/gen/editTable"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "gen",
+        "path": "gen",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "代码生成",
+          "icon": "code",
+          "noCache": false,
+          "titleKey": "menu.codeGeneration",
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "tool:gen:list",
+          "tagByQuery": false
+        },
+        "component": "tool/gen/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "swagger",
+        "path": "swagger",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "系统接口",
+          "icon": "swagger",
+          "noCache": false,
+          "titleKey": "menu.systemInterface",
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "tool:swagger:list",
+          "tagByQuery": false
+        },
+        "component": "tool/swagger/index"
+      },
+      {
+        "alwaysShow": true,
+        "hidden": false,
+        "name": "email",
+        "path": "email",
+        "redirect": "noRedirect",
+        "query": null,
+        "meta": {
+          "title": "邮件管理",
+          "icon": "email",
+          "noCache": false,
+          "titleKey": "menu.emailList",
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": null,
+          "tagByQuery": false
+        },
+        "children": [
+          {
+            "alwaysShow": false,
+            "hidden": false,
+            "name": "emaillog",
+            "path": "emailLog",
+            "redirect": null,
+            "query": null,
+            "meta": {
+              "title": "邮件记录",
+              "icon": "emailLog",
+              "noCache": false,
+              "titleKey": "menu.emailLog",
+              "link": "",
+              "isNew": 0,
+              "iconColor": null,
+              "permi": "emaillog:list",
+              "tagByQuery": false
+            },
+            "component": "tool/email/emailLog"
+          },
+          {
+            "alwaysShow": false,
+            "hidden": false,
+            "name": "email",
+            "path": "email",
+            "redirect": null,
+            "query": null,
+            "meta": {
+              "title": "邮件模板",
+              "icon": "icon1",
+              "noCache": false,
+              "titleKey": "menu.emailTemplate",
+              "link": "",
+              "isNew": 0,
+              "iconColor": null,
+              "permi": "tool:emailtpl:list",
+              "tagByQuery": false
+            },
+            "component": "tool/email/emailTpl"
+          },
+          {
+            "alwaysShow": false,
+            "hidden": false,
+            "name": "sendemail",
+            "path": "sendEmail",
+            "redirect": null,
+            "query": null,
+            "meta": {
+              "title": "发送邮件",
+              "icon": "emailSend",
+              "noCache": false,
+              "titleKey": "menu.sendEmail",
+              "link": "",
+              "isNew": 0,
+              "iconColor": null,
+              "permi": "tool:email:send",
+              "tagByQuery": false
+            },
+            "component": "tool/email/sendEmail"
+          }
+        ],
+        "component": "ParentView"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "file",
+        "path": "file",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "文件存储",
+          "icon": "upload",
+          "noCache": false,
+          "titleKey": "menu.fileStorage",
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "tool:file:list",
+          "tagByQuery": false
+        },
+        "component": "tool/file/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "filegroup",
+        "path": "fileGroup",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "文件分组",
+          "icon": "tree-table",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "filegroup:list",
+          "tagByQuery": false
+        },
+        "component": "tool/file/fileGroup"
+      }
+    ],
+    "component": "Layout"
+  },
+  {
+    "alwaysShow": true,
+    "hidden": false,
+    "name": "business",
+    "path": "/business",
+    "redirect": "noRedirect",
+    "query": null,
+    "meta": {
+      "title": "静悦业务",
+      "icon": "shopping",
+      "noCache": false,
+      "titleKey": null,
+      "link": "",
+      "isNew": 0,
+      "iconColor": null,
+      "permi": null,
+      "tagByQuery": false
+    },
+    "children": [
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "inbound",
+        "path": "inbound",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "采购入库",
+          "icon": "ele-DocumentAdd",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "jingyue:inbound:list",
+          "tagByQuery": false
+        },
+        "component": "jingyue/inbound/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": true,
+        "name": "goods",
+        "path": "goods",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "商品档案",
+          "icon": "shopping",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "jingyue:goods:list",
+          "tagByQuery": false
+        },
+        "component": "jingyue/goods/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "stock",
+        "path": "stock",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "库存查询",
+          "icon": "shopping",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "jingyue:stock:list",
+          "tagByQuery": false
+        },
+        "component": "jingyue/stock/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "sale",
+        "path": "sale",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "柜台销售",
+          "icon": "shopping",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "jingyue:sale:list",
+          "tagByQuery": false
+        },
+        "component": "jingyue/sale/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "member",
+        "path": "member",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "会员档案",
+          "icon": "user",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "jingyue:member:list",
+          "tagByQuery": false
+        },
+        "component": "jingyue/member/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "activity",
+        "path": "activity",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "营销活动",
+          "icon": "star",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "jingyue:activity:list",
+          "tagByQuery": false
+        },
+        "component": "jingyue/activity/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "referral",
+        "path": "referral",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "转介绍奖励",
+          "icon": "server",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "jingyue:referral:list",
+          "tagByQuery": false
+        },
+        "component": "jingyue/referral/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "sale-records",
+        "path": "sale-records",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "开单记录",
+          "icon": "skill",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "jingyue:sale:query",
+          "tagByQuery": false
+        },
+        "component": "jingyue/sale/records"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "stocktake",
+        "path": "stocktake",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "盘点管理",
+          "icon": "clipboard",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 1,
+          "iconColor": null,
+          "permi": "jingyue:stocktake:list",
+          "tagByQuery": false
+        },
+        "component": "jingyue/stocktake/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "sale-return",
+        "path": "sale-return",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "销售退货",
+          "icon": "ele-RefreshLeft",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "jingyue:sale:return",
+          "tagByQuery": false
+        },
+        "component": "jingyue/sale/return"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "sale-custom",
+        "path": "sale-custom",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "销售定制",
+          "icon": "form",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "jingyue:custom:list",
+          "tagByQuery": false
+        },
+        "component": "jingyue/custom/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "custom-refund",
+        "path": "custom-refund",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "定金退回",
+          "icon": "money",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "jingyue:custom:refund",
+          "tagByQuery": false
+        },
+        "component": "jingyue/custom/refund"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "factory-return",
+        "path": "factory-return",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "商品返厂",
+          "icon": "backup",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "jingyue:factory:list",
+          "tagByQuery": false
+        },
+        "component": "jingyue/factory/index"
+      }
+    ],
+    "component": "Layout"
+  },
+  {
+    "alwaysShow": true,
+    "hidden": false,
+    "name": "reports",
+    "path": "/reports",
+    "redirect": "noRedirect",
+    "query": null,
+    "meta": {
+      "title": "报表管理",
+      "icon": "chart",
+      "noCache": false,
+      "titleKey": null,
+      "link": "",
+      "isNew": 0,
+      "iconColor": null,
+      "permi": null,
+      "tagByQuery": false
+    },
+    "children": [
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "sales-metrics",
+        "path": "sales-metrics",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "销售指标",
+          "icon": "chart",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "jingyue:report:query",
+          "tagByQuery": false
+        },
+        "component": "jingyue/report/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "store-traffic",
+        "path": "store-traffic",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "客流分析",
+          "icon": "user",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "jingyue:traffic:query",
+          "tagByQuery": false
+        },
+        "component": "jingyue/report/traffic"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "style-performance",
+        "path": "style-performance",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "款式经营",
+          "icon": "chart",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "jingyue:report:style",
+          "tagByQuery": false
+        },
+        "component": "jingyue/report/style"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "combo-report",
+        "path": "combo-report",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "联动组合分析",
+          "icon": "chart",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "jingyue:combo:list",
+          "tagByQuery": false
+        },
+        "component": "jingyue/combo/report"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "inventory-report",
+        "path": "inventory-report",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "进销存报表",
+          "icon": "list",
+          "noCache": false,
+          "titleKey": "",
+          "link": "",
+          "isNew": 1,
+          "iconColor": null,
+          "permi": "jingyue:report:query",
+          "tagByQuery": false
+        },
+        "component": "jingyue/report/inventory"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "stock-age",
+        "path": "stock-age",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "库龄分析",
+          "icon": "chart",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 1,
+          "iconColor": null,
+          "permi": "jingyue:report:query",
+          "tagByQuery": false
+        },
+        "component": "jingyue/report/stock-age"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "sales-ledger",
+        "path": "sales-ledger",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "销售报表",
+          "icon": "chart",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 1,
+          "iconColor": null,
+          "permi": "jingyue:report:sales",
+          "tagByQuery": false
+        },
+        "component": "jingyue/report/sales-ledger"
+      }
+    ],
+    "component": "Layout"
+  },
+  {
+    "alwaysShow": true,
+    "hidden": false,
+    "name": "material-center",
+    "path": "/material-center",
+    "redirect": "noRedirect",
+    "query": null,
+    "meta": {
+      "title": "物料管理",
+      "icon": "shopping",
+      "noCache": false,
+      "titleKey": null,
+      "link": "",
+      "isNew": 1,
+      "iconColor": null,
+      "permi": null,
+      "tagByQuery": false
+    },
+    "children": [
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "material",
+        "path": "material",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "物料档案",
+          "icon": "shopping",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 1,
+          "iconColor": null,
+          "permi": "jingyue:material:list",
+          "tagByQuery": false
+        },
+        "component": "jingyue/material/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "material-inbound",
+        "path": "material-inbound",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "物料入库",
+          "icon": "ele-DocumentAdd",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 1,
+          "iconColor": null,
+          "permi": "jingyue:materialdoc:list",
+          "tagByQuery": false
+        },
+        "component": "jingyue/material/doc"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "material-outbound",
+        "path": "material-outbound",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "物料出库",
+          "icon": "ele-DocumentRemove",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 1,
+          "iconColor": null,
+          "permi": "jingyue:materialdoc:list",
+          "tagByQuery": false
+        },
+        "component": "jingyue/material/doc"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "material-stock",
+        "path": "material-stock",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "物料库存",
+          "icon": "ele-Files",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 1,
+          "iconColor": null,
+          "permi": "jingyue:material:list",
+          "tagByQuery": false
+        },
+        "component": "jingyue/material/stock"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": true,
+        "name": "material-ledger",
+        "path": "material-ledger",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "物料流水",
+          "icon": "time",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 1,
+          "iconColor": null,
+          "permi": "jingyue:materialledger:list",
+          "tagByQuery": false
+        },
+        "component": "jingyue/material/ledger"
+      }
+    ],
+    "component": "Layout"
+  },
+  {
+    "alwaysShow": true,
+    "hidden": true,
+    "name": "article",
+    "path": "/article",
+    "redirect": "noRedirect",
+    "query": null,
+    "meta": {
+      "title": "内容管理",
+      "icon": "documentation",
+      "noCache": false,
+      "titleKey": "menu.systemArticle",
+      "link": "",
+      "isNew": 0,
+      "iconColor": null,
+      "permi": null,
+      "tagByQuery": false
+    },
+    "children": [
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "index",
+        "path": "index",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "内容列表",
+          "icon": "list",
+          "noCache": false,
+          "titleKey": "menu.articleList",
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "system:article:list",
+          "tagByQuery": false
+        },
+        "component": "article/manager"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": true,
+        "name": "/article/publish",
+        "path": "/article/publish",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "内容发布",
+          "icon": "log",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "system:article:add",
+          "tagByQuery": false
+        },
+        "component": "article/publish"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": true,
+        "name": "/article/publishmoments",
+        "path": "/article/publishMoments",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "动态发布",
+          "icon": "log",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "system:article:add",
+          "tagByQuery": false
+        },
+        "component": "article/publishMoments"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "articlecategory",
+        "path": "articleCategory",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "内容目录",
+          "icon": "tree-table",
+          "noCache": false,
+          "titleKey": "menu.articleCategory",
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "articlecategory:list",
+          "tagByQuery": false
+        },
+        "component": "article/articleCategory"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "topic",
+        "path": "topic",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "话题管理",
+          "icon": "icon1",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "articletopic:list",
+          "tagByQuery": false
+        },
+        "component": "article/articleTopic"
+      }
+    ],
+    "component": "Layout"
+  },
+  {
+    "alwaysShow": true,
+    "hidden": false,
+    "name": "personal",
+    "path": "/personal",
+    "redirect": "noRedirect",
+    "query": null,
+    "meta": {
+      "title": "个人办公",
+      "icon": "list",
+      "noCache": false,
+      "titleKey": null,
+      "link": "",
+      "isNew": 0,
+      "iconColor": null,
+      "permi": null,
+      "tagByQuery": false
+    },
+    "children": [
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "dailyschedule",
+        "path": "dailyschedule",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "待办与目标",
+          "icon": "ele-Calendar",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "jingyue:workitem:query",
+          "tagByQuery": false
+        },
+        "component": "system/dailyschedule/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "review",
+        "path": "review",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "多周期复盘",
+          "icon": "ele-Calendar",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "jingyue:member:review",
+          "tagByQuery": false
+        },
+        "component": "jingyue/review/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "goals",
+        "path": "goals",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "目标管理",
+          "icon": "star",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "jingyue:goal:query",
+          "tagByQuery": false
+        },
+        "component": "jingyue/goals/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "scripts",
+        "path": "scripts",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "销售话术",
+          "icon": "message",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "jingyue:script:list",
+          "tagByQuery": false
+        },
+        "component": "jingyue/script/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "combo-setting",
+        "path": "combo-setting",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "联动组合配置",
+          "icon": "chain",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "jingyue:combo:list",
+          "tagByQuery": false
+        },
+        "component": "jingyue/combo/setting"
+      }
+    ],
+    "component": "Layout"
+  },
+  {
+    "alwaysShow": true,
+    "hidden": false,
+    "name": "jingyue",
+    "path": "/jingyue",
+    "redirect": "noRedirect",
+    "query": null,
+    "meta": {
+      "title": "静悦基础",
+      "icon": "list",
+      "noCache": false,
+      "titleKey": null,
+      "link": "",
+      "isNew": 0,
+      "iconColor": null,
+      "permi": null,
+      "tagByQuery": false
+    },
+    "children": [
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "dict",
+        "path": "dict",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "数据字典",
+          "icon": "tree-table",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "jingyue:lookup:list",
+          "tagByQuery": false
+        },
+        "component": "jingyue/dict/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "bill",
+        "path": "bill",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "单据编号",
+          "icon": "form",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "jingyue:bill:list",
+          "tagByQuery": false
+        },
+        "component": "jingyue/bill/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "pricing",
+        "path": "pricing",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "价格与折扣",
+          "icon": "money",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 1,
+          "iconColor": null,
+          "permi": "jingyue:pricing:list",
+          "tagByQuery": false
+        },
+        "component": "jingyue/pricing/index"
+      }
+    ],
+    "component": "Layout"
+  },
+  {
+    "alwaysShow": true,
+    "hidden": false,
+    "name": "system",
+    "path": "/system",
+    "redirect": "noRedirect",
+    "query": null,
+    "meta": {
+      "title": "系统管理",
+      "icon": "system",
+      "noCache": false,
+      "titleKey": "menu.system",
+      "link": "",
+      "isNew": 0,
+      "iconColor": null,
+      "permi": null,
+      "tagByQuery": false
+    },
+    "children": [
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "user",
+        "path": "user",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "用户管理",
+          "icon": "user",
+          "noCache": false,
+          "titleKey": "menu.systemUser",
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "system:user:list",
+          "tagByQuery": false
+        },
+        "component": "system/user/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "role",
+        "path": "role",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "角色管理",
+          "icon": "peoples",
+          "noCache": false,
+          "titleKey": "menu.systemRole",
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "system:role:list",
+          "tagByQuery": false
+        },
+        "component": "system/role/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": true,
+        "name": "roleusers",
+        "path": "roleusers",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "角色分配",
+          "icon": "people",
+          "noCache": false,
+          "titleKey": null,
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "system:roleusers:list",
+          "tagByQuery": false
+        },
+        "component": "system/roleusers/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "sysmenu",
+        "path": "sysmenu",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "菜单管理",
+          "icon": "tree-table",
+          "noCache": false,
+          "titleKey": "menu.systemMenu",
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "system:menu:list",
+          "tagByQuery": false
+        },
+        "component": "system/menu/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "dept",
+        "path": "dept",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "部门管理",
+          "icon": "tree",
+          "noCache": false,
+          "titleKey": "menu.systemDept",
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "system:dept:list",
+          "tagByQuery": false
+        },
+        "component": "system/dept/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "post",
+        "path": "post",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "岗位管理",
+          "icon": "post",
+          "noCache": false,
+          "titleKey": "menu.systemPost",
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "system:post:list",
+          "tagByQuery": false
+        },
+        "component": "system/post/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "dict1",
+        "path": "dict1",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "字典管理",
+          "icon": "dict",
+          "noCache": false,
+          "titleKey": "menu.systemDic",
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "system:dict:list",
+          "tagByQuery": false
+        },
+        "component": "system/dict/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "config",
+        "path": "config",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "参数设置",
+          "icon": "edit",
+          "noCache": false,
+          "titleKey": "menu.systemParam",
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "system:config:list",
+          "tagByQuery": false
+        },
+        "component": "system/config/index"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "notice",
+        "path": "notice",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "通知公告",
+          "icon": "message",
+          "noCache": false,
+          "titleKey": "menu.systemNotice",
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "system:notice:list",
+          "tagByQuery": false
+        },
+        "component": "system/notice/index"
+      },
+      {
+        "alwaysShow": true,
+        "hidden": false,
+        "name": "log",
+        "path": "log",
+        "redirect": "noRedirect",
+        "query": null,
+        "meta": {
+          "title": "日志管理",
+          "icon": "log",
+          "noCache": false,
+          "titleKey": "menu.systemLog",
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": null,
+          "tagByQuery": false
+        },
+        "children": [
+          {
+            "alwaysShow": false,
+            "hidden": false,
+            "name": "smslog",
+            "path": "smsLog",
+            "redirect": null,
+            "query": null,
+            "meta": {
+              "title": "短信记录",
+              "icon": "validCode",
+              "noCache": false,
+              "titleKey": "menu.smsLog",
+              "link": "",
+              "isNew": 0,
+              "iconColor": null,
+              "permi": "smscodelog:list",
+              "tagByQuery": false
+            },
+            "component": "monitor/SmsLog"
+          },
+          {
+            "alwaysShow": false,
+            "hidden": false,
+            "name": "operlog",
+            "path": "operlog",
+            "redirect": null,
+            "query": null,
+            "meta": {
+              "title": "操作日志",
+              "icon": "form",
+              "noCache": false,
+              "titleKey": "menu.operLog",
+              "link": "",
+              "isNew": 0,
+              "iconColor": null,
+              "permi": "monitor:operlog:list",
+              "tagByQuery": false
+            },
+            "component": "monitor/operlog/index"
+          },
+          {
+            "alwaysShow": false,
+            "hidden": false,
+            "name": "logininfor",
+            "path": "logininfor",
+            "redirect": null,
+            "query": null,
+            "meta": {
+              "title": "登录日志",
+              "icon": "logininfor",
+              "noCache": false,
+              "titleKey": "menu.loginLog",
+              "link": "",
+              "isNew": 0,
+              "iconColor": null,
+              "permi": "monitor:logininfor:list",
+              "tagByQuery": false
+            },
+            "component": "monitor/logininfor/index"
+          },
+          {
+            "alwaysShow": false,
+            "hidden": false,
+            "name": "sqldifflog",
+            "path": "sqlDiffLog",
+            "redirect": null,
+            "query": null,
+            "meta": {
+              "title": "数据差异日志",
+              "icon": "log",
+              "noCache": false,
+              "titleKey": "menu.dataDiffLog",
+              "link": "",
+              "isNew": 0,
+              "iconColor": null,
+              "permi": "sqldifflog:list",
+              "tagByQuery": false
+            },
+            "component": "monitor/SqlDiffLog"
+          }
+        ],
+        "component": "ParentView"
+      },
+      {
+        "alwaysShow": false,
+        "hidden": false,
+        "name": "commonlang",
+        "path": "commonLang",
+        "redirect": null,
+        "query": null,
+        "meta": {
+          "title": "多语言配置",
+          "icon": "language",
+          "noCache": false,
+          "titleKey": "menu.systemLang",
+          "link": "",
+          "isNew": 0,
+          "iconColor": null,
+          "permi": "system:lang:list",
+          "tagByQuery": false
+        },
+        "component": "system/commonLang/index"
+      }
+    ],
+    "component": "Layout"
+  },
+  {
+    "alwaysShow": false,
+    "hidden": true,
+    "name": "",
+    "path": "/",
+    "redirect": null,
+    "query": null,
+    "meta": {
+      "title": "常用数据权限",
+      "icon": "permission",
+      "noCache": false,
+      "titleKey": null,
+      "link": "",
+      "isNew": 0,
+      "iconColor": null,
+      "permi": null,
+      "tagByQuery": false
+    },
+    "component": "Layout"
+  }
+]

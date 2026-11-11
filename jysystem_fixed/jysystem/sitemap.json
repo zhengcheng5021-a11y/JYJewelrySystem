@@ -1,0 +1,9 @@
+{
+  "desc": "静悦门店工作台页面索引",
+  "rules": [
+    {
+      "action": "disallow",
+      "page": "*"
+    }
+  ]
+}

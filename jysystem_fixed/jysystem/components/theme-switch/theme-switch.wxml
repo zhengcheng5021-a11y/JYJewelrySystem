@@ -1,0 +1,29 @@
+<view class="theme-switch" style="{{theme.varsStyle}}">
+  <view class="theme-pill" bindtap="toggle">
+    <view class="palette-icon">
+      <view class="palette-pip p1"></view>
+      <view class="palette-pip p2"></view>
+      <view class="palette-pip p3"></view>
+    </view>
+    <text class="theme-pill-label">{{theme.label}}</text>
+    <text class="caret {{open ? 'up' : ''}}">⌄</text>
+  </view>
+  <view wx:if="{{open}}" class="theme-mask" bindtap="close"></view>
+  <view wx:if="{{open}}" class="theme-menu">
+    <view class="menu-kicker">画境 · 意境切换</view>
+    <view
+      class="menu-item {{theme.id===item.id?'on':''}}"
+      wx:for="{{options}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="choose"
+    >
+      <view class="menu-dot" style="background:{{item.dot}};"></view>
+      <view class="menu-copy">
+        <text class="menu-name">{{item.name}}</text>
+        <text class="menu-caption">{{item.caption}}</text>
+      </view>
+      <text wx:if="{{theme.id===item.id}}" class="menu-check" style="color:{{item.accent}};">✓</text>
+    </view>
+  </view>
+</view>

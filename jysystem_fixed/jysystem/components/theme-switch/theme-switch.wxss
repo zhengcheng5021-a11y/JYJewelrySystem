@@ -1,0 +1,47 @@
+.theme-switch { position: relative; z-index: 45; }
+.theme-mask { position: fixed; inset: 0; z-index: 44; background: transparent; }
+
+/* Pill identical to the login page theme switcher */
+.theme-pill {
+  position: relative; z-index: 45;
+  display: inline-flex; align-items: center; gap: 10rpx; max-width: 310rpx;
+  min-height: 70rpx; padding: 10rpx 24rpx; box-sizing: border-box;
+  border: 1rpx solid var(--line); border-radius: 999rpx;
+  background: var(--surface); color: var(--ink);
+  font-size: 22rpx; line-height: 1.2;
+  box-shadow: 0 3rpx 12rpx rgba(60,40,39,.07);
+  backdrop-filter: blur(16rpx); -webkit-backdrop-filter: blur(16rpx);
+  transition: background 500ms ease, color 500ms ease, border-color 500ms ease, transform 150ms ease;
+}
+.theme-pill:active { transform: scale(.95); }
+.theme-pill-label { overflow: hidden; font-weight: 600; letter-spacing: 1rpx; text-overflow: ellipsis; white-space: nowrap; }
+.caret { flex: none; }
+
+.palette-icon { position: relative; width: 25rpx; height: 25rpx; flex: none; border: 2rpx solid currentColor; border-radius: 50% 50% 50% 12%; transform: rotate(-45deg); opacity: .78; }
+.palette-pip { position: absolute; width: 5rpx; height: 5rpx; border-radius: 50%; background: currentColor; }
+.palette-pip.p1 { left: 4rpx; top: 5rpx; }
+.palette-pip.p2 { right: 4rpx; top: 5rpx; }
+.palette-pip.p3 { left: 8rpx; bottom: 4rpx; }
+
+.caret { margin-top: -5rpx; font-size: 20rpx; line-height: 1; opacity: .65; transition: transform 200ms ease; }
+.caret.up { margin-top: 4rpx; transform: rotate(180deg); }
+
+/* Dropdown matching the login motif menu */
+.theme-menu {
+  position: absolute; left: 0; top: 68rpx; z-index: 46; width: 430rpx; max-width: calc(100vw - 56rpx); padding: 10rpx;
+  overflow: hidden;
+  border: 1rpx solid var(--line); border-radius: 28rpx;
+  background: var(--surface-strong);
+  box-shadow: 0 24rpx 56rpx rgba(60,40,39,.18), inset 0 2rpx 0 rgba(255,255,255,.8);
+  backdrop-filter: blur(30rpx); -webkit-backdrop-filter: blur(30rpx);
+}
+.menu-kicker { padding: 10rpx 14rpx 12rpx; border-bottom: 1rpx solid var(--line); color: var(--muted); font-size: 19rpx; letter-spacing: 2rpx; }
+.menu-item { display: flex; align-items: center; gap: 14rpx; min-height: 92rpx; padding: 0 14rpx; border-radius: 20rpx; color: var(--ink); }
+.menu-name,
+.menu-caption { overflow-wrap: anywhere; }
+.menu-item.on { background: var(--jade-soft); }
+.menu-dot { width: 26rpx; height: 26rpx; flex: none; border: 2rpx solid rgba(255,255,255,.8); border-radius: 50%; box-shadow: 0 2rpx 6rpx rgba(60,40,39,.16); }
+.menu-copy { display: flex; flex: 1; flex-direction: column; gap: 3rpx; min-width: 0; }
+.menu-name { font-family: "Songti SC","STSong",serif; font-size: 24rpx; font-weight: 700; letter-spacing: 1rpx; }
+.menu-caption { color: var(--muted); font-size: 18rpx; opacity: .82; }
+.menu-check { font-size: 24rpx; font-weight: 700; }

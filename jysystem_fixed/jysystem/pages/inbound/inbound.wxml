@@ -1,0 +1,40 @@
+<app-nav title="采买入库"></app-nav>
+<view class="app-page" style="{{theme.style}}">
+  <view class="top-bar"><theme-switch bind:change="onTheme"></theme-switch><text class="top-meta" bindtap="load">同步单据 ↻</text></view>
+  <view class="page-head">
+    <view><view class="eyebrow-row"><text class="seal-dot"></text><text class="eyebrow">INBOUND LEDGER</text></view><view class="page-title">采买入库</view><view class="page-sub">手机随时拍图记草稿，核对无误后一键转正式库存。</view></view>
+    <button class="head-action" bindtap="create">拍照录新单</button>
+  </view>
+  <view class="grid-2" style="margin-bottom:20rpx;">
+    <view class="mini-metric"><view class="mini-metric-label">待审入库草稿</view><view class="mini-metric-value">{{dashboard.draftCount || 0}} 单</view><view class="muted small">可随时补拍照片与改价</view></view>
+    <view class="mini-metric"><view class="mini-metric-label">今日入库总成本</view><view class="mini-metric-value money">¥{{dashboard.todayCostText}}</view><view class="muted small">已确认单据自动入账</view></view>
+  </view>
+  <view class="seg-tabs">
+    <button class="seg-tab {{status===''?'active':''}}" data-status="" bindtap="setStatus">全部单据</button>
+    <button class="seg-tab {{status==='0'?'active':''}}" data-status="0" bindtap="setStatus">待审草稿</button>
+    <button class="seg-tab {{status==='1'?'active':''}}" data-status="1" bindtap="setStatus">已确认入库</button>
+  </view>
+  <view class="row" style="margin-bottom:16rpx;">
+    <input class="input-mini grow" value="{{keyword}}" placeholder="单号、供应商、备注" placeholder-class="placeholder" bindinput="onKeyword" bindconfirm="search" />
+    <button wx:if="{{keyword}}" class="btn-mini" bindtap="clearKeyword">清空</button>
+    <button class="btn-mini primary" bindtap="search">搜索</button>
+  </view>
+  <view wx:if="{{loading && !rows.length}}" class="state"><view class="state-title">正在读取入库单</view></view>
+  <view wx:elif="{{error && !rows.length}}" class="state" bindtap="search"><view class="state-title">入库单加载失败</view><view>{{error}}</view><text class="state-action">重试</text></view>
+  <view wx:elif="{{!rows.length}}" class="state" bindtap="create"><view class="state-title">还没有入库单</view><view>拍下一件到货，先保存成草稿。</view><text class="state-action">开始录入</text></view>
+  <view wx:for="{{rows}}" wx:key="id" class="glass-card" data-id="{{item.id}}" bindtap="open">
+    <view class="row-between"><view class="row"><text class="seal-bar"></text><text style="font-size:27rpx;font-weight:700;">{{item.inboundNo || '未编号草稿'}}</text></view><text class="tag {{item.status===0?'tag-gold':''}}">{{item.status===0?'草稿待审':'已确认入库'}}</text></view>
+    <view class="row-between muted small" style="margin-top:8rpx;"><text>供应商：{{item.supplierName || '未选供应商'}}</text><text>{{item.dateText}}</text></view>
+        <view class="row-between dashed-top action-row inbound-actions"><text class="inbound-summary small">共 {{item.totalQty || 0}} 件 · 成本 <text class="money">¥{{item.costText}}</text></text><view class="row action-row" catchtap="noop"><button wx:if="{{item.status===0}}" class="btn-mini danger" data-id="{{item.id}}" catchtap="remove">删除</button><button wx:if="{{item.status===0}}" class="btn-mini primary" data-id="{{item.id}}" catchtap="confirmOne">确认入库</button><button wx:else class="btn-mini" data-id="{{item.id}}" catchtap="open">查看明细 ›</button></view></view>
+  </view>
+  <view wx:if="{{rows.length}}" class="pager-bar">
+    <view class="pager-info">已显示 {{rows.length}} / {{totalCount}} 单（第 {{pageNum}} 页）</view>
+    <view class="pager-actions">
+      <button wx:if="{{hasMore}}" class="pager-btn" loading="{{loadingMore}}" bindtap="loadMore">{{loadingMore ? '加载中...' : '加载更多 ↓'}}</button>
+      <text wx:else class="muted small">—— 已展示全部入库单 ——</text>
+      <button wx:if="{{pageNum > 1 || rows.length > 8}}" class="pager-btn" bindtap="scrollTop">回到顶部 ↑</button>
+    </view>
+  </view>
+  <view wx:if="{{error && rows.length}}" class="glass-card small" style="color:var(--red);">{{error}}</view>
+</view>
+<bottom-nav active="inbound"></bottom-nav>

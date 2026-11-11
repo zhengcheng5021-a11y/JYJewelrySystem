@@ -1,0 +1,206 @@
+<app-nav title="拍照入库" back="{{true}}"></app-nav>
+<view class="app-page no-tab" style="{{theme.style}}">
+  <view class="top-bar">
+    <theme-switch bind:change="onTheme"></theme-switch>
+    <text class="top-meta">{{readOnly ? '已确认单据' : '草稿自动暂存中'}}</text>
+  </view>
+  <view class="page-head">
+    <view>
+      <view class="eyebrow-row"><text class="seal-dot"></text><text class="eyebrow">QUICK CAPTURE</text></view>
+      <view class="page-title">{{id ? (header.inboundNo || '入库单') : '拍照闪电入库'}}</view>
+      <view class="page-sub">支持连拍建件、规格弹窗秒选、一键算标价与智能命名。</view>
+    </view>
+    <view wx:if="{{!readOnly}}" class="head-btn-group">
+      <button class="head-action gold" bindtap="batchShoot">📸 连拍建件</button>
+      <button class="head-action" bindtap="addLine">＋空白件</button>
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="state"><view class="state-title">正在准备录入项</view></view>
+  <block wx:else>
+    <!-- 单头信息 -->
+    <view class="glass-card">
+      <view class="grid-2">
+        <picker mode="date" value="{{header.inboundTime}}" disabled="{{readOnly}}" bindchange="onDate">
+          <view class="field-line">
+            <text class="field-label">入库日期</text>
+            <text class="field-value">{{header.inboundTime || '请选择'}} ▾</text>
+          </view>
+        </picker>
+        <view class="field-line" bindtap="pickSupplier">
+          <text class="field-label">供货来源 / 工坊</text>
+          <text class="field-value">{{header.supplierName || '点按选择'}} ▾</text>
+        </view>
+      </view>
+      <input class="input-mini" style="margin-top:16rpx;" value="{{header.remark}}" disabled="{{readOnly}}" placeholder="到货批次或供货单说明（选填）" placeholder-class="placeholder" bindinput="onRemark" />
+    </view>
+
+    <!-- 快捷工具条（多件录入时可一键同步规格/展开收起） -->
+    <view wx:if="{{!readOnly && lines.length > 0}}" class="quick-bar">
+      <view class="row action-row" style="gap:10rpx;flex-wrap:wrap;">
+        <text class="tag tag-gold">已录 {{lines.length}} 件</text>
+        <text class="small muted">已拍图 {{photoCount}}/{{lines.length}}</text>
+      </view>
+      <view class="row" style="gap:10rpx;flex-wrap:wrap;">
+        <button wx:if="{{lines.length > 1}}" class="btn-mini" bindtap="syncFirstSpecToAll">同步首件规格</button>
+        <button class="btn-mini primary" bindtap="batchShoot">＋连拍加货</button>
+      </view>
+    </view>
+
+    <view wx:if="{{!lines.length}}" class="state">
+      <view class="state-title">先添加或拍摄货品</view>
+      <view>可一次连拍多张实品图自动生成多行，或新增空白件录入。</view>
+      <view class="row" style="justify-content:center;margin-top:20rpx;gap:16rpx;flex-wrap:wrap;">
+        <text class="state-action" style="margin-top:0;" bindtap="batchShoot">📸 连拍多图建件</text>
+        <text class="state-action" style="margin-top:0;" bindtap="addLine">＋新增空白件</text>
+      </view>
+    </view>
+
+    <!-- 货品明细卡片 -->
+    <view wx:for="{{lines}}" wx:key="key" class="glass-card inbound-card">
+      <view class="row-between" style="padding-bottom:16rpx;border-bottom:1rpx dashed var(--line);flex-wrap:wrap;gap:10rpx;">
+        <view class="row" style="gap:10rpx;">
+          <text class="tag">第 {{index + 1}} 件</text>
+          <text class="small" style="color:var(--gold);font-weight:700;">毛利 ¥{{item.profitText}} ({{item.profitRate}}%)</text>
+        </view>
+        <view wx:if="{{!readOnly}}" class="row" style="gap:10rpx;flex-wrap:wrap;">
+          <button class="btn-mini" data-index="{{index}}" bindtap="autoNameLine">✨命名</button>
+          <button class="btn-mini" data-index="{{index}}" bindtap="cloneLine">复制同款</button>
+          <button class="btn-mini danger" data-index="{{index}}" bindtap="removeLine">删除</button>
+        </view>
+      </view>
+
+      <!-- 实品图 + 名称 + 成本/标价一体化区 -->
+      <view class="capture-main">
+        <view class="photo-box {{item.imageUrl ? 'has-img' : ''}}" data-index="{{index}}" bindtap="onPhotoTap">
+          <image wx:if="{{item.imageUrl}}" class="photo-img" src="{{item.imageUrl}}" mode="aspectFill"></image>
+          <block wx:else>
+            <text class="photo-icon">📷</text>
+            <text class="photo-label">拍实品图</text>
+            <text class="photo-sub">相机 / 相册</text>
+          </block>
+          <view wx:if="{{item.uploading}}" class="photo-mask">上传中...</view>
+          <view wx:if="{{item.imageUrl && !readOnly}}" class="photo-actions">
+            <text class="photo-act-btn" data-index="{{index}}" catchtap="chooseImage">重拍</text>
+            <text class="photo-act-btn danger" data-index="{{index}}" catchtap="removeImage">×</text>
+          </view>
+        </view>
+
+        <view class="capture-fields">
+          <view class="name-input-wrap">
+            <input class="input-mini name-input" value="{{item.goodsName}}" disabled="{{readOnly}}" data-index="{{index}}" data-field="goodsName" placeholder="货品名称（选规格可自动生成）" placeholder-class="placeholder" bindinput="onLine" />
+          </view>
+          <view class="price-grid">
+            <view class="price-box">
+              <text class="price-label">拿货成本 (¥)</text>
+              <input class="price-input money" type="digit" value="{{item.costPrice}}" disabled="{{readOnly}}" placeholder="0" placeholder-class="placeholder" data-index="{{index}}" data-field="costPrice" bindinput="onLine" />
+            </view>
+            <view class="price-box sale">
+              <text class="price-label">柜面标价 (¥)</text>
+              <input class="price-input money" type="digit" value="{{item.salePrice}}" disabled="{{readOnly}}" placeholder="0" placeholder-class="placeholder" data-index="{{index}}" data-field="salePrice" bindinput="onLine" />
+            </view>
+          </view>
+          <!-- 倍率快算标价 -->
+          <view wx:if="{{!readOnly}}" class="markup-row">
+            <text class="markup-tip">快算标价：</text>
+            <view class="markup-chip" data-index="{{index}}" data-mult="1.5" bindtap="applyMarkup">×1.5</view>
+            <view class="markup-chip" data-index="{{index}}" data-mult="2" bindtap="applyMarkup">×2.0</view>
+            <view class="markup-chip" data-index="{{index}}" data-mult="2.5" bindtap="applyMarkup">×2.5</view>
+            <view class="markup-chip" data-index="{{index}}" data-mult="3" bindtap="applyMarkup">×3.0</view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 款式快捷胶囊（前6个常用款式一键点选） -->
+      <view wx:if="{{!readOnly && quickCategories.length}}" class="quick-spec-row">
+        <text class="quick-spec-label">常用款式：</text>
+        <view class="quick-chips">
+          <view wx:for="{{quickCategories}}" wx:for-item="cat" wx:key="id" class="quick-chip {{item.styleItemId == cat.id ? 'active' : ''}}" data-index="{{index}}" data-kind="style" data-id="{{cat.id}}" data-name="{{cat.label}}" bindtap="quickSelectSpec">{{cat.label}}</view>
+        </view>
+      </view>
+
+      <!-- 2×2 规格磁贴（点击唤起底部全量搜索抽屉） -->
+      <view class="grid-2" style="margin-top:14rpx;">
+        <view class="spec-tile {{item.styleItemId ? 'filled' : 'required'}}" data-index="{{index}}" data-kind="style" bindtap="pickAttr">
+          <text class="spec-label">款式分类 *</text>
+          <text class="spec-value">{{item.styleItemName || '点击选择'}} ›</text>
+        </view>
+        <view class="spec-tile {{item.materialItemId ? 'filled' : ''}}" data-index="{{index}}" data-kind="material" bindtap="pickAttr">
+          <text class="spec-label">主石 / 材质</text>
+          <text class="spec-value">{{item.materialName || '点击选择'}} ›</text>
+        </view>
+        <view class="spec-tile {{item.metalItemId ? 'filled' : ''}}" data-index="{{index}}" data-kind="metal" bindtap="pickAttr">
+          <text class="spec-label">贵金属材质</text>
+          <text class="spec-value">{{item.metalName || '点击选择'}} ›</text>
+        </view>
+        <view class="spec-tile {{item.certTypeId ? 'filled' : ''}}" data-index="{{index}}" data-kind="cert" bindtap="pickAttr">
+          <text class="spec-label">鉴定证书</text>
+          <text class="spec-value">{{item.certTypeName || '点击选择'}} ›</text>
+        </view>
+      </view>
+
+      <input class="input-mini" style="margin-top:14rpx;" value="{{item.remark}}" disabled="{{readOnly}}" data-index="{{index}}" data-field="remark" placeholder="单件特征备注（如克重、圈口、证书号，选填）" placeholder-class="placeholder" bindinput="onLine" />
+    </view>
+
+    <view wx:if="{{!readOnly && lines.length}}" class="row" style="justify-content:center;margin:24rpx 0 12rpx;gap:16rpx;flex-wrap:wrap;">
+      <button class="btn-mini" bindtap="addLine">＋再加一件空白件</button>
+      <button class="btn-mini primary" bindtap="batchShoot">📸 继续连拍加货</button>
+    </view>
+
+    <view wx:if="{{error}}" class="glass-card small" style="color:var(--red);">{{error}}</view>
+  </block>
+</view>
+
+<!-- 底部悬浮结算与提交栏 -->
+<view wx:if="{{!readOnly && !loading}}" class="sticky-bar no-tab">
+  <view>
+    <view class="small" style="font-weight:700;">共 {{lines.length}} 件 · 总成本 <text class="money">¥{{costSumText}}</text></view>
+    <view class="muted small">预计总标价 ¥{{saleSumText}} · 预计总毛利 ¥{{profitSumText}}</view>
+  </view>
+  <view class="row">
+    <button class="btn-mini" loading="{{saving}}" bindtap="save">存草稿</button>
+    <button class="btn-mini primary" loading="{{confirming}}" bindtap="confirm">确认入库</button>
+  </view>
+</view>
+
+<!-- 底部规格与供应商快选抽屉（支持搜索、全部选项展示、连续自动切换下一规格） -->
+<view wx:if="{{specDrawer}}" class="drawer-mask" bindtap="closeSpecDrawer">
+  <view class="drawer-sheet spec-sheet" catchtap="noop">
+    <view class="drawer-handle"></view>
+    <view class="row-between" style="flex-wrap:wrap;gap:12rpx;">
+      <view class="grow">
+        <view class="section-title">{{specTitle}}</view>
+        <view class="muted small">{{specSubTitle}}</view>
+      </view>
+      <view class="row" style="gap:10rpx;">
+        <button wx:if="{{specMode === 'attr'}}" class="btn-mini" bindtap="clearCurrentAttr">清空此项</button>
+        <button class="btn-mini" bindtap="closeSpecDrawer">关闭</button>
+      </view>
+    </view>
+
+    <!-- 规格维度快速切换 Tab -->
+    <view wx:if="{{specMode === 'attr'}}" class="seg-bar" style="margin-top:16rpx;margin-bottom:0;">
+      <view class="seg-item {{specKind === 'style' ? 'active' : ''}}" data-kind="style" bindtap="switchSpecKind">款式 *</view>
+      <view class="seg-item {{specKind === 'material' ? 'active' : ''}}" data-kind="material" bindtap="switchSpecKind">主石材质</view>
+      <view class="seg-item {{specKind === 'metal' ? 'active' : ''}}" data-kind="metal" bindtap="switchSpecKind">贵金属</view>
+      <view class="seg-item {{specKind === 'cert' ? 'active' : ''}}" data-kind="cert" bindtap="switchSpecKind">证书</view>
+    </view>
+
+    <view class="search-box" style="margin-top:16rpx;">
+      <text class="muted">⌕</text>
+      <input class="search-input" value="{{specKeyword}}" placeholder="输入关键字筛选选项..." placeholder-class="placeholder" bindinput="onSpecSearch" />
+      <text wx:if="{{specKeyword}}" class="muted small" bindtap="clearSpecSearch">清空</text>
+    </view>
+
+    <scroll-view scroll-y="true" class="spec-option-scroll">
+      <view wx:if="{{!filteredSpecList.length}}" class="state"><view class="state-title">没有匹配的选项</view></view>
+      <view class="spec-chip-grid">
+        <view wx:for="{{filteredSpecList}}" wx:key="id" class="spec-option-chip {{item.id == currentSpecVal ? 'active' : ''}}" data-id="{{item.id}}" data-name="{{item.label}}" bindtap="selectSpecOption">
+          <text class="spec-option-text">{{item.label}}</text>
+          <text wx:if="{{item.id == currentSpecVal}}" class="spec-option-check">✓</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</view>
+<bottom-nav active=""></bottom-nav>

@@ -1,0 +1,116 @@
+﻿namespace ZR.Model.System
+{
+    /// <summary>
+    /// 用户表
+    /// </summary>
+    [SugarTable("sys_user", "用户表")]
+    [Tenant("0")]
+    public class SysUser : SysBase
+    {
+        /// <summary>
+        /// 用户id
+        /// </summary>
+        [SugarColumn(IsIdentity = true, IsPrimaryKey = true)]
+        public long UserId { get; set; }
+        /// <summary>
+        /// 登录用户名
+        /// </summary>
+        [SugarColumn(Length = 30, ColumnDescription = "用户账号", ExtendedAttribute = ProteryConstant.NOTNULL)]
+        public string UserName { get; set; }
+        /// <summary>
+        /// 用户昵称
+        /// </summary>
+        [SugarColumn(Length = 30, ColumnDescription = "用户昵称", ExtendedAttribute = ProteryConstant.NOTNULL)]
+        public string NickName { get; set; }
+        /// <summary>
+        /// 用户类型（00系统用户）
+        /// </summary>
+        [SugarColumn(Length = 2, ColumnDescription = "用户类型（00系统用户）", DefaultValue = "00")]
+        public string UserType { get; set; } = "00";
+        //[SugarColumn(IsOnlyIgnoreInsert = true)]
+        public string Avatar { get; set; }
+        [SugarColumn(Length = 50, ColumnDescription = "用户邮箱")]
+        public string Email { get; set; }
+
+        [JsonIgnore]
+        [ExcelIgnore]
+        [SugarColumn(Length = 100, ColumnDescription = "密码", ExtendedAttribute = ProteryConstant.NOTNULL)]
+        public string Password { get; set; }
+        /// <summary>
+        /// 手机号
+        /// </summary>
+        public string Phonenumber { get; set; }
+        /// <summary>
+        /// 用户性别（0男 1女 2未知）
+        /// </summary>
+        public int Sex { get; set; }
+
+        /// <summary>
+        /// 帐号状态（0正常 1停用）
+        /// </summary>
+        [ExcelIgnore]
+        [SugarColumn(DefaultValue = "0")]
+        public int Status { get; set; }
+
+        /// <summary>
+        /// 删除标志
+        /// </summary>
+        [SugarColumn(DefaultValue = "0")]
+        public DelFlagEnum DelFlag { get; set; }
+
+        /// <summary>
+        /// 最后登录IP
+        /// </summary>
+        [SugarColumn(IsOnlyIgnoreInsert = true)]
+        public string LoginIP { get; set; }
+
+        /// <summary>
+        /// 最后登录时间
+        /// </summary>
+        [SugarColumn(IsOnlyIgnoreInsert = true)]
+        [ExcelColumn(Name = "登录日期", Format = "yyyy-MM-dd HH:mm:ss")]
+        public DateTime? LoginDate { get; set; }
+
+        /// <summary>
+        /// 部门Id
+        /// </summary>
+        [SugarColumn(DefaultValue = "0")]
+        public long DeptId { get; set; }
+
+        /// <summary>
+        /// 上级主管用户Id（仅存 Id，昵称展示时实时回查，避免改名后数据不一致）
+        /// </summary>
+        [SugarColumn(ColumnDescription = "上级主管用户Id", IsNullable = true)]
+        public long? LeaderId { get; set; }
+
+        public string Province { get; set; }
+        public string City { get; set; }
+        /// <summary>
+        /// 最后密码更新时间
+        /// </summary>
+        public DateTime? PwdUpdateTime { get; set; }
+
+        [SugarColumn(IsIgnore = true)]
+        public bool IsAdmin
+        {
+            get
+            {
+                return UserId == 1;
+            }
+        }
+        /// <summary>
+        /// 角色id集合
+        /// </summary>
+        [SugarColumn(IsIgnore = true)]
+        public long[] RoleIds { get; set; }
+        /// <summary>
+        /// 岗位集合
+        /// </summary>
+        [SugarColumn(IsIgnore = true)]
+        public int[] PostIds { get; set; }
+
+        /// <summary>新增用户时随表单提交的微信账号，不落 sys_user 表</summary>
+        [SugarColumn(IsIgnore = true)]
+        public List<ZR.Model.System.Dto.SysUserWechatDto> Wechats { get; set; }
+    }
+}

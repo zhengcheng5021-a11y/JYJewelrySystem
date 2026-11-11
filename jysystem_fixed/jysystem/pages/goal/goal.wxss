@@ -1,0 +1,6 @@
+.goal-total { margin-top: 5rpx; font-size: 50rpx; line-height: 1.2; }
+.goal-ring { display: flex; width: 132rpx; height: 132rpx; flex: none; flex-direction: column; align-items: center; justify-content: center; border: 4rpx solid var(--jade); border-radius: 50%; background: var(--jade-soft); }
+.goal-ring-value { color: var(--jade); font-size: 32rpx; font-weight: 700; }
+.goal-ring-label { margin-top: 2rpx; color: var(--muted); font-size: 17rpx; }
+.goal-metrics { margin-top: 20rpx; padding-top: 16rpx; border-top: 1rpx dashed var(--line); text-align: center; }
+.goal-metric { margin-top: 4rpx; font-size: 22rpx; }

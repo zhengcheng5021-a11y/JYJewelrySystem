@@ -1,0 +1,15 @@
+.timeline-row { display: flex; align-items: flex-start; gap: 16rpx; }
+.timeline-dot { width: 22rpx; height: 22rpx; flex: none; margin-top: 36rpx; border-radius: 50%; background: var(--jade); box-shadow: 0 0 0 8rpx var(--jade-soft); }
+.follow-content { margin-top: 14rpx; padding: 20rpx 24rpx; border: 1rpx solid var(--line); border-radius: 26rpx; background: var(--surface-soft); font-size: 24rpx; line-height: 1.6; }
+.glass-card > .row-between,
+.timeline-row .glass-card > .row-between {
+  flex-wrap: wrap;
+  gap: 8rpx 12rpx;
+}
+.follow-title-row { row-gap: 6rpx; }
+.follow-name-row { flex: 1 1 260rpx; gap: 8rpx 12rpx; }
+.follow-name { min-width: 0; line-height: 1.45; overflow-wrap: anywhere; }
+.follow-time { flex: none; line-height: 1.5; white-space: nowrap; }
+@media screen and (max-width: 360px) {
+  .glass-card .action-row > .btn-mini { flex: 1 1 190rpx; }
+}

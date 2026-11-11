@@ -1,0 +1,8 @@
+const fs=require('fs')
+const s=fs.readFileSync('C:/Users/ZHANG/Downloads/code_artifact.html','utf8')
+const start=s.indexOf('tailwind.config =')
+const end=s.indexOf('</script>', start)
+const start2=s.indexOf('<script>', end)
+const end2=s.indexOf('</script>', start2)
+fs.writeFileSync('scripts/proto-js.txt', s.slice(start2+8,end2))
+console.log('second', start2, end2)

@@ -1,0 +1,258 @@
+import axios from 'axios'
+import { ElMessage, ElLoading, ElNotification, ElMessageBox } from 'element-plus'
+import { getToken } from '@/utils/auth'
+import errorCode from '@/utils/errorCode'
+import useUserStore from '@/store/modules/user'
+import { blobValidate, delEmptyQueryNodes } from '@/utils/ruoyi'
+import { saveAs } from 'file-saver'
+import useAppStore from '@/store/modules/app'
+
+let downloadLoadingInstance
+// 解决后端跨域获取不到cookie问题
+// axios.defaults.withCredentials = true
+axios.defaults.headers['Content-Type'] = 'application/json;charset=utf-8'
+// 创建axios实例
+const service = axios.create({
+  // axios中请求配置有baseURL选项，表示请求URL公共部分
+  baseURL: import.meta.env.VITE_APP_BASE_API,
+  // 超时
+  timeout: 30000
+})
+
+// request拦截器
+service.interceptors.request.use(
+  (config) => {
+    // 是否需要设置 token
+    if (getToken()) {
+      //将token放到请求头发送给服务器,将tokenkey放在请求头中
+      config.headers['Authorization'] = 'Bearer ' + getToken()
+      config.headers['userid'] = useUserStore().userId
+      config.headers['userName'] = encodeURIComponent(useUserStore().userName)
+    }
+    config.headers['tenantId'] = useUserStore().tenantId // 添加Accept-Language头
+    const appStore = useAppStore()
+    const lang = appStore.lang || 'zh-cn'
+    // 转换语言格式为标准格式，如zh-cn -> zh-CN
+    const acceptLanguage = lang.toLowerCase().replace(/^([a-z]+)-([a-z]+)$/, (_, language, region) => `${language}-${region.toUpperCase()}`)
+    config.headers['Accept-Language'] = acceptLanguage
+    const method = config?.method || 'get'
+    const header = config?.headers['Content-Type'] ?? ''
+
+    if ((method.toLowerCase() === 'post' || method.toLowerCase() === 'put') && header != 'multipart/form-data') {
+      config.data = delEmptyQueryNodes(config.data)
+    }
+    return config
+  },
+  (error) => {
+    console.log(error)
+    Promise.reject(error)
+  }
+)
+
+// 响应拦截器
+service.interceptors.response.use(
+  (res) => {
+    if (res.status !== 200) {
+      Promise.reject('network error')
+      return
+    }
+    // 未设置状态码则默认成功状态
+    const { code, msg } = res.data
+    // 二进制数据则直接返回
+    if (res.request.responseType === 'blob' || res.request.responseType === 'arraybuffer') {
+      return res
+    }
+    var token = res.headers['x-refresh-token']
+    if (token) {
+      useUserStore().refreshToken(token)
+    }
+    // 成功：仅 code == 200（与后端约定一致）
+    if (code == 200) {
+      // 返回标准 code/msg/data 字段
+      return res.data
+    } else if (code == 401) {
+      // ElMessageBox.confirm('登录状态已过期，请重新登录', '系统提示', {
+      //   confirmButtonText: '重新登陆',
+      //   cancelButtonText: '取消',
+      //   type: 'warning'
+      // }).then(() => {})
+
+      useUserStore()
+        .logOut()
+        .then(() => {
+          location.href = import.meta.env.VITE_APP_ROUTER_PREFIX + 'index'
+        })
+      return Promise.reject('无效的会话，或者会话已过期，请重新登录。')
+    } else if (code == 480) {
+      // 单设备登录：账号在其他设备登录，当前会话被挤下线
+      ElMessageBox.confirm('您的账号已在其他设备登录，如非本人操作请及时修改密码', '账号被挤下线', {
+        confirmButtonText: '重新登录',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        useUserStore()
+          .logOut()
+          .then(() => {
+            location.href = import.meta.env.VITE_APP_ROUTER_PREFIX + 'index'
+          })
+      })
+
+      return Promise.reject('账号已在其他设备登录，当前会话已失效。')
+    } else {
+      // 其余非 200 码（0/1/110/101/403/500/429 等）均视为异常
+      if (!res.config?.skipErrorNotify) {
+        ElMessage({
+          message: msg,
+          type: 'error'
+        })
+      }
+      return Promise.reject(res.data)
+    }
+  },
+  (error) => {
+    console.error('axios err', error)
+    let duration = 3000
+    const config = error?.config || {}
+    const skipErrorNotify = config.skipErrorNotify === true
+    const response = error?.response
+    let message = error?.message || '请求失败'
+    const status = response?.status
+    const responseUrl = response?.config?.url || config?.url || ''
+
+    if (status === 404) {
+      message = `${responseUrl}接口404`
+    } else if (status === 403) {
+      window.location.href = import.meta.env.VITE_APP_ROUTER_PREFIX + '401'
+    } else if (message === 'Network Error') {
+      message = '后端接口连接异常'
+    } else if (message.includes('timeout')) {
+      message = '系统接口请求超时'
+    } else if (message.includes('code 429')) {
+      message = '请求过于频繁，请稍后再试'
+    } else if (message.includes('Request failed with status code')) {
+      message = '系统接口' + message.slice(-3) + '异常，请联系管理员'
+
+      if (import.meta.env.DEV && response?.data) {
+        message = JSON.stringify(response.data.error || response.data)
+        duration = 0
+      }
+    }
+
+    if (!skipErrorNotify) {
+      ElNotification({
+        title: 'Oops,后端出错了',
+        message,
+        duration,
+        type: 'error'
+      })
+    }
+    return Promise.reject({ code: 500, msg: message })
+  }
+)
+
+/**
+ * get方法，对应get请求
+ * @param {String} url [请求的url地址]
+ * @param {Object} params [请求时携带的参数]
+ */
+export function get(url, params) {
+  return new Promise((resolve, reject) => {
+    service
+      .get(url, {
+        params: params
+      })
+      .then((res) => {
+        resolve(res)
+      })
+      .catch((err) => {
+        reject(err)
+      })
+  })
+}
+
+export function post(url, params) {
+  return new Promise((resolve, reject) => {
+    service
+      .post(url, {
+        params: params
+      })
+      .then((res) => {
+        resolve(res)
+      })
+      .catch((err) => {
+        reject(err)
+      })
+  })
+}
+
+/**
+ * 提交表单
+ * @param {*} url
+ * @param {*} data
+ */
+export function postForm(url, data, config) {
+  return new Promise((resolve, reject) => {
+    service
+      .post(url, data, config)
+      .then((res) => {
+        resolve(res)
+      })
+      .catch((err) => {
+        reject(err)
+      })
+  })
+}
+
+/**
+ * 通用下载方法
+ * @param {*} url 请求地址
+ * @param {*} params 请求参数
+ * @param {*} config 配置
+ * @returns
+ */
+export async function downFile(url, params, config) {
+  downloadLoadingInstance = ElLoading.service({ text: '正在下载数据，请稍候', background: 'rgba(0, 0, 0, 0.7)' })
+
+  service
+    .get(url, {
+      params,
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      responseType: 'blob',
+      ...config
+    })
+    .then(async (resp) => {
+      const { data } = resp
+
+      const isLogin = await blobValidate(data)
+      if (isLogin) {
+        var patt = new RegExp('filename=([^;]+\\.[^\\.;]+);*')
+        var contentDisposition = decodeURI(resp.headers['content-disposition'])
+        var result = patt.exec(contentDisposition)
+        var fileName = result[1]
+        fileName = fileName.replace(/\"/g, '')
+
+        const blob = new Blob([data])
+        saveAs(blob, fileName)
+      } else {
+        const resText = await data.text()
+        const rspObj = JSON.parse(resText)
+        const errMsg = errorCode[rspObj.code] || rspObj.msg || errorCode['default']
+
+        ElMessage({
+          message: errMsg,
+          type: 'error'
+        })
+      }
+    })
+    .catch(() => {
+      ElMessage({
+        message: '下载文件出现错误，请联系管理员！',
+        type: 'error'
+      })
+    })
+    .finally(() => {
+      downloadLoadingInstance.close()
+    })
+}
+
+export default service

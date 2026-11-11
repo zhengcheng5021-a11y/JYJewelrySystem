@@ -1,0 +1,2198 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ZR.Mall</name>
+    </assembly>
+    <members>
+        <member name="T:ZR.Mall.Common.OrderNoGenerator">
+            <summary>
+            订单号生成器
+            采用雪花ID（SnowFlakeSingle）：全局唯一、多实例安全、趋势递增。
+            注意：SnowFlakeSingle.WorkId 由 WebApi 启动时初始化（Program.cs）。
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Controllers.BrandController">
+            <summary>
+            品牌管理
+            </summary>
+        </member>
+        <member name="F:ZR.Mall.Controllers.BrandController._ShopBrandService">
+            <summary>
+            品牌表接口
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Controllers.BrandController.QueryShopBrand(ZR.Mall.Model.Dto.ShopBrandQueryDto)">
+            <summary>
+            查询品牌表列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.BrandController.GetShopBrand(System.Int64)">
+            <summary>
+            查询品牌表详情
+            </summary>
+            <param name="Id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.BrandController.AddShopBrand(ZR.Mall.Model.Dto.BrandDto)">
+            <summary>
+            添加品牌表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.BrandController.UpdateShopBrand(ZR.Mall.Model.Dto.BrandDto)">
+            <summary>
+            更新品牌表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.BrandController.DeleteShopBrand(System.String)">
+            <summary>
+            删除品牌表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.BrandController.Export(ZR.Mall.Model.Dto.ShopBrandQueryDto)">
+            <summary>
+            导出品牌表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Mall.Controllers.CategoryController">
+            <summary>
+            商品分类Controller
+            </summary>
+        </member>
+        <member name="F:ZR.Mall.Controllers.CategoryController._categoryService">
+            <summary>
+            商品分类接口
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Controllers.CategoryController.QueryCategory(ZR.Mall.Model.Dto.ShoppingCategoryQueryDto)">
+            <summary>
+            查询商品分类列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.CategoryController.QueryTreeCategory(ZR.Mall.Model.Dto.ShoppingCategoryQueryDto)">
+            <summary>
+            查询商品分类列表树
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.CategoryController.GetCategory(System.Int32)">
+            <summary>
+            查询详情
+            </summary>
+            <param name="CategoryId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.CategoryController.AddCategory(ZR.Mall.Model.Dto.CategoryDto)">
+            <summary>
+            添加商城目录
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.CategoryController.UpdateShoppingCategory(ZR.Mall.Model.Dto.CategoryDto)">
+            <summary>
+            更新商城分类
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.CategoryController.DeleteCategory(System.String)">
+            <summary>
+            删除商城分类
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.CategoryController.Export(ZR.Mall.Model.Dto.ShoppingCategoryQueryDto)">
+            <summary>
+            导出目录
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.CategoryController.CategoryList">
+            <summary>
+            获取目录
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.CategoryController.ChangeSort(System.Int32,System.Int32)">
+            <summary>
+            保存排序
+            </summary>
+            <param name="id"></param>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Mall.Controllers.FrontOrderController">
+            <summary>
+            商城C端/游客接口（匿名可访问，与后台 shopping/Order 区分）
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Controllers.FrontOrderController.CreateOrder(ZR.Mall.Model.Dto.CreateOrderDto)">
+            <summary>
+            游客下单（无需登录）
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Controllers.FrontOrderController.PayOrder(ZR.Mall.Model.Dto.FrontPayOrderDto)">
+            <summary>
+            发起支付。
+            鉴权：订单号 + 下单手机号双重匹配（订单号仅下单者可见，无需再发验证码，保证支付流程顺畅）。
+            - WechatPay:Enabled=true：创建微信 H5 预付单，返回 h5Url，状态流转在微信异步回调（wechat/notify）完成。
+            - WechatPay:Enabled=false：保留模拟支付（开发/联调），直接 待付款 → 待发货。
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Controllers.FrontOrderController.GetWxOpenId(System.String)">
+            <summary>
+            微信小程序：用 wx.login 返回的 code 换取用户 OpenId（匿名，供游客小程序支付补全 JSAPI 参数）。
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Controllers.FrontOrderController.WechatPayNotify">
+            <summary>
+            微信支付结果异步回调（微信服务器调用，验签+解密后按订单号完成支付）。
+            按微信规范：接收成功返回 200 {code:SUCCESS}；验签失败返回 400 FAIL 触发微信重推。
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Controllers.FrontOrderController.CancelOrder(ZR.Mall.Model.Dto.FrontCancelOrderDto)">
+            <summary>
+            游客取消自己的订单（需短信验证码校验归属），回补库存
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Controllers.FrontOrderController.TryAcquireCreateQuota(System.String,System.String,System.String@)">
+            <summary>
+            #2 防刷限流：IP 与手机号双维度配额（10 分钟内）。返回 false 时 msg 为提示。
+            备注：AspNetCoreRateLimit 已有全局 POST 1次/3s 兜底，此处为业务级配额。
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Controllers.FrontOrderController.SendQueryCode(ZR.Mall.Model.Dto.SendCodeDto)">
+            <summary>
+            发送查询订单验证码（证明手机号归属，防止查他人订单）
+            复用 SmsCodeLogService 生成验证码并缓存（与登录验证码机制一致）。
+            真实短信发送待接入短信服务商（项目 AddSmscodeLog 中 //TODO 发送验证码 同理）。
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Controllers.FrontOrderController.QueryMyOrders(ZR.Mall.Model.Dto.FrontOrderQueryDto)">
+            <summary>
+            游客按手机号查询自己的订单（需短信验证码校验归属）
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Controllers.FrontOrderController.GetOrder(System.Int64,System.String,System.String)">
+            <summary>
+            游客订单详情（按手机号+验证码校验归属）
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Controllers.FrontOrderController.GetOrderByNo(System.String,System.String)">
+            <summary>
+            游客按订单号+手机号查询单笔订单（免验证码）。
+            鉴权模型与 pay 一致：订单号（雪花ID，仅下单者可见）+ 手机号（下单时验证码配对的 GuestPhone）双重匹配，
+            足以证明归属，无需再次发短信验证码。用于「下单/支付后立即可查看我的订单」的顺畅体验。
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Controllers.FrontProductController">
+            <summary>
+            商城C端/游客商品浏览接口（匿名可访问，与后台 shopping/product 区分）
+            仅返回已上架商品，不暴露管理字段
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Controllers.FrontProductController.QueryShoppingProduct(ZR.Mall.Model.Dto.ShoppingProductQueryDto)">
+            <summary>
+            游客商品列表（仅上架商品）
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Controllers.FrontProductController.GetShoppingProduct(System.Int64)">
+            <summary>
+            游客商品详情（仅上架商品）
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Controllers.FrontProductController.QueryFrontCategory">
+            <summary>
+            游客可见的商品分类列表（匿名），用于 C 端首页分类筛选。
+            仅返回 ShowStatus=1（展示中）的分类，按 OrderNum 升序。
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Controllers.MallDbSyncController">
+            <summary>
+            商城库结构同步（前端可视化：预览差异 / 一键同步表结构 + 商城菜单种子数据）。
+            与系统库同步（system/dbSync）分离，商城相关逻辑内聚在 ZR.Mall 模块内。
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Controllers.MallDbSyncController.Diff">
+            <summary>
+            预览商城库与实体模型的结构差异，不执行任何 DDL。
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Controllers.MallDbSyncController.Sync(System.Boolean)">
+            <summary>
+            执行商城库同步：补齐缺失的表与列，并刷新种子数据（商城菜单等）。
+            幂等、安全：仅 ADD 缺失对象，不删除列，不修改列类型。
+            </summary>
+            <param name="syncSeed">是否同步种子数据（商城菜单等），默认 true</param>
+        </member>
+        <member name="M:ZR.Mall.Controllers.MallDbSyncController.ResolveMallSyncDb">
+            <summary>
+            非 SaaS 同步共享商城库；SaaS 同步当前请求租户库。
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Controllers.OMSOrderLogController">
+            <summary>
+            订单状态变更日志查询
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Controllers.OMSOrderLogController.QueryOrderLog(System.Nullable{System.Int64},System.String)">
+            <summary>
+            查询订单状态变更日志（按订单Id或订单号，按时间正序）
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Controllers.OrderController">
+            <summary>
+            订单管理
+            </summary>
+        </member>
+        <member name="F:ZR.Mall.Controllers.OrderController._OMSOrderService">
+            <summary>
+            订单管理接口
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Controllers.OrderController.QueryOMSOrder(ZR.Mall.Model.Dto.OMSOrderQueryDto)">
+            <summary>
+            查询订单管理列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.OrderController.GetOMSOrder(System.Int64)">
+            <summary>
+            查询订单管理详情
+            </summary>
+            <param name="Id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.OrderController.UpdateOMSOrder(ZR.Mall.Model.Dto.OMSOrderDto)">
+            <summary>
+            更新订单管理
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.OrderController.DeleteOMSOrder(System.String)">
+            <summary>
+            删除订单管理
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.OrderController.RefundOrder(ZR.Mall.Model.Dto.OMSOrderDto)">
+            <summary>
+            订单退款
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.OrderController.CancelOMSOrder(System.Int64)">
+            <summary>
+            取消订单（仅待发货可取消，回补库存）
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.OrderController.CancelOMSOrders(System.Collections.Generic.List{System.Int64})">
+            <summary>
+            批量取消订单：仅待付款/待发货可取消，其余状态自动跳过；返回成功取消的条数
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Controllers.OrderController.Export(ZR.Mall.Model.Dto.OMSOrderQueryDto)">
+            <summary>
+            导出订单管理
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.OrderController.Delivery(ZR.Mall.Model.Dto.OMSOrderDto)">
+            <summary>
+            订单发货
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.OrderController.ExportExpress(ZR.Mall.Model.Dto.OMSOrderQueryDto)">
+            <summary>
+            导出待发货订单
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.OrderController.ImportData(Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>
+            批量发货
+            </summary>
+            <param name="formFile"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.OrderController.ImportTemplate">
+            <summary>
+            批量发货导入模板下载（仅表头：订单号/物流公司/物流单号）
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Controllers.OrderController.GetSales(ZR.Mall.Model.Dto.OMSOrderQueryDto)">
+            <summary>
+            查询销售总
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.OrderController.GetSalesTrade(ZR.Mall.Model.Dto.OMSOrderQueryDto)">
+            <summary>
+            查询销售趋势
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.OrderController.GetSaleTopProduct(ZR.Mall.Model.Dto.OMSOrderQueryDto)">
+            <summary>
+            查询销售前10的商品
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Mall.Controllers.PaymentController">
+            <summary>
+            支付流水查询（后台对账/排查）
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Controllers.PaymentController.QueryList(ZR.Mall.Model.Dto.OMSPaymentQueryDto)">
+            <summary>
+            查询支付流水列表（按订单号/渠道/状态/时间）
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Controllers.PaymentController.GetPayment(System.Int64)">
+            <summary>
+            查询支付流水详情（含预支付凭证与回调原文，便于排查/对账）
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Controllers.ProductController">
+            <summary>
+            商品管理
+            </summary>
+        </member>
+        <member name="F:ZR.Mall.Controllers.ProductController._ShoppingProductService">
+            <summary>
+            商品管理接口
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Controllers.ProductController.QueryShoppingProduct(ZR.Mall.Model.Dto.ShoppingProductQueryDto)">
+            <summary>
+            查询商品管理列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.ProductController.GetShoppingProduct(System.Int32)">
+            <summary>
+            查询商品管理详情
+            </summary>
+            <param name="ProductId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.ProductController.AddShoppingProduct(ZR.Mall.Model.Dto.ProductDto)">
+            <summary>
+            添加商品管理
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.ProductController.UpdateShoppingProduct(ZR.Mall.Model.Dto.ProductDto)">
+            <summary>
+            更新商品管理
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.ProductController.EditInfo(ZR.Mall.Model.Dto.ProductDto)">
+            <summary>
+            更新商品管理
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.ProductController.DeleteShoppingProduct(System.String)">
+            <summary>
+            删除商品管理
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.ProductController.MultiShoppingProduct(System.String,System.String)">
+            <summary>
+            批量上架/下架
+            </summary>
+            <param name="ids"></param>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.ProductController.ChangeSort(System.Int32,System.Int32)">
+            <summary>
+            保存排序
+            </summary>
+            <param name="id">主键</param>
+            <param name="value">排序值</param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.ProductController.Export(ZR.Mall.Model.Dto.ShoppingProductQueryDto)">
+            <summary>
+            导出商品管理
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Mall.Controllers.SkusController">
+            <summary>
+            商品库存
+            </summary>
+        </member>
+        <member name="F:ZR.Mall.Controllers.SkusController._ShoppingSkusService">
+            <summary>
+            商品库存接口
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Controllers.SkusController.QueryShoppingSkus(ZR.Mall.Model.Dto.ShoppingSkusQueryDto)">
+            <summary>
+            查询商品库存列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.SkusController.GetShoppingSkus(System.Int32)">
+            <summary>
+            查询商品库存详情
+            </summary>
+            <param name="SkuId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.SkusController.AddShoppingSkus(ZR.Mall.Model.Dto.SkusDto)">
+            <summary>
+            添加商品库存
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.SkusController.UpdateShoppingSkus(ZR.Mall.Model.Dto.SkusDto)">
+            <summary>
+            更新商品库存
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.SkusController.DeleteShoppingSkus(System.String)">
+            <summary>
+            删除商品库存
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Mall.Controllers.SpecTemplateController">
+            <summary>
+            规格模板
+            </summary>
+        </member>
+        <member name="F:ZR.Mall.Controllers.SpecTemplateController._MmsSpecTemplateService">
+            <summary>
+            规格模板接口
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Controllers.SpecTemplateController.QueryMmsSpecTemplate(ZR.Mall.Model.Dto.SpecTemplateQueryDto)">
+            <summary>
+            查询规格模板列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.SpecTemplateController.QuerySpecTemplate(ZR.Mall.Model.Dto.SpecTemplateQueryDto)">
+            <summary>
+            查询规格模板列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.SpecTemplateController.GetMmsSpecTemplate(System.Int64)">
+            <summary>
+            查询规格模板详情
+            </summary>
+            <param name="Id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.SpecTemplateController.AddMmsSpecTemplate(ZR.Mall.Model.Dto.SpecTemplateDto)">
+            <summary>
+            添加规格模板
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.SpecTemplateController.UpdateMmsSpecTemplate(ZR.Mall.Model.Dto.SpecTemplateDto)">
+            <summary>
+            更新规格模板
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Controllers.SpecTemplateController.DeleteMmsSpecTemplate(System.String)">
+            <summary>
+            删除规格模板
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Mall.Enum.DeliveryStatusEnum">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="F:ZR.Mall.Enum.DeliveryStatusEnum.NotDelivered">
+            <summary>
+            未发货
+            </summary>
+        </member>
+        <member name="F:ZR.Mall.Enum.DeliveryStatusEnum.Delivering">
+            <summary>
+            已发货（物流中）
+            </summary>
+        </member>
+        <member name="F:ZR.Mall.Enum.DeliveryStatusEnum.Delivered">
+            <summary>
+            已送达（物流已签收）
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Enum.OrderStatusEnum">
+            <summary>
+            订单状态 0待付款 1待发货 2已发货 3已完成 4已取消 5已关闭
+            </summary>
+        </member>
+        <member name="F:ZR.Mall.Enum.OrderStatusEnum.None">
+            <summary>
+            待付款(订单已创建，未支付）
+            </summary>
+        </member>
+        <member name="F:ZR.Mall.Enum.OrderStatusEnum.TobeShipped">
+            <summary>
+            待发货（已支付）
+            </summary>
+        </member>
+        <member name="F:ZR.Mall.Enum.OrderStatusEnum.Shipped">
+            <summary>
+            已发货（物流中）
+            </summary>
+        </member>
+        <member name="F:ZR.Mall.Enum.OrderStatusEnum.Completed">
+            <summary>
+            已完成 /已收货（用户确认收货或系统自动收货）
+            </summary>
+        </member>
+        <member name="F:ZR.Mall.Enum.OrderStatusEnum.Cancel">
+            <summary>
+            取消（用户主动取消、未支付超时取消）
+            </summary>
+        </member>
+        <member name="F:ZR.Mall.Enum.OrderStatusEnum.Closed">
+            <summary>
+            已关闭（订单退款/售后完成后彻底关闭）
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Enum.PaymentStatusEnum">
+            <summary>
+            支付流水状态
+            </summary>
+        </member>
+        <member name="F:ZR.Mall.Enum.PaymentStatusEnum.Prepay">
+            <summary>
+            预支付（已调起/下单，待用户支付）
+            </summary>
+        </member>
+        <member name="F:ZR.Mall.Enum.PaymentStatusEnum.Paid">
+            <summary>
+            支付成功
+            </summary>
+        </member>
+        <member name="F:ZR.Mall.Enum.PaymentStatusEnum.Closed">
+            <summary>
+            已关闭（超时未付/订单取消）
+            </summary>
+        </member>
+        <member name="F:ZR.Mall.Enum.PaymentStatusEnum.Refunded">
+            <summary>
+            已退款
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Enum.PayTypeEnum">
+            <summary>
+            支付类型（支付方式）
+            </summary>
+        </member>
+        <member name="F:ZR.Mall.Enum.PayTypeEnum.Mock">
+            <summary>
+            模拟支付（开发/联调，不产生真实扣款）
+            </summary>
+        </member>
+        <member name="F:ZR.Mall.Enum.PayTypeEnum.Wechat">
+            <summary>
+            微信 H5 支付（外浏览器调起微信）
+            </summary>
+        </member>
+        <member name="F:ZR.Mall.Enum.PayTypeEnum.Alipay">
+            <summary>
+            支付宝（预留，暂未开通）
+            </summary>
+        </member>
+        <member name="F:ZR.Mall.Enum.SaleStatus.OnSale">
+            <summary>
+            在售
+            </summary>
+        </member>
+        <member name="F:ZR.Mall.Enum.SaleStatus.TakeOff">
+            <summary>
+            下架
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Brand">
+            <summary>
+            商品品牌
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Brand.Name">
+            <summary>
+            品牌名
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Brand.Logo">
+            <summary>
+            品牌logo
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Brand.Description">
+            <summary>
+            品牌介绍
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Category">
+            <summary>
+            商城目录
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Category.CategoryId">
+            <summary>
+            目录id
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Category.OrderNum">
+            <summary>
+            排序id
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Category.Introduce">
+            <summary>
+            说明
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Category.IsDelete">
+            <summary>
+            是否删除
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Category.ShowStatus">
+            <summary>
+            是否显示
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Category.CreateTime">
+            <summary>
+            创建时间
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Dto.ShopBrandQueryDto">
+            <summary>
+            品牌表查询对象
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Dto.BrandDto">
+            <summary>
+            品牌表输入输出对象
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Dto.CategoryDto">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Dto.ShoppingCategoryQueryDto">
+            <summary>
+            目录查询对象
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Dto.CreateOrderDto">
+            <summary>
+            游客/C端下单请求
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.CreateOrderDto.Items">
+            <summary>
+            订单项（至少一个）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.CreateOrderDto.Address">
+            <summary>
+            收货信息（必填，游客无账号，手机号作为身份锚点）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.CreateOrderDto.OrderNote">
+            <summary>
+            订单备注（用户留言，可选）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.CreateOrderDto.RequestId">
+            <summary>
+            幂等键：前端每次下单意图生成的唯一值，用于防重复提交/网络重试。
+            不传则按“手机号 + 订单项 + 金额”自动去重。
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.CreateOrderDto.Code">
+            <summary>
+            短信验证码：下单前需对本手机号获取并校验，证明手机号归属（防止填他人手机号下单）。
+            与 Address.Phone 配对使用。
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Dto.FrontCancelOrderDto">
+            <summary>
+            游客取消自己订单（需短信验证码校验归属）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.FrontCancelOrderDto.Id">
+            <summary>
+            订单Id
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.FrontCancelOrderDto.Phone">
+            <summary>
+            下单手机号（与订单收货手机号一致）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.FrontCancelOrderDto.Code">
+            <summary>
+            短信验证码（证明手机号归属）
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Dto.FrontPayOrderDto">
+            <summary>
+            游客模拟支付请求（订单号 + 下单手机号双重匹配，防止误付他人订单）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.FrontPayOrderDto.OrderNo">
+            <summary>
+            订单号
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.FrontPayOrderDto.Phone">
+            <summary>
+            下单手机号（与订单收货手机号一致）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.FrontPayOrderDto.Channel">
+            <summary>
+            支付通道：h5（默认，微信内/H5 浏览器跳转）/ miniProgram（微信小程序 JSAPI）/ app（App 原生支付）。
+            真实支付（WechatPay:Enabled=true）时按此字段选择预付单类型；模拟支付忽略。
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.FrontPayOrderDto.OpenId">
+            <summary>
+            微信小程序支付所需的用户 OpenId（channel=miniProgram 时必填）。
+            由前端通过 wx.login 换取后传入（见 shopping/front/order/wx-openid）。
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Dto.CreateOrderItemDto">
+            <summary>
+            下单商品项
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.CreateOrderItemDto.SkuId">
+            <summary>
+            skuId
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.CreateOrderItemDto.Quantity">
+            <summary>
+            购买数量（>=1）
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Dto.FrontOrderQueryDto">
+            <summary>
+            游客查询自己订单（按手机号）请求
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.FrontOrderQueryDto.Phone">
+            <summary>
+            收货手机号（与下单时一致）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.FrontOrderQueryDto.Code">
+            <summary>
+            短信验证码（证明手机号归属，防止查他人订单）
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Dto.SendCodeDto">
+            <summary>
+            发送验证码请求（type: 4=查询订单, 5=下单。复用同一缓存键按手机号隔离）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.SendCodeDto.Phone">
+            <summary>
+            收货手机号
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.SendCodeDto.Type">
+            <summary>
+            验证码用途：4=查询订单（默认），5=下单。用于短信日志区分，校验时按手机号统一比对。
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Dto.OMSOrderQueryDto">
+            <summary>
+            订单管理查询对象
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Dto.OMSOrderDto">
+            <summary>
+            订单管理输入输出对象
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.OMSOrderDto.OperType">
+            <summary>
+            操作类型 1.发货 2.修改平台备注
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Dto.DeliveryExpressDto">
+            <summary>
+            快递发货
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Dto.OMSPaymentQueryDto">
+            <summary>
+            支付流水查询对象
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.OMSPaymentQueryDto.OrderNo">
+            <summary>
+            订单号（精确匹配）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.OMSPaymentQueryDto.PayType">
+            <summary>
+            支付类型：0->模拟；1->微信H5；2->支付宝（预留），null=全部
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.OMSPaymentQueryDto.Status">
+            <summary>
+            支付状态：0->预支付；1->已支付；2->已关闭；3->已退款，null=全部
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.OMSPaymentQueryDto.ChannelTradeNo">
+            <summary>
+            第三方支付流水号（模糊匹配）
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Dto.OMSPaymentDto">
+            <summary>
+            支付流水输入输出对象
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Dto.ShoppingProductQueryDto">
+            <summary>
+            商品管理查询对象
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Dto.ProductDto">
+            <summary>
+            商品管理输入输出对象
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Dto.ShoppingProductSpecQueryDto">
+            <summary>
+            商品规格查询对象
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Dto.ProductSpecDto">
+            <summary>
+            商品规格输入输出对象
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Dto.ShoppingSkusQueryDto">
+            <summary>
+            商品库存查询对象
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.ShoppingSkusQueryDto.ProductId">
+            <summary>
+            商品ID（按商品筛选）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.ShoppingSkusQueryDto.ProductCode">
+            <summary>
+            商品编码（按商品编码检索 SKU，业务上通常按编码定位具体商品）
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Dto.SkusDto">
+            <summary>
+            商品库存输入输出对象
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.SkusDto.ProductName">
+            <summary>
+            商品名称（列表 join 返回，用于表格展示，无需前端预载全量商品）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.SkusDto.ProductCode">
+            <summary>
+            商品编码（列表 join 返回，用于按编码检索/展示）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.SkusDto.Weight">
+            <summary>
+            重量（千克 (Kg)）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Dto.SkusDto.Specs">
+            <summary>
+            规格
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Dto.SpecTemplateQueryDto">
+            <summary>
+            规格模板查询对象
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Dto.SpecTemplateDto">
+            <summary>
+            规格模板输入输出对象
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.OMSOrderItemDto">
+            <summary>
+            订单项
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrderItemDto.ProductId">
+            <summary>
+            商品ID(快照)
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrderItemDto.ProductName">
+            <summary>
+            商品名(快照)
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrderItemDto.ProductPic">
+            <summary>
+            商品图片(快照)
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrderItemDto.Price">
+            <summary>
+            下单时的商品单价快照
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrderItemDto.TotalPrice">
+            <summary>
+            总价(单价 * 数量)
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrderItemDto.SkuSpec">
+            <summary>
+            规格快照(例如:颜色:红色;尺码:XL)
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.MMSUserAddress">
+            <summary>
+            收货地址表
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.MMSUserAddress.UserId">
+            <summary>
+            用户ID
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.MMSUserAddress.UserName">
+            <summary>
+            收件人姓名
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.MMSUserAddress.Phone">
+            <summary>
+            手机人电话
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.MMSUserAddress.PhoneCode">
+            <summary>
+            手机区号
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.MMSUserAddress.Province">
+            <summary>
+            省市区地址
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.MMSUserAddress.DetailAddress">
+            <summary>
+            详细地址
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.MMSUserAddress.IsDefault">
+            <summary>
+            是否默认1.是 0.否
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.MMSUserAddress.AddTime">
+            <summary>
+            添加时间
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.OMSOrder">
+            <summary>
+            订单管理
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrder.Id">
+            <summary>
+            Id 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrder.OrderNo">
+            <summary>
+            订单号 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrder.UserId">
+            <summary>
+            用户ID（游客/匿名下单时为 null，后期接入用户体系后绑定真实用户Id）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrder.GuestPhone">
+            <summary>
+            游客下单手机号（身份锚点的一等公民列，用于 SQL 过滤查询订单，避免解析 AddressSnapshot JSON）。
+            下单时与验证码配对写入，与 AddressSnapshot.Phone 同源。
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrder.ToUserId">
+            <summary>
+            赠送用户ID
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrder.TotalAmount">
+            <summary>
+            总金额 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrder.PayAmount">
+            <summary>
+            付款金额 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrder.OrderStatus">
+            <summary>
+            订单状态 0待付款 1待发货 2已发货 3已完成 4已取消 5已退款
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrder.DeliveryStatus">
+            <summary>
+            发货状态：0->未发货；1->已发货；2->已收货；
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrder.RefundStatus">
+            <summary>
+            退款状态：0->无退款；1->退款中；2->已退款；3->正在退货；4->已退货
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrder.CreateTime">
+            <summary>
+            下单时间 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrder.PayTime">
+            <summary>
+            支付时间 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrder.PayType">
+            <summary>
+            支付类型：0->模拟支付；1->微信H5；2->支付宝（预留）。
+            区分真实付款与开发联调的模拟单，用于对账与排查。默认 0。
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrder.TransactionId">
+            <summary>
+            第三方支付流水号（微信 transaction_id；模拟支付为空）。
+            微信退款/对账需凭此号，回调时写入。
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrder.CancelTime">
+            <summary>
+            取消时间 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrder.ShipTime">
+            <summary>
+            发货时间
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrder.ConfirmTime">
+            <summary>
+            确认收货时间
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrder.OrderNote">
+            <summary>
+            订单备注(用户)
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrder.MerchantNote">
+            <summary>
+            商家备注 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrder.AddressSnapshot">
+            <summary>
+            收货地址 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrder.DeliveryCompany">
+            <summary>
+            物流公司 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrder.DeliveryNo">
+            <summary>
+            物流单号 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrder.IsDelete">
+            <summary>
+            是否删除(软删除) 1.已删除 0.未删除
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrder.Items">
+            <summary>
+            订单项
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.OMSOrderItem">
+            <summary>
+            订单项
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrderItem.OrderId">
+            <summary>
+            订单ID
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrderItem.ProductId">
+            <summary>
+            商品ID(快照)
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrderItem.ProductName">
+            <summary>
+            商品名(快照)
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrderItem.ProductPic">
+            <summary>
+            商品图片(快照)
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrderItem.SkuId">
+            <summary>
+            skuId
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrderItem.UnitPrice">
+            <summary>
+            商品的单价快照（下单时的价格）（快照）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrderItem.TotalPrice">
+            <summary>
+            付款金额(单价UnitPrice*数量Quantity)
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrderItem.Quantity">
+            <summary>
+            数量
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrderItem.SkuSpec">
+            <summary>
+            规格快照(例如:颜色:红色;尺码:XL)
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.OMSOrderLog">
+            <summary>
+            订单状态变更日志（谁、何时、从什么状态到什么状态、什么操作触发）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrderLog.Id">
+            <summary>
+            日志Id 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrderLog.OrderId">
+            <summary>
+            订单Id 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrderLog.OrderNo">
+            <summary>
+            订单号 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrderLog.FromStatus">
+            <summary>
+            变更前状态（OrderStatusEnum 值）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrderLog.ToStatus">
+            <summary>
+            变更后状态（OrderStatusEnum 值）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrderLog.OperType">
+            <summary>
+            操作类型：PAY / CANCEL / EXPIRE / DELIVERY / REFUND
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrderLog.Operator">
+            <summary>
+            操作人（买家手机号 / 后台用户 / system(job)）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrderLog.Remark">
+            <summary>
+            备注 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSOrderLog.CreateTime">
+            <summary>
+            创建时间 
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.OMSPayment">
+            <summary>
+            支付流水表（每笔支付/预支付一条记录，支持多渠道、多次支付与对账）。
+            订单表 oms_order 上的 PayType/TransactionId 作为"最近一次支付"快照供列表快速展示，
+            完整生命周期以本表为准。
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSPayment.Id">
+            <summary>
+            主键
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSPayment.OrderNo">
+            <summary>
+            订单号（与 oms_order.OrderNo 关联）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSPayment.OrderId">
+            <summary>
+            订单Id（冗余，便于 join）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSPayment.PayType">
+            <summary>
+            支付类型：0->模拟；1->微信H5；2->支付宝（预留）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSPayment.ChannelTradeNo">
+            <summary>
+            第三方支付流水号（微信 transaction_id / 支付宝 trade_no）；模拟支付为空
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSPayment.Amount">
+            <summary>
+            支付金额
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSPayment.Status">
+            <summary>
+            支付状态：0->预支付；1->已支付；2->已关闭；3->已退款
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSPayment.PrepayData">
+            <summary>
+            预支付凭证（微信 H5 的 mweb_url 等）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSPayment.CallbackRaw">
+            <summary>
+            支付渠道回调原文（JSON），便于排查/对账
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSPayment.CreateTime">
+            <summary>
+            创建时间
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSPayment.PayTime">
+            <summary>
+            支付成功时间
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.OMSPayment.IsDelete">
+            <summary>
+            是否删除(软删除) 1.已删除 0.未删除
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Product">
+            <summary>
+            商品管理
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Product.ProductId">
+            <summary>
+            商品ID 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Product.ProductName">
+            <summary>
+            商品名 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Product.ProductCode">
+            <summary>
+            商品编码
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Product.Introduce">
+            <summary>
+            介绍 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Product.BrandId">
+            <summary>
+            品牌Id
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Product.CategoryId">
+            <summary>
+            商品分类 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Product.Price">
+            <summary>
+            sku最低价格(自动根据sku计算)
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Product.MaxPrice">
+            <summary>
+            最高价格(用于前端搜索价格区间)自动根据sku计算
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Product.OriginalPrice">
+            <summary>
+            商品原件（划线价）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Product.Unit">
+            <summary>
+            单位 （如：件，瓶，斤）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Product.ImageUrls">
+            <summary>
+            轮播图片 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Product.MainImage">
+            <summary>
+            商品主图
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Product.VideoUrl">
+            <summary>
+            视频介绍
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Product.TotalSalesVolume">
+            <summary>
+            销量统计（可加缓存）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Product.SortId">
+            <summary>
+            排序ID (越大排序越靠前)
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Product.SaleStatus">
+            <summary>
+            显示状态 1.在售 0.下架
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Product.AddTime">
+            <summary>
+            添加时间 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Product.DetailsHtml">
+            <summary>
+            详情页富文本
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Product.IsDelete">
+            <summary>
+            是否删除
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Product.SpecSummary">
+            <summary>
+            规格简介(只读，存档使用)
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Product.SpecType">
+            <summary>
+            规格类型
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Product.PurchaseLimit">
+            <summary>
+            限购
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Product.Skus">
+            <summary>
+            sku
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Product.Category">
+            <summary>
+            分类
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Product.Brand">
+            <summary>
+            品牌
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.PurchaseLimit.TotalLimit">
+            <summary>
+            总限购件数
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.PurchaseLimit.SingleLimit">
+            <summary>
+            每单限购
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.ProductSpec">
+            <summary>
+            商品规格
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.ProductSpec.Id">
+            <summary>
+            Id 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.ProductSpec.ProductId">
+            <summary>
+            商品ID 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.ProductSpec.Name">
+            <summary>
+            规格名称 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.ProductSpec.SpecValues">
+            <summary>
+            规格值
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.Skus">
+            <summary>
+            商品库存
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Skus.SkuId">
+            <summary>
+            SkuId 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Skus.ProductId">
+            <summary>
+            商品ID 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Skus.Price">
+            <summary>
+            售卖价格 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Skus.Stock">
+            <summary>
+            库存（可售库存 = 总库存 - 锁定库存；下单即扣减可售，发货不重复扣）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Skus.LockStock">
+            <summary>
+            锁定库存：已下单（含已支付待发货）但未实际出库占用的库存量。
+            下单 +qty，取消/超时回补 -qty，发货出库释放 -qty；始终 ≥ 0。
+            用于区分“可售”与“已锁定（未出库）”，避免超卖与库存口径混乱。
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Skus.SalesVolume">
+            <summary>
+            销量
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Skus.ImageUrl">
+            <summary>
+            缩略图片 
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Skus.SpecIds">
+            <summary>
+            规格值id
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Skus.SpecCombination">
+            <summary>
+            快照存储,规格 如 "颜色:红;尺寸:XL"
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Skus.AddTime">
+            <summary>
+            添加时间
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Skus.UpdateTime">
+            <summary>
+            更新时间
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Skus.IsDelete">
+            <summary>
+            是否删除
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Skus.SortId">
+            <summary>
+            排序id
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Skus.Weight">
+            <summary>
+            重量（千克 (Kg)）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Skus.Version">
+            <summary>
+            版本号（防止并发更新）
+            </summary>
+        </member>
+        <member name="P:ZR.Mall.Model.Skus.Specs">
+            <summary>
+            规格
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Model.SpecTemplate">
+            <summary>
+            规格模板
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Payment.MallWechatPayHandler">
+            <summary>
+            商城订单微信支付回调处理器：认领非租户续费单号（TO 前缀）的支付成功回调，
+            委托 OMSOrderService 按订单号完成支付状态流转。金额校验与幂等在订单服务内。
+            </summary>
+        </member>
+        <member name="F:ZR.Mall.Payment.MallWechatPayHandler.TenantOrderPrefix">
+            <summary>
+            租户续费流水单号前缀（SysTenantService.InsertTenantOrder 生成），归租户续费 handler 处理
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Service.BrandService">
+            <summary>
+            品牌表Service业务层处理
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.BrandService.GetList(ZR.Mall.Model.Dto.ShopBrandQueryDto)">
+            <summary>
+            查询品牌表列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.BrandService.GetInfo(System.Int64)">
+            <summary>
+            获取详情
+            </summary>
+            <param name="Id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.BrandService.AddShopBrand(ZR.Mall.Model.Brand)">
+            <summary>
+            添加品牌表
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.BrandService.UpdateShopBrand(ZR.Mall.Model.Brand)">
+            <summary>
+            修改品牌表
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.BrandService.ExportList(ZR.Mall.Model.Dto.ShopBrandQueryDto)">
+            <summary>
+            导出品牌表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.BrandService.DeleteBrand(System.Int64[])">
+            <summary>
+            安全物理删除品牌
+            </summary>
+            <remarks>
+            删除前校验品牌是否被商品(Product.BrandId)引用，若有引用则拒绝删除以避免
+            触发外键异常或留下孤儿商品数据；无引用时执行真正的物理删除。
+            </remarks>
+        </member>
+        <member name="M:ZR.Mall.Service.BrandService.QueryExp(ZR.Mall.Model.Dto.ShopBrandQueryDto)">
+            <summary>
+            查询导出表达式
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Mall.Service.CategoryService">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.CategoryService.GetList(ZR.Mall.Model.Dto.ShoppingCategoryQueryDto)">
+            <summary>
+            查询目录列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.CategoryService.GetTreeList(ZR.Mall.Model.Dto.ShoppingCategoryQueryDto)">
+            <summary>
+            查询目录树列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.CategoryService.AddCategory(ZR.Mall.Model.Category)">
+            <summary>
+            添加目录
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.CategoryService.ExportList(ZR.Mall.Model.Dto.ShoppingCategoryQueryDto)">
+            <summary>
+            导出
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.CategoryService.QueryExp(ZR.Mall.Model.Dto.ShoppingCategoryQueryDto)">
+            <summary>
+            查询导出表达式
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Mall.Service.IService.IBrandService">
+            <summary>
+            品牌表service接口
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.IService.IBrandService.DeleteBrand(System.Int64[])">
+            <summary>
+            安全物理删除品牌：若品牌已被商品引用则拒绝，否则执行物理删除
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Service.IService.IOMSOrderLogService">
+            <summary>
+            订单状态变更日志Service接口
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.IService.IOMSOrderLogService.AddLog(System.Int64,System.String,System.Int32,System.Int32,System.String,System.String,System.String)">
+            <summary>
+            记录一条状态变更（自动写入 CreateTime）
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.IService.IOMSOrderLogService.GetByOrder(System.Int64)">
+            <summary>
+            查询某订单的全部状态变更（按时间正序）
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.IService.IOMSOrderLogService.GetByOrderNo(System.String)">
+            <summary>
+            按订单号查询全部状态变更（按时间正序）
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Service.IService.IOMSOrderService">
+            <summary>
+            订单管理service接口
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.IService.IOMSOrderService.CreateOrder(ZR.Mall.Model.Dto.CreateOrderDto)">
+            <summary>
+            游客/C端下单：校验库存、计算金额、写订单与订单项、乐观锁扣库存并累加销量
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.IService.IOMSOrderService.GetOrderStatusStats">
+            <summary>
+            订单各状态计数统计（用于列表顶部概览卡）
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.IService.IOMSOrderService.CancelOrder(System.Int64)">
+            <summary>
+            取消订单（待付款/待发货可取消，回补库存）
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.IService.IOMSOrderService.CancelOrders(System.Collections.Generic.List{System.Int64})">
+            <summary>
+            批量取消订单：仅处理待付款/待发货状态的订单，其余状态自动跳过；返回成功取消的条数
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.IService.IOMSOrderService.PayOrder(System.String,System.String)">
+            <summary>
+            模拟支付：待付款 → 待发货（订单号+手机号匹配，幂等）
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.IService.IOMSOrderService.PayOrderByOrderNo(System.String,ZR.Mall.Enum.PayTypeEnum,System.String,System.String,System.Nullable{System.Int64})">
+            <summary>
+            按订单号完成支付（供游客支付与支付渠道异步回调复用）。幂等+条件更新。
+            payType/transactionId 用于记录支付方式与第三方流水号（默认模拟支付）。
+            callbackRaw 为支付渠道回调原文（微信/支付宝），写入支付流水表便于排查。
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.IService.IOMSOrderService.CloseExpiredPendingOrders(System.Int32)">
+            <summary>
+            关闭超时未支付的待付款订单并回补库存（定时任务 Job_ClosePendingOrder 调用，幂等）
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Service.IService.IOMSPaymentService">
+            <summary>
+            支付流水服务接口
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.IService.IOMSPaymentService.CreatePrepay(ZR.Mall.Model.OMSOrder,ZR.Mall.Enum.PayTypeEnum,System.String)">
+            <summary>
+            创建预支付流水（状态=Prepay）
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.IService.IOMSPaymentService.UpsertPaid(ZR.Mall.Model.OMSOrder,ZR.Mall.Enum.PayTypeEnum,System.String,System.DateTime,System.String)">
+            <summary>
+            写入/更新支付成功流水（幂等）
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.IService.IOMSPaymentService.GetList(ZR.Mall.Model.Dto.OMSPaymentQueryDto)">
+            <summary>
+            分页查询支付流水（按订单号/渠道/状态/时间）
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Service.IService.IProductService">
+            <summary>
+            商品管理service接口
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Service.IService.IProductSpecService">
+            <summary>
+            商品规格service接口
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Service.IService.ISkusService">
+            <summary>
+            商品库存service接口
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Service.IService.ISpecTemplateService">
+            <summary>
+            规格模板service接口
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Service.MallTenantInitializer">
+            <summary>
+            商城模块租户级表初始化器。
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Service.OMSOrderLogService">
+            <summary>
+            订单状态变更日志Service业务层处理
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSOrderLogService.AddLog(System.Int64,System.String,System.Int32,System.Int32,System.String,System.String,System.String)">
+            <summary>
+            记录一条状态变更（自动写入 CreateTime）
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSOrderLogService.GetByOrder(System.Int64)">
+            <summary>
+            查询某订单的全部状态变更（按时间正序）
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Service.OMSOrderService">
+            <summary>
+            订单管理Service业务层处理
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSOrderService.GetList(ZR.Mall.Model.Dto.OMSOrderQueryDto)">
+            <summary>
+            查询订单管理列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSOrderService.NotDelivereOrder">
+            <summary>
+            查询未发货的订单数
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSOrderService.GetOrderStatusStats">
+            <summary>
+            订单各状态计数统计（用于列表顶部概览卡）。
+            一次 GroupBy 统计全部状态，比多次 COUNT 高效。
+            仅统计未删除订单(IsDelete=0)。
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSOrderService.GetInfo(System.Int64)">
+            <summary>
+            获取详情
+            </summary>
+            <param name="Id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSOrderService.CreateOrder(ZR.Mall.Model.Dto.CreateOrderDto)">
+            <summary>
+            游客/C端下单
+            1. 校验商品/SKU 存在、上架、库存充足（读阶段在事务外）
+            2. 计算订单金额（单价 × 数量，累加）
+            3. 写订单主表 + 订单项（商品/SKU/价格快照）
+            4. 乐观锁扣减库存、累加销量（防超卖）
+            游客下单 UserId 为 null，手机号记录在 AddressSnapshot.Phone 作为身份锚点。
+            幂等：同一 RequestId（或相同手机号+订单项签名）短窗口内只创建一次订单。
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSOrderService.BuildCreateIdemKey(ZR.Mall.Model.Dto.CreateOrderDto,System.Decimal)">
+            <summary>
+            计算下单幂等键：优先用前端传入的 RequestId，否则按“手机号+订单项+金额”签名
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSOrderService.PayOrder(System.String,System.String)">
+            <summary>
+            模拟支付（游客直接支付）：待付款 → 待发货，记录支付时间。
+            校验订单号+手机号双重匹配（游客无账号，手机号即身份锚点）后调用 PayOrderByOrderNo。
+            幂等：已支付（待发货及之后）直接返回成功，不重复变更。
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSOrderService.PayOrderByOrderNo(System.String,ZR.Mall.Enum.PayTypeEnum,System.String,System.String,System.Nullable{System.Int64})">
+            <summary>
+            按订单号完成支付（待付款 → 待发货），记录支付时间与支付方式/流水号。
+            供游客直接支付（PayOrder 手机号鉴权后）与支付渠道异步回调（微信/支付宝 notify）调用。
+            幂等 + 条件更新（防并发重复支付 / 支付与取消竞态）。状态机不变。
+            </summary>
+            <summary>
+            按订单号完成支付（待付款 → 待发货）。
+            callbackTotalFen：支付渠道异步回调带回的金额（单位：分）。非 null 时与订单应付金额(PayAmount)做一致性校验，
+            防止伪造/篡改回调把订单标为已付（金额不符直接拒绝）。
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSOrderService.UpdateOMSOrder(System.Int32,ZR.Mall.Model.OMSOrder)">
+            <summary>
+            修改订单管理
+            </summary>
+            <param name="operType"></param>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSOrderService.CloseExpiredPendingOrders(System.Int32)">
+            <summary>
+            关闭超时未支付的待付款订单并回补库存（定时任务 Job_ClosePendingOrder 调用）。
+            用条件更新（仅待付款且超时）保证幂等：重复执行只会影响仍处于待付款且超时的单，
+            已取消的单不再命中，且回补仅针对“本次实际变更”的订单，不会重复回补库存。
+            </summary>
+            <param name="expireMinutes">未支付超时分钟数（默认30）</param>
+            <returns>实际关闭的订单数</returns>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSOrderService.CancelOrder(System.Int64)">
+            <summary>
+            取消订单（游客/后台通用）：仅“待发货”可取消，回补库存
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSOrderService.CancelOrders(System.Collections.Generic.List{System.Int64})">
+            <summary>
+            批量取消订单：一次性事务内遍历，仅处理待付款/待发货状态的订单，其余状态跳过；返回成功取消条数
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSOrderService.RefundOrder(ZR.Mall.Model.OMSOrder)">
+            <summary>
+            退款：关闭订单 + 回补库存（简易版无支付，退款即退回库存）
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSOrderService.RestoreStock(System.Int64)">
+            <summary>
+            按订单项回补 SKU 库存（事务内调用，单条 UPDATE 原子加回）
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSOrderService.NotifyBuyer(ZR.Mall.Model.OMSOrder,System.String,System.String)">
+            <summary>
+            通知买家订单变化：有账号(userId)走站内信(IMessageNotifier 自动推送)，游客降级为短信。
+            异常仅记录，不影响主流程。
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSOrderService.OrderDelivery(ZR.Mall.Model.OMSOrder)">
+            <summary>
+            发货
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSOrderService.UpdateMerchantNote(ZR.Mall.Model.OMSOrder)">
+            <summary>
+            修改平台备注
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSOrderService.ExportList(ZR.Mall.Model.Dto.OMSOrderQueryDto)">
+            <summary>
+            导出订单管理
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSOrderService.ExportWaitDeliveryList(ZR.Mall.Model.Dto.OMSOrderQueryDto)">
+            <summary>
+            导出代发货订单
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSOrderService.GetTotalSales(ZR.Mall.Model.Dto.OMSOrderQueryDto)">
+            <summary>
+            总销售额和订单数
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSOrderService.GetSaleTreandByDay(ZR.Mall.Model.Dto.OMSOrderQueryDto)">
+            <summary>
+            销售趋势（按天）
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSOrderService.GetSaleTopProduct(ZR.Mall.Model.Dto.OMSOrderQueryDto)">
+            <summary>
+            销售排名前10的商品
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSOrderService.QueryExp(ZR.Mall.Model.Dto.OMSOrderQueryDto)">
+            <summary>
+            查询导出表达式
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Mall.Service.OMSPaymentService">
+            <summary>
+            支付流水服务：记录预支付(prepaid)与支付成功(paid)流水，支撑多渠道、多次支付与对账。
+            状态机与订单流转在 OMSOrderService，本服务只负责支付记录的写与查询。
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSPaymentService.CreatePrepay(ZR.Mall.Model.OMSOrder,ZR.Mall.Enum.PayTypeEnum,System.String)">
+            <summary>
+            创建预支付流水（调起支付时写入，状态=Prepay）。用于微信 H5 等"先下单后回调"的通道。
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSPaymentService.UpsertPaid(ZR.Mall.Model.OMSOrder,ZR.Mall.Enum.PayTypeEnum,System.String,System.DateTime,System.String)">
+            <summary>
+            写入/更新支付成功流水：若同订单同渠道存在 Prepay 记录则更新为 Paid，
+            否则直接插入 Paid 记录（模拟支付无预支付阶段）。幂等安全。
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.OMSPaymentService.GetList(ZR.Mall.Model.Dto.OMSPaymentQueryDto)">
+            <summary>
+            分页查询支付流水（按订单号/渠道/状态/时间），仅统计未删除记录(IsDelete=0)。
+            </summary>
+        </member>
+        <member name="T:ZR.Mall.Service.ProductService">
+            <summary>
+            商品管理Service业务层处理
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.ProductService.#ctor(ZR.Mall.Service.IService.ISkusService,ZR.Mall.Service.IService.IProductSpecService)">
+            <summary>
+            
+            </summary>
+            <param name="skusService"></param>
+            <param name="shoppingProductSpecService"></param>
+        </member>
+        <member name="M:ZR.Mall.Service.ProductService.GetList(ZR.Mall.Model.Dto.ShoppingProductQueryDto)">
+            <summary>
+            查询商品管理列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.ProductService.GetInfo(System.Int64)">
+            <summary>
+            获取详情
+            </summary>
+            <param name="ProductId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.ProductService.AddShoppingProduct(ZR.Mall.Model.Dto.ProductDto)">
+            <summary>
+            添加商品管理
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.ProductService.UpdateShoppingProduct(ZR.Mall.Model.Dto.ProductDto)">
+            <summary>
+            修改商品管理
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.ProductService.UpdateInfo(ZR.Mall.Model.Dto.ProductDto)">
+            <summary>
+            修改商品管理
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.ProductService.ExportList(ZR.Mall.Model.Dto.ShoppingProductQueryDto)">
+            <summary>
+            导出商品管理
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.ProductService.QueryExp(ZR.Mall.Model.Dto.ShoppingProductQueryDto)">
+            <summary>
+            查询导出表达式
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Mall.Service.ProductSpecService">
+            <summary>
+            商品规格Service业务层处理
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.ProductSpecService.GetList(ZR.Mall.Model.Dto.ShoppingProductSpecQueryDto)">
+            <summary>
+            查询商品规格列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.ProductSpecService.AddShoppingProductspec(ZR.Mall.Model.ProductSpec)">
+            <summary>
+            添加商品规格
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.ProductSpecService.UpdateProductSpec(System.Int64,System.Collections.Generic.List{ZR.Mall.Model.ProductSpec})">
+            <summary>
+            修改商品规格
+            </summary>
+            <param name="productId"></param>
+            <param name="newSpecs"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.ProductSpecService.QueryExp(ZR.Mall.Model.Dto.ShoppingProductSpecQueryDto)">
+            <summary>
+            查询导出表达式
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Mall.Service.SkusService">
+            <summary>
+            商品库存Service业务层处理
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.SkusService.GetList(ZR.Mall.Model.Dto.ShoppingSkusQueryDto)">
+            <summary>
+            查询商品库存列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.SkusService.GetInfo(System.Int64)">
+            <summary>
+            获取详情
+            </summary>
+            <param name="SkuId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.SkusService.AddShoppingSkus(ZR.Mall.Model.Skus)">
+            <summary>
+            添加商品库存
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.SkusService.UpdateShoppingSkus(ZR.Mall.Model.Skus)">
+            <summary>
+            修改商品库存
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.SkusService.QueryExp(ZR.Mall.Model.Dto.ShoppingSkusQueryDto)">
+            <summary>
+            查询导出表达式
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Mall.Service.SpecTemplateService">
+            <summary>
+            规格模板Service业务层处理
+            </summary>
+        </member>
+        <member name="M:ZR.Mall.Service.SpecTemplateService.GetList(ZR.Mall.Model.Dto.SpecTemplateQueryDto)">
+            <summary>
+            查询规格模板列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.SpecTemplateService.GetInfo(System.Int64)">
+            <summary>
+            获取详情
+            </summary>
+            <param name="Id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.SpecTemplateService.AddMmsSpecTemplate(ZR.Mall.Model.SpecTemplate)">
+            <summary>
+            添加规格模板
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.SpecTemplateService.UpdateMmsSpecTemplate(ZR.Mall.Model.SpecTemplate)">
+            <summary>
+            修改规格模板
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Mall.Service.SpecTemplateService.QueryExp(ZR.Mall.Model.Dto.SpecTemplateQueryDto)">
+            <summary>
+            查询导出表达式
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Mall.TaskScheduler.Job_ClosePendingOrder">
+            <summary>
+            商城定时任务：关闭超时未支付的待付款订单并回补库存。
+            由系统任务调度触发（sys_tasks：AssemblyName=ZR.Mall，ClassName=Job_ClosePendingOrder，默认每5分钟）。
+            SaaS 下经 Job_Dispatcher 按租户展开（TenantId="*"），在当前租户库关单；
+            非 SaaS 仍靠订单实体 [Tenant("MallDb")] 路由到商城库。
+            </summary>
+        </member>
+    </members>
+</doc>

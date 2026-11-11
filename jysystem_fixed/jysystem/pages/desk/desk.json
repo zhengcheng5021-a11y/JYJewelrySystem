@@ -1,0 +1,9 @@
+{
+  "usingComponents": {
+    "app-nav": "/components/app-nav/app-nav",
+    "theme-switch": "/components/theme-switch/theme-switch",
+    "bottom-nav": "/components/bottom-nav/bottom-nav"
+  },
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark"
+}

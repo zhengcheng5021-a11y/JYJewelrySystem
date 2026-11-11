@@ -1,0 +1,98 @@
+{
+  "description": "静悦门店工作台 - 原生微信小程序（直连自有云端API）",
+  "packOptions": {
+    "ignore": [
+      {
+        "value": "scripts",
+        "type": "folder"
+      },
+      {
+        "value": "preview_home_dark.png",
+        "type": "file"
+      },
+      {
+        "value": "preview_home_light.png",
+        "type": "file"
+      },
+      {
+        "value": "preview_login_dark.png",
+        "type": "file"
+      },
+      {
+        "value": "preview_login_light.png",
+        "type": "file"
+      },
+      {
+        "value": ".codex-current.png",
+        "type": "file"
+      },
+      {
+        "value": ".codex-inbound-edit.png",
+        "type": "file"
+      },
+      {
+        "value": ".codex-members.png",
+        "type": "file"
+      },
+      {
+        "value": ".codex-members2.png",
+        "type": "file"
+      },
+      {
+        "value": ".codex-stock.png",
+        "type": "file"
+      }
+    ],
+    "include": []
+  },
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "preloadBackgroundData": false,
+    "minified": true,
+    "newFeature": false,
+    "coverView": true,
+    "nodeModules": false,
+    "autoAudits": false,
+    "showShadowRootInWxmlPanel": true,
+    "scopeDataCheck": false,
+    "uglifyFileName": false,
+    "checkInvalidKey": true,
+    "checkSiteMap": true,
+    "uploadWithSourceMap": true,
+    "compileHotReLoad": true,
+    "lazyloadPlaceholderEnable": false,
+    "useMultiFrameRuntime": true,
+    "useApiHook": true,
+    "useApiHostProcess": false,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    },
+    "enableEngineNative": false,
+    "useIsolateContext": true,
+    "userConfirmedBundleSwitch": false,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "minifyWXSS": true,
+    "disableUseStrict": false,
+    "showES6CompileOption": false,
+    "useCompilerPlugins": false,
+    "minifyWXML": true,
+    "compileWorklet": false,
+    "localPlugins": false,
+    "condition": false,
+    "swc": false,
+    "disableSWC": true
+  },
+  "compileType": "miniprogram",
+  "libVersion": "3.7.12",
+  "appid": "wx433a970950e0ff49",
+  "projectname": "jingyue-workbench",
+  "condition": {},
+  "simulatorPluginLibVersion": {},
+  "editorSetting": {}
+}

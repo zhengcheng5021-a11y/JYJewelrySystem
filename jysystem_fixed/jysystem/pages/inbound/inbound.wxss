@@ -1,0 +1,7 @@
+.mini-metric-value { font-size: 32rpx; }
+.inbound-actions { gap: 10rpx 16rpx; }
+.inbound-summary { min-width: 0; flex: 1 1 240rpx; line-height: 1.5; overflow-wrap: anywhere; }
+@media screen and (max-width: 360px) {
+  .inbound-actions > .action-row { width: 100%; justify-content: flex-end; }
+  .inbound-actions .btn-mini { flex: 1 1 170rpx; }
+}

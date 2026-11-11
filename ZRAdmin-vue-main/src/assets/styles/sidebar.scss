@@ -1,0 +1,370 @@
+.el-menu-item,
+.el-sub-menu {
+  .svg-icon + span {
+    margin-left: 5px;
+  }
+}
+#app {
+  .sidebar {
+    position: relative;
+    overflow-y: hidden;
+    z-index: 1001;
+    transition: width 0.28s ease;
+    background-color: var(--base-menu-background);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    // 分隔线弱化：半透明，深浅主题下均只保留极淡的分界感
+    border-right: 0.5px solid color-mix(in srgb, var(--el-border-color-lighter, #ebeef5) 50%, transparent);
+
+    .el-scrollbar__bar.is-vertical {
+      right: 0px;
+    }
+    // 去掉el-menu边框
+    .el-menu {
+      border: none;
+    }
+
+    // hover 微交互：背景平滑过渡 + 图标轻微缩放（克制专业，0.22s）
+    .el-menu-item,
+    .el-sub-menu__title {
+      transition:
+        background-color 0.22s ease,
+        color 0.22s ease;
+
+      .menu-icon {
+        transition: transform 0.22s ease;
+      }
+
+      // 非选中项 hover：柔和背景 + 图标缩放
+      &:not(.is-active):hover {
+        // background-color: var(--el-fill-color-light, rgba(0, 0, 0, 0.04));
+
+        .menu-icon {
+          transform: scale(1.08);
+        }
+      }
+    }
+
+    // 选中项 hover：保留激活背景，避免被上方覆盖
+    .el-menu-item.is-active:hover {
+      background-color: var(--base-menu-active-bg);
+    }
+  }
+
+  // 展开sidebar状态设置svg-icon边距
+  .openSidebar {
+    .sidebar {
+      transform: translate(0);
+    }
+
+    // 垂直状态下的侧边栏增加背景
+    .el-menu--vertical {
+      .el-menu-item {
+        position: relative;
+
+        /* 选中状态 */
+        &.is-active {
+          background-color: var(--base-menu-active-bg);
+        }
+
+        /* 选中状态 */
+        &.is-active::before {
+          content: '';
+          position: absolute;
+          left: 3px;
+          top: 0px;
+          bottom: 0px;
+          width: 3px;
+          background: var(--el-menu-active-color);
+          border-radius: 2px;
+        }
+      }
+    }
+  }
+  // 隐藏侧边栏样式
+  .hideSidebar {
+    .el-aside {
+      transition: width 0.3s ease;
+      --el-aside-width: 64px;
+    }
+    // 隐藏箭头
+    .sidebar .el-sub-menu {
+      overflow: hidden;
+
+      & > .el-sub-menu__title {
+        .el-sub-menu__icon-arrow {
+          display: none;
+        }
+      }
+    }
+
+    // 折叠状态下
+    .el-menu--collapse {
+      .menu-icon {
+        width: 1.4em;
+        margin-right: 0;
+      }
+
+      // 只通过样式隐藏折叠时的菜单文字
+      .el-menu-item span,
+      .el-sub-menu__title span {
+        display: none;
+      }
+    }
+  }
+
+  // mobile responsive
+  .mobile {
+    .main-container {
+      margin-left: 0px;
+    }
+
+    .sidebar {
+      transition: transform 0.28s;
+      position: fixed;
+      // background: var(--base-menu-background, #fff);
+    }
+
+    &.hideSidebar {
+      .sidebar {
+        pointer-events: none;
+        transform: translate3d(-220px, 0, 0);
+        transition-duration: 0.3s;
+      }
+    }
+  }
+}
+
+
+// 静悦工作台左侧导航：胶囊菜单 + 淡粉渐变。只改视觉，不改多级结构。
+#app .sidebar:not([data-theme='theme-black']) {
+  background: linear-gradient(180deg, #ffffff 0%, #fcf3f4 100%);
+  border-right: 1px solid #f2e9eb;
+  --el-menu-item-height: 38px;
+  --el-menu-sub-item-height: 36px;
+  --el-menu-text-color: #93888c;
+  --el-menu-hover-text-color: #bf6e7e;
+  --el-menu-hover-bg-color: #f8e7ea;
+  --el-menu-active-color: #ffffff;
+  --el-menu-bg-color: transparent;
+  --el-menu-base-level-padding: 14px;
+  --el-menu-level-padding: 14px;
+
+  .el-menu {
+    background: transparent;
+    padding: 8px 0 18px;
+  }
+
+  .el-menu-item,
+  .el-sub-menu__title {
+    height: 38px;
+    line-height: 38px;
+    margin: 3px 10px;
+    border-radius: 999px;
+    color: #93888c;
+    font-size: 13.5px;
+  }
+
+  .el-menu-item:hover,
+  .el-sub-menu__title:hover {
+    background: #f8e7ea !important;
+    color: #bf6e7e !important;
+  }
+
+  .el-menu--vertical > .el-menu-item.is-active,
+  .el-menu--inline .el-menu-item.is-active {
+    color: #fff !important;
+    font-weight: 600;
+    background: linear-gradient(135deg, #d98998, #c77d89) !important;
+    box-shadow: 0 5px 14px rgba(199, 125, 137, 0.28);
+  }
+
+  .el-menu--vertical > .el-menu-item.is-active::before,
+  .el-menu--inline .el-menu-item.is-active::before {
+    display: none;
+  }
+
+  .el-sub-menu.is-active > .el-sub-menu__title {
+    color: #bf6e7e !important;
+    font-weight: 600;
+    background: #f8e7ea !important;
+  }
+
+  .el-sub-menu .el-menu {
+    background: transparent;
+  }
+
+  .el-sub-menu__icon-arrow {
+    color: #c7b4b8;
+    font-size: 12px;
+  }
+
+  .menu-glyph {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    flex: 0 0 18px;
+    margin-right: 8px;
+    font-style: normal;
+    font-size: 15px;
+    line-height: 1;
+  }
+
+  .menu-icon {
+    width: 16px;
+    margin-right: 8px;
+    color: currentColor;
+  }
+
+  .svg-icon + span {
+    margin-left: 0;
+  }
+}
+
+html.dark #app .sidebar {
+  background: var(--base-menu-background);
+}
+
+.jy-side-popper {
+  --el-menu-text-color: #93888c;
+  --el-menu-hover-bg-color: #f8e7ea;
+  --el-menu-hover-text-color: #bf6e7e;
+  --el-menu-active-color: #ffffff;
+  border: 1px solid #f2e9eb !important;
+  border-radius: 14px !important;
+  overflow: hidden;
+  box-shadow: 0 8px 22px rgba(199, 125, 137, 0.16) !important;
+
+  .el-menu {
+    background: #fff;
+    padding: 6px;
+  }
+
+  .el-menu-item {
+    height: 36px;
+    line-height: 36px;
+    margin: 2px 0;
+    border-radius: 999px;
+    color: #93888c;
+  }
+
+  .el-menu-item:hover {
+    background: #f8e7ea !important;
+    color: #bf6e7e !important;
+  }
+
+  .el-menu-item.is-active {
+    color: #fff !important;
+    background: linear-gradient(135deg, #d98998, #c77d89) !important;
+  }
+
+  .menu-glyph {
+    display: inline-flex;
+    width: 18px;
+    justify-content: center;
+    margin-right: 8px;
+    font-style: normal;
+  }
+}
+
+
+#app .hideSidebar .sidebar:not([data-theme='theme-black']) {
+  .el-menu-item,
+  .el-sub-menu__title {
+    margin: 4px 8px;
+    padding: 0 !important;
+    justify-content: center;
+  }
+
+  .ext-a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .menu-glyph,
+  .menu-icon {
+    margin-right: 0;
+  }
+}
+
+
+#app .sidebar:not([data-theme='theme-black']) {
+  .el-menu-item,
+  .el-sub-menu__title {
+    display: flex;
+    align-items: center;
+    line-height: 22px;
+    overflow: hidden;
+  }
+
+  .el-menu-item *,
+  .el-sub-menu__title * {
+    vertical-align: middle;
+  }
+
+  .ext-a {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    line-height: 22px;
+  }
+
+  .menu-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    flex: 1;
+    min-width: 0;
+    height: 22px;
+    gap: 8px;
+    line-height: 22px;
+  }
+
+  .menu-glyph {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    flex: 0 0 22px;
+    margin: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 16px;
+    line-height: 22px;
+    font-style: normal;
+    font-family: "Segoe UI Emoji", "Apple Color Emoji", sans-serif;
+  }
+
+  .menu-icon {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 16px;
+    margin: 0;
+  }
+
+  .menu-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 22px;
+  }
+}
+
+#app .hideSidebar .sidebar:not([data-theme='theme-black']) {
+  .menu-row {
+    flex: 0 0 22px;
+    width: 22px;
+    justify-content: center;
+    gap: 0;
+  }
+}

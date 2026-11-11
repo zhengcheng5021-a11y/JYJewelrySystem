@@ -1,0 +1,33 @@
+.hub-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16rpx;
+}
+.hub-grid > .hub-cell,
+button.hub-cell,
+.hub-cell {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 204rpx;
+  flex-direction: column;
+  justify-content: space-between;
+  margin: 0;
+  padding: 28rpx;
+  border: 1rpx solid var(--line);
+  border-radius: 34rpx;
+  background: var(--surface);
+  box-shadow: var(--shadow), inset 0 2rpx 0 rgba(255, 255, 255, 0.72);
+  color: var(--ink);
+  text-align: left;
+  transition: transform 0.15s ease;
+}
+.hub-cell:active { transform: scale(.97); }
+.hub-icon { color: var(--jade); font-size: 32rpx; }
+.hub-name { margin-top: 16rpx; font-size: 28rpx; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+.hub-desc { margin-top: 6rpx; color: var(--muted); font-size: 20rpx; line-height: 1.5; overflow-wrap: anywhere; }
+@media screen and (max-width: 360px) {
+  .hub-grid { gap: 12rpx; }
+  .hub-cell { min-height: 188rpx; padding: 24rpx; border-radius: 28rpx; }
+  .hub-name { margin-top: 12rpx; font-size: 26rpx; }
+}

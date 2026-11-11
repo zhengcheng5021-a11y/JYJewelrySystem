@@ -1,0 +1,141 @@
+vh] sm:h-[860px] sm:max-h-[94vh] sm:rounded-[48px] overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.7)] border-0 sm:border-[8px] sm:border-[#382b2d] ring-1 ring-white/20 transition-all duration-500 bg-[#FAF1ED] flex flex-col">
+
+    <!-- Screen Content Wrapper with Theme Transitions -->
+    <div id="screenContainer" class="theme-transition relative w-full h-full flex flex-col justify-between overflow-y-auto no-scrollbar bg-gradient-to-b from-[#FDF5F2] via-[#F8E8E4] to-[#F1DAD4]">
+
+      <!-- Dynamic Canvas: Interactive Petals & Stardust Particle Engine -->
+      <canvas id="zenCanvas" class="absolute inset-0 w-full h-full pointer-events-auto z-0"></canvas>
+
+      <!-- Atmospheric Misty Layers & Floating Glow -->
+      <div class="absolute inset-0 pointer-events-none z-0 opacity-40">
+        <svg id="mountainSvg" class="absolute bottom-12 w-full h-72 text-rose-300/30 transition-colors duration-700" preserveAspectRatio="none" viewBox="0 0 400 200" fill="currentColor">
+          <path d="M0,130 C60,110 110,140 180,95 C250,50 320,105 400,80 L400,200 L0,200 Z" opacity="0.45"/>
+          <path d="M0,150 C80,130 140,165 220,130 C290,100 350,140 400,120 L400,200 L0,200 Z" opacity="0.65"/>
+        </svg>
+        <div id="ambientOrb" class="absolute top-[26%] left-1/2 w-[340px] h-[340px] rounded-full bg-gradient-to-tr from-rose-200/40 via-amber-100/35 to-rose-300/20 blur-3xl ambient-glow"></div>
+      </div>
+
+      <!-- Top Header & WeChat Mini Program Native Navigation -->
+      <div class="relative z-20 w-full pt-2 px-5 flex flex-col select-none">
+        <!-- iOS Status Bar -->
+        <div id="statusBar" class="h-9 w-full flex items-center justify-between text-stone-700 text-[13px] font-medium tracking-tight transition-colors duration-500">
+          <span id="currentTime" class="font-semibold text-xs tracking-wider">09:41</span>
+          <!-- Dynamic Island / Ear Speaker Bar -->
+          <div class="hidden sm:flex h-5 w-24 bg-black/80 rounded-full items-center justify-center gap-1.5 shadow-inner">
+            <div class="w-2.5 h-2.5 rounded-full bg-neutral-900 ring-1 ring-white/10"></div>
+            <div class="w-1.5 h-1.5 rounded-full bg-indigo-950"></div>
+          </div>
+          <div class="flex items-center gap-1.5 text-xs">
+            <i class="ph-bold ph-chart-bar"></i>
+            <i class="ph-bold ph-wifi-high"></i>
+            <i class="ph-fill ph-battery-charging text-sm"></i>
+          </div>
+        </div>
+
+        <!-- WeChat Mini Program Header Bar: Brand Label & Background Theme Switcher -->
+        <div class="h-11 w-full flex items-center justify-between mt-1">
+          <!-- Left: Background Theme Quick Switch Dropdown Trigger -->
+          <div class="relative">
+            <button id="themeMenuBtn" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/40 hover:bg-white/60 backdrop-blur-md border border-stone-800/10 text-stone-800 shadow-sm active:scale-95 transition-all text-xs font-serifCn">
+              <i class="ph-bold ph-palette text-sm text-rose-500"></i>
+              <span id="currentThemeLabel" class="font-medium">画境 · 绯粉</span>
+              <i class="ph ph-caret-down text-[10px] opacity-70"></i>
+            </button>
+
+            <!-- Background Theme Selector Dropdown Menu -->
+            <div id="themeMenu" class="absolute left-0 mt-1.5 w-44 bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl border border-rose-100 p-1.5 z-40 hidden flex-col gap-1 text-xs font-serifCn">
+              <div class="px-2 py-1 text-[10px] text-stone-400 font-sans tracking-wider border-b border-stone-100">东方画境 · 意境切换</div>
+              <button onclick="switchTheme('blush')" class="w-full text-left px-2.5 py-2 rounded-xl flex items-center justify-between hover:bg-rose-50 transition-colors">
+                <span class="flex items-center gap-2 text-stone-800">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#E5A8A2] ring-2 ring-white"></span>
+                  <span>绯粉春霖 · 桃夭</span>
+                </span>
+                <i class="ph-bold ph-check text-rose-600 text-xs theme-check-blush"></i>
+              </button>
+              <button onclick="switchTheme('dark')" class="w-full text-left px-2.5 py-2 rounded-xl flex items-center justify-between hover:bg-stone-100 transition-colors">
+                <span class="flex items-center gap-2 text-stone-800">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#2B2326] ring-2 ring-white"></span>
+                  <span>玄黛金辉 · 沉香</span>
+                </span>
+                <i class="ph-bold ph-check text-amber-500 text-xs theme-check-dark hidden"></i>
+              </button>
+              <button onclick="switchTheme('celadon')" class="w-full text-left px-2.5 py-2 rounded-xl flex items-center justify-between hover:bg-emerald-50 transition-colors">
+                <span class="flex items-center gap-2 text-stone-800">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#7CA296] ring-2 ring-white"></span>
+                  <span>烟雨天青 · 润玉</span>
+                </span>
+                <i class="ph-bold ph-check text-emerald-600 text-xs theme-check-celadon hidden"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Official WeChat Mini Program Capsule (三点与圆圈胶囊) -->
+          <div id="wechatCapsule" class="h-7 px-2.5 rounded-full bg-black/10 backdrop-blur-md border border-stone-800/15 flex items-center gap-2.5 text-stone-800 shadow-sm transition-colors duration-500">
+            <button onclick="showToast('微信小程序选项')" class="hover:opacity-70 active:scale-90 transition-transform">
+              <i class="ph-bold ph-dots-three text-sm"></i>
+            </button>
+            <div class="h-3 w-[1px] bg-stone-500/30"></div>
+            <button onclick="showToast('已关闭页面')" class="hover:opacity-70 active:scale-90 transition-transform">
+              <div class="w-3.5 h-3.5 rounded-full border-2 border-stone-800 flex items-center justify-center">
+                <div class="w-1 h-1 rounded-full bg-stone-800"></div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Logo & Brand Identity (User's Exact Specified Visual) -->
+      <div class="relative z-10 flex flex-col items-center justify-center pt-2 pb-1 text-center select-none">
+        <!-- Floating Logo Icon Container -->
+        <div class="relative w-44 h-44 sm:w-48 sm:h-48 float-gentle cursor-pointer group" onclick="pulseSparkles(event)" title="触碰激发晶石微光">
+          
+          <!-- Outer Soft Glow -->
+          <div id="logoGlowBackdrop" class="absolute inset-0 rounded-full bg-gradient-to-tr from-[#E6B8A2]/30 to-[#FAD4C0]/40 blur-xl scale-95 group-hover:scale-110 transition-transform duration-700"></div>
+
+          <!-- Exact Master Logo SVG Artwork -->
+          <svg viewBox="0 0 400 400" class="w-full h-full drop-shadow-[0_12px_24px_rgba(180,120,110,0.22)]" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <!-- Rose Gold / Sand Gold Foil Gradient -->
+              <linearGradient id="roseGoldMetal" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#EED5C8" />
+                <stop offset="25%" stop-color="#D9A392" />
+                <stop offset="50%" stop-color="#FCECE5" />
+                <stop offset="75%" stop-color="#C58574" />
+                <stop offset="100%" stop-color="#E5C2B4" />
+              </linearGradient>
+
+              <!-- Champagne Sand Gold Gradient -->
+              <linearGradient id="sandGold" x1="20%" y1="0%" x2="80%" y2="100%">
+                <stop offset="0%" stop-color="#FBE6D0" />
+                <stop offset="50%" stop-color="#DFB387" />
+                <stop offset="100%" stop-color="#B88555" />
+              </linearGradient>
+
+              <!-- Cool Sterling Silver Gradient -->
+              <linearGradient id="coolSilver" x1="0%" y1="20%" x2="100%" y2="80%">
+                <stop offset="0%" stop-color="#FFFFFF" />
+                <stop offset="35%" stop-color="#F2F5F8" />
+                <stop offset="70%" stop-color="#C8CFDA" />
+                <stop offset="100%" stop-color="#F8FAFC" />
+              </linearGradient>
+
+              <!-- Translucent Rose Gemstone Gradient -->
+              <radialGradient id="gemFaceted" cx="40%" cy="35%" r="65%">
+                <stop offset="0%" stop-color="#FFF5F7" />
+                <stop offset="30%" stop-color="#FBBECB" />
+                <stop offset="75%" stop-color="#EC8699" />
+                <stop offset="100%" stop-color="#B84F63" />
+              </radialGradient>
+
+              <!-- Drop Shadows -->
+              <filter id="metalShadow" x="-10%" y="-10%" width="125%" height="125%">
+                <feDropShadow dx="2" dy="4" stdDeviation="3.5" flood-color="#72473E" flood-opacity="0.25" />
+              </filter>
+              <filter id="gemGlow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="3" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+            </defs>
+
+            <!-- Mountain Relief Layer Inside the Circle -->
+            <path d="M125 210 Q145 185 165 205 T215 190 Q240 220 275 200" stroke="#E8C3BA" stroke-width="2" stroke-lin

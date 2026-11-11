@@ -1,0 +1,61 @@
+<app-nav title="今日"></app-nav>
+<view class="app-page" style="{{theme.style}}">
+  <view class="top-bar">
+    <theme-switch bind:change="onTheme"></theme-switch>
+    <view class="top-meta" bindtap="load">{{userName}} · {{today}} ↻</view>
+  </view>
+  <view class="hero-banner">
+    <view class="hero-orb"></view>
+    <view class="row-between">
+      <view class="row">
+        <view class="avatar-logo" style="width:88rpx;height:88rpx;">
+          <image src="/images/logo.png" mode="aspectFill"></image>
+        </view>
+        <view>
+          <view class="eyebrow">JINGYUE ATELIER</view>
+          <view class="serif" style="font-size:36rpx;font-weight:700;">今日柜面中枢</view>
+        </view>
+      </view>
+      <button class="tag" data-url="/pages/goal/goal" bindtap="go">月目标 {{goalPercent}} ›</button>
+    </view>
+    <view class="row-between dashed-top" data-url="/pages/sale/sale" bindtap="go">
+      <view>
+        <view class="muted small">今日实时成交额 (元)</view>
+        <view class="money" style="margin-top:4rpx;font-size:52rpx;">¥{{saleAmount}}</view>
+      </view>
+      <view class="hero-side-tags">
+        <view class="tag">今日成单 {{saleOrders}} 笔</view>
+        <view class="tag tag-gold">在库货值 ¥{{stockSale}}</view>
+      </view>
+    </view>
+    <view class="dashed-top" data-url="/pages/goal/goal" bindtap="go">
+      <view class="row-between muted small" style="margin-bottom:8rpx;"><text>本月已达成 ¥{{goalDone}}</text><text>距目标还差 ¥{{goalLeft}}</text></view>
+      <view class="progress-track"><view class="progress-fill" style="width:{{goalWidth}};"></view></view>
+    </view>
+  </view>
+  <view class="section-head"><view class="row"><text class="seal-bar"></text><text class="section-title">柜面高频快操作</text></view><text class="section-note">一步直达收银与采买</text></view>
+  <view class="grid-2">
+    <button class="engine-card primary" data-url="/pages/sale/sale" bindtap="go"><view class="row-between engine-code"><text>COUNTER POS</text><text>↗</text></view><view class="engine-title">现场极速开单</view><view class="engine-desc">识客 · 挑货 · 预览收款</view></button>
+    <button class="engine-card" data-url="/pages/inbound/edit" bindtap="go"><view class="row-between engine-code muted"><text>QUICK CAPTURE</text><text>↗</text></view><view class="engine-title">拍照闪电入库</view><view class="engine-desc">连拍建件 · 智能命名 · 算毛利</view></button>
+  </view>
+  <view class="section-head"><view class="row"><text class="seal-bar"></text><text class="section-title">实时店务脉搏</text></view><button class="btn-mini" data-url="/pages/desk/desk" bindtap="go">全景工作台 ›</button></view>
+  <view class="grid-2">
+    <view class="glass-card" data-tab="/pages/inbound/inbound" bindtap="tab"><view class="row-between"><text class="muted small">待确认入库</text><text class="tag tag-gold">草稿</text></view><view class="mini-metric-value">{{draftCount}} <text class="small muted" style="font-weight:400;">单</text></view><view class="muted small">今日成本 ¥{{inboundCost}}</view></view>
+    <view class="glass-card" data-url="/pages/stock/stock" bindtap="go"><view class="row-between"><text class="muted small">在库总件数</text><text class="tag">现货</text></view><view class="mini-metric-value">{{stockQty}} <text class="small muted" style="font-weight:400;">件</text></view><view class="muted small">点击核价或带货开单</view></view>
+    <view class="glass-card" data-tab="/pages/tasks/tasks" bindtap="tab"><view class="row-between"><text class="muted small">今日待办事项</text><text class="tag tag-red">要事</text></view><view class="mini-metric-value">{{todoCount}} <text class="small muted" style="font-weight:400;">项</text></view><view class="muted small">逾期 {{overdueCount}} 项 · 点按勾选</view></view>
+    <view class="glass-card" data-url="/pages/daily/daily" bindtap="go"><view class="row-between"><text class="muted small">每日必做打卡</text><text class="tag tag-gold">店规</text></view><view class="mini-metric-value">{{dailyDone}}/{{dailyTotal}}</view><view class="muted small">早晚巡检与陈列标准</view></view>
+  </view>
+  <view class="section-head"><view class="row"><text class="seal-bar"></text><text class="section-title">掌中百宝箱</text></view><text class="section-note">零中转一键直达</text></view>
+  <view class="grid-4">
+    <button class="bento-cell" data-url="/pages/stock/stock" bindtap="go"><view class="bento-ico">❖</view><view class="bento-label">库存台账</view></button>
+    <button class="bento-cell" data-tab="/pages/members/members" bindtap="tab"><view class="bento-ico gold">♛</view><view class="bento-label">客户档案</view></button>
+    <button class="bento-cell" data-url="/pages/custom/custom" bindtap="go"><view class="bento-ico">✦</view><view class="bento-label">定制预定</view></button>
+    <button class="bento-cell" data-url="/pages/daily/daily" bindtap="go"><view class="bento-ico gold">✓</view><view class="bento-label">每日必做</view></button>
+    <button class="bento-cell" data-url="/pages/follow/follow" bindtap="go"><view class="bento-ico">❀</view><view class="bento-label">客户跟进</view></button>
+    <button class="bento-cell" data-url="/pages/script/script" bindtap="go"><view class="bento-ico gold">❝</view><view class="bento-label">销冠话术</view></button>
+    <button class="bento-cell" data-url="/pages/goal/goal" bindtap="go"><view class="bento-ico">◎</view><view class="bento-label">月度目标</view></button>
+    <button class="bento-cell" data-url="/pages/desk/desk" bindtap="go"><view class="bento-ico gold">⊞</view><view class="bento-label">业务全览</view></button>
+  </view>
+  <view wx:if="{{error}}" class="glass-card muted small" style="color:var(--red);margin-top:20rpx;">{{error}}</view>
+</view>
+<bottom-nav active="home"></bottom-nav>

@@ -1,0 +1,35 @@
+.custom-money { margin-top: 16rpx; padding: 22rpx; border: 1rpx solid var(--line); border-radius: 28rpx; background: var(--surface-soft); }
+.glass-card > .btn-mini { margin-left: 0; }
+.custom-money .row-between { flex-wrap: wrap; gap: 8rpx 20rpx; }
+.custom-title-row { row-gap: 6rpx; }
+.custom-name { flex: 1 1 280rpx; min-width: 0; line-height: 1.45; overflow-wrap: anywhere; }
+@media screen and (max-width: 360px) {
+  .glass-card .action-row > .btn-mini { flex: 1 1 190rpx; }
+}
+
+.head-btn-group { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 12rpx; }
+.custom-actions { justify-content: flex-end; margin-top: 14rpx; flex-wrap: wrap; gap: 12rpx; }
+.custom-actions > .btn-mini { flex: 0 1 auto; margin-left: 0; }
+.custom-sheet { max-height: 88vh; }
+.fixed-footer-sheet { max-height: 88vh; overflow: hidden; display: flex; flex-direction: column; padding-bottom: 0; }
+.fixed-footer-sheet .drawer-head,
+.fixed-footer-sheet .drawer-handle { flex: none; }
+.drawer-scroll-body { min-height: 0; overflow-y: auto; padding-right: 4rpx; -webkit-overflow-scrolling: touch; }
+.drawer-fixed-footer { flex: none; padding: 16rpx 0 calc(24rpx + env(safe-area-inset-bottom)); border-top: 1rpx solid var(--line); background: var(--paper); }
+.form-section { display: flex; flex-direction: column; gap: 14rpx; padding: 20rpx; border: 1rpx solid var(--line); border-radius: 26rpx; background: var(--surface-soft); }
+.form-section-title { color: var(--jade); font-size: 23rpx; font-weight: 700; letter-spacing: 2rpx; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14rpx; }
+.form-grid > picker, .form-grid > .form-pick-row { min-width: 0; }
+.form-pick-row { display: flex; align-items: center; gap: 10rpx; min-width: 0; }
+.form-pick-row .field-line { min-width: 0; }
+.form-pick-row .btn-mini { flex: none; margin-left: 0; }
+.custom-submit { margin-top: 4rpx; gap: 14rpx; }
+.custom-submit .btn { flex: 1; min-width: 0; }
+@media screen and (max-width: 420px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .form-pick-row { flex-wrap: nowrap; }
+  .custom-actions > .btn-mini { flex: 1 1 160rpx; }
+  .custom-submit .btn { flex: 1 1 100%; }
+  .drawer-fixed-footer .custom-submit { flex-wrap: nowrap; }
+  .drawer-fixed-footer .custom-submit .btn { flex: 1 1 0; min-width: 0; }
+}

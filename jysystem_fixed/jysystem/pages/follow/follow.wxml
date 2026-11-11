@@ -1,0 +1,63 @@
+<app-nav title="客户跟进" back="{{true}}"></app-nav>
+<view class="app-page" style="{{theme.style}}">
+  <view class="top-bar"><theme-switch bind:change="onTheme"></theme-switch><text class="top-meta" bindtap="load">同步记录 ↻</text></view>
+  <view class="page-head">
+    <view><view class="eyebrow-row"><text class="seal-dot"></text><text class="eyebrow">CLIENT CARE</text></view><view class="page-title">客户跟进</view><view class="page-sub">佩戴体验回访、换线养护提醒与生辰礼遇时间轴，可一键转入今日待办。</view></view>
+    <button class="head-action" bindtap="openMemberDrawer">{{memberId ? '切换客户' : '选择客户'}}</button>
+  </view>
+  <view wx:if="{{memberId}}" class="glass-card" style="border-color:var(--jade);background:var(--jade-soft);">
+    <view class="row-between">
+      <view><view style="font-size:26rpx;font-weight:700;">当前跟进客户：{{memberName}}</view><view class="muted small" style="margin-top:4rpx;">可为这位客户补一条跟进记录，或查看全部客户。</view></view>
+      <view class="row"><button class="btn-mini" bindtap="clearMember">查看全部</button></view>
+    </view>
+  </view>
+  <view class="row search-row" style="margin-bottom:18rpx;"><input class="input-mini grow" value="{{keyword}}" placeholder="客户或跟进内容" placeholder-class="placeholder" bindinput="onKeyword" bindconfirm="load" /><button class="btn-mini primary" bindtap="load">搜索</button></view>
+  <view class="glass-card">
+    <view class="row-between" style="margin-bottom:12rpx;">
+      <text class="section-title">✦ 新增跟进{{memberName ? ' · ' + memberName : ''}}</text>
+      <button wx:if="{{!memberId}}" class="btn-mini" bindtap="openMemberDrawer">+ 先选客户</button>
+    </view>
+    <textarea class="textarea-mini" value="{{content}}" placeholder="本次沟通内容，如：已确认换弹力线尺寸" placeholder-class="placeholder" bindinput="onContent" />
+    <view class="row action-row" style="margin-top:12rpx;">
+      <picker class="grow" mode="date" value="{{nextTime}}" bindchange="onNextTime">
+        <view class="field-line"><text class="field-label">下次跟进日期</text><text class="field-value">{{nextTime || '点击选择日期'}} ▾</text></view>
+      </picker>
+      <button class="btn-mini primary" loading="{{saving}}" bindtap="saveFollow">保存记录</button>
+    </view>
+  </view>
+  <view wx:if="{{loading && !rows.length}}" class="state"><view class="state-title">正在读取跟进</view></view>
+  <view wx:elif="{{error && !rows.length}}" class="state" bindtap="load"><view class="state-title">跟进加载失败</view><view>{{error}}</view><text class="state-action">重试</text></view>
+  <view wx:elif="{{!rows.length}}" class="state"><view class="state-title">还没有跟进记录</view><view>可点右上角选择客户后新增跟进。</view></view>
+  <view wx:for="{{rows}}" wx:key="id" class="timeline-row">
+    <view class="timeline-dot"></view>
+    <view class="glass-card grow" style="margin-bottom:16rpx;">
+      <view class="row-between follow-title-row"><view class="row follow-name-row"><text class="follow-name" style="font-size:27rpx;font-weight:700;">{{item.memberName || '未记名'}}</text><text class="tag">{{item.followTypeName || '跟进'}}</text></view><text class="muted small follow-time">{{item.timeText}}</text></view>
+      <view class="follow-content">{{item.content || '未填写内容'}}</view>
+      <view class="row-between action-row" style="margin-top:12rpx;"><text class="small" style="color:var(--gold);font-weight:600;">下次：{{item.nextText}}</text><button class="btn-mini" data-index="{{index}}" bindtap="toTask">+ 转今日待办</button></view>
+    </view>
+  </view>
+  <view wx:if="{{rows.length}}" class="pager-bar">
+    <view class="pager-info">已显示 {{rows.length}} / {{totalCount}} 条跟进（第 {{pageNum}} 页）</view>
+    <view class="pager-actions">
+      <button wx:if="{{hasMore}}" class="pager-btn" loading="{{loadingMore}}" bindtap="loadMore">{{loadingMore ? '加载中...' : '加载更多跟进 ↓'}}</button>
+      <text wx:else class="muted small">—— 已展示全部跟进记录 ——</text>
+      <button wx:if="{{pageNum > 1 || rows.length > 8}}" class="pager-btn" bindtap="scrollTop">回到顶部 ↑</button>
+    </view>
+  </view>
+  <view wx:if="{{error && rows.length}}" class="glass-card small" style="color:var(--red);">{{error}}</view>
+</view>
+
+<view wx:if="{{drawer}}" class="drawer-mask" bindtap="closeDrawer">
+  <view class="drawer-panel" catchtap="noop">
+    <view class="drawer-handle"></view>
+    <view class="drawer-head"><text class="drawer-title">选择跟进客户</text><button class="btn-mini" bindtap="closeDrawer">关闭 ×</button></view>
+    <view class="row search-row"><input class="input-mini grow" value="{{drawerKeyword}}" placeholder="搜索客户姓名或手机号" placeholder-class="placeholder" bindinput="onDrawerKeyword" bindconfirm="searchDrawerMembers" /><button class="btn-mini primary" bindtap="searchDrawerMembers">搜索</button></view>
+    <view style="height:14rpx;"></view>
+    <view wx:for="{{drawerMembers}}" wx:key="id" class="drawer-item" data-id="{{item.id}}" bindtap="selectMember">
+      <view class="row-between"><view><view style="font-size:26rpx;font-weight:700;">{{item.memberName}}</view><view class="muted small" style="margin-top:4rpx;">{{item.phone || '无手机'}} · {{item.levelName || '普通会员'}}</view></view><text class="tag tag-gold">选定 ›</text></view>
+    </view>
+    <view wx:if="{{!drawerMembers.length}}" class="empty-inline">没有匹配客户，可先到客户档案建档。</view>
+  </view>
+</view>
+
+<bottom-nav active=""></bottom-nav>

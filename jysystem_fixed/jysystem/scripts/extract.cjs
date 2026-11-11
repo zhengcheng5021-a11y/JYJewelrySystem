@@ -1,0 +1,6 @@
+const fs = require('fs')
+const s = fs.readFileSync('C:/Users/ZHANG/Downloads/code_artifact.html', 'utf8')
+const a = s.indexOf('<svg viewBox="0 0 400 400"')
+const b = s.indexOf('</svg>', a)
+fs.writeFileSync('D:/work/其他文件/静悦平台/ZrAdminNetCore-master/JingYueMiniProgram/scripts/logo-svg.txt', s.slice(a, b + 6))
+console.log(a, b)

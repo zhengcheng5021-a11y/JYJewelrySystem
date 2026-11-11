@@ -1,0 +1,23 @@
+<app-nav title="每日必做" back="{{true}}"></app-nav>
+<view class="app-page" style="{{theme.style}}">
+  <view class="top-bar"><theme-switch bind:change="onTheme"></theme-switch><text class="top-meta" bindtap="load">刷新清单 ↻</text></view>
+  <view class="page-head"><view><view class="eyebrow-row"><text class="seal-dot"></text><text class="eyebrow">DAILY RITUAL</text></view><view class="page-title">每日必做</view><view class="page-sub">晨间迎宾、柜台擦拭、灯光陈列与晚间盘点，点按即可打卡。</view></view></view>
+  <view class="hero-banner daily-hero">
+    <view class="hero-orb"></view>
+    <view class="row-between"><view><view class="eyebrow">TODAY'S PROGRESS</view><view class="serif" style="margin-top:6rpx;font-size:34rpx;font-weight:700;">今日店务打卡 {{done}} / {{total}}</view><view class="muted small" style="margin-top:5rpx;">{{dateText}}</view></view><view class="serif" style="color:var(--jade);font-size:50rpx;font-weight:700;">{{percent}}%</view></view>
+    <view class="progress-track" style="margin-top:18rpx;"><view class="progress-fill" style="width:{{progressWidth}};"></view></view>
+  </view>
+  <view class="seg-tabs"><button class="seg-tab {{filter==='all'?'active':''}}" data-filter="all" bindtap="setFilter">全部 {{total}}</button><button class="seg-tab {{filter==='todo'?'active':''}}" data-filter="todo" bindtap="setFilter">待完成 {{total-done}}</button><button class="seg-tab {{filter==='done'?'active':''}}" data-filter="done" bindtap="setFilter">已完成 {{done}}</button></view>
+  <view wx:if="{{loading && !allRows.length}}" class="state"><view class="state-title">正在读取今日必做</view><view>正在同步门店标准动作。</view></view>
+  <view wx:elif="{{error && !allRows.length}}" class="state" bindtap="load"><view class="state-title">清单加载失败</view><view>{{error}}</view><text class="state-action">重试</text></view>
+  <view wx:elif="{{!rows.length}}" class="state"><view class="state-title">{{total ? '这一栏已经清空' : '今天还没有必做项'}}</view><view>{{total ? '切换上方筛选查看其他项目。' : '请在电脑端配置每日必做模板。'}}</view></view>
+  <view wx:else class="daily-list">
+    <view wx:for="{{rows}}" wx:key="id" class="glass-card daily-item {{item.completed?'done':''}} {{updatingId===item.id?'updating':''}}" data-id="{{item.id}}" bindtap="toggle">
+      <view class="check-dot {{item.completed?'on':''}}">{{item.completed?'✓':item.number}}</view>
+      <view class="grow"><view class="daily-title">{{item.title}}</view><view class="daily-content">{{item.contentText}}</view><view wx:if="{{item.completedText}}" class="daily-meta">打卡于 {{item.completedText}}</view></view>
+      <text class="tag {{item.completed?'':'tag-gold'}}">{{item.completed?'已打卡':'点按打卡'}}</text>
+    </view>
+  </view>
+  <view wx:if="{{error && allRows.length}}" class="glass-card small" style="color:var(--red);">{{error}}</view>
+</view>
+<bottom-nav active=""></bottom-nav>

@@ -1,0 +1,7 @@
+.field-row { display: flex; min-height: 104rpx; align-items: center; gap: 18rpx; padding: 18rpx 26rpx; border-bottom: 1rpx solid var(--line); }
+.field-row:last-child { border-bottom: 0; }
+.field-key { flex: none; width: 170rpx; color: var(--muted); font-size: 23rpx; letter-spacing: 1rpx; }
+.field-content { flex: 1; min-width: 0; color: var(--muted); opacity: .6; font-size: 26rpx; line-height: 1.45; overflow-wrap: anywhere; text-align: right; }
+.field-content.has-value { color: var(--ink); opacity: 1; font-weight: 600; }
+.field-content.disabled { color: var(--muted); opacity: .6; }
+.field-arrow { flex: none; color: var(--muted); font-size: 34rpx; line-height: 1; opacity: .6; }

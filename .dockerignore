@@ -1,0 +1,63 @@
+# IDE
+**/.vs
+**/.vscode
+**/.idea
+
+# Git
+**/.git
+**/.gitignore
+**/.gitattributes
+
+# Build
+**/bin
+**/obj
+**/out
+**/publish
+
+# Node
+**/node_modules
+**/npm-debug.log
+**/yarn-error.log
+
+# User files
+**/*.*proj.user
+**/*.suo
+**/*.user
+**/*.userosscache
+**/*.sln.docstates
+
+# Rider
+**/*.DotSettings.user
+
+# Test
+**/TestResults
+
+# Logs
+**/*.log
+**/logs
+
+# Docker
+**/.dockerignore
+**/docker-compose*
+Dockerfile*
+
+# Environment
+**/.env
+**/.env.*
+
+# Secrets
+**/secrets.dev.yaml
+**/appsettings.Development.json
+**/appsettings.Local.json
+
+# Cache
+**/.nuget
+**/.cache
+
+# Misc
+LICENSE
+README.md
+
+**/wwwroot/uploads
+**/wwwroot/export
+**/nlog-internal.log

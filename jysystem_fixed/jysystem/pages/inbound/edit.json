@@ -1,0 +1,7 @@
+{
+  "navigationStyle": "custom",
+  "navigationBarTitleText": "拍照入库",
+  "usingComponents": {
+    "theme-switch": "/components/theme-switch/theme-switch"
+  }
+}

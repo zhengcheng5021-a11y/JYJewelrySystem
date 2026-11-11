@@ -1,0 +1,202 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    },
+    "Console": {
+      "LogLevel": {
+        "Microsoft.*": "None"
+      }
+    }
+  },
+  "dbConfigs": [
+    {
+      "Conn": "Data Source=.;User ID=workuser;Password=workuser123;Initial Catalog=jydb;Encrypt=True;TrustServerCertificate=True;",
+      "DbType": 1, //数据库类型 MySql = 0, SqlServer = 1, Oracle = 3，PgSql = 4
+      "ConfigId": "0", //多租户唯一标识
+      "IsAutoCloseConnection": true
+    },
+    {
+      "Conn": "Data Source=.;User ID=workuser;Password=workuser123;Initial Catalog=jydb;Encrypt=True;TrustServerCertificate=True;",
+      "DbType": 1,
+      "ConfigId": "1", //商城数据库
+      "IsAutoCloseConnection": true
+    }
+    //...下面添加更多的数据库源
+  ],
+  //代码生成数据库配置
+  "CodeGenDbConfig": {
+    //代码生成连接字符串，注意{dbName}为固定格式，不要填写数据库名
+    "Conn": "Data Source=.;User ID=workuser;Password=workuser123;Initial Catalog={dbName};Encrypt=True;TrustServerCertificate=True;",
+    "DbType": 1,
+    "IsAutoCloseConnection": true,
+    "DbName": "jydb" //代码生成默认连接数据库,Oracle库是实例的名称
+  },
+  "urls": "http://localhost:8888", //项目启动url，如果改动端口前端对应devServer也需要进行修改
+  //微信支付V3（平台统一商户号）。Enabled=false 时商城前台走模拟支付；生产环境密钥请勿明文提交，建议用环境变量/UserSecrets 覆盖
+  "WechatPay": {
+    "Enabled": false,
+    "MerchantId": "", //商户号 mchid
+    "AppId": "", //绑定的公众号/应用 AppId
+    "MerchantCertificateSerialNumber": "", //商户API证书序列号
+    "MerchantCertificatePrivateKey": "", //商户API私钥（PEM 内容，含 BEGIN PRIVATE KEY）
+    "MerchantV3Key": "", //APIv3 密钥（回调解密）
+    "WechatPayPublicKeyId": "", //微信支付公钥ID（PUB_KEY_ID_xxx）
+    "WechatPayPublicKey": "", //微信支付公钥（PEM，回调验签）
+    "NotifyUrl": "https://your-domain.com/shopping/front/order/wechat/notify", //支付结果回调（公网HTTPS）
+    "H5ReturnUrl": "https://your-domain.com" //H5 场景 Wap 站点地址
+  },
+  "corsUrls": [ "http://localhost:8887", "http://localhost:8886" ], //跨域地址（前端启动项目，前后端分离单独部署需要设置），多个用","隔开
+  "JwtSettings": {
+    "Issuer": "ZRAdmin.NET", //即token的签发者。
+    "Audience": "ZRAdmin.NET", //指该token是服务于哪个群体的（群体范围）
+    "SecretKey": "SecretKey-ZRADMIN.NET-202311281883838",
+    "Expire": 1440, //jwt登录过期时间（分）
+    "RefreshTokenTime": 30, //分钟
+    "TokenType": "Bearer"
+  },
+  "MainDb": "0", // 多租户主库配置ID
+  "MallDb": "0", // 商城库配置ID（非SaaS模式下商城实体使用此 ConfigId）
+  // 多租户配置
+  "TenantSettings": {
+    //是否启用多租户 0:不启用 1/true/on:启用
+    "UseTenant": 0,
+    // 租户根域名（按子域名解析租户时据此剥离子域标签，如 a.zradmin.net → a）。按实际部署域名配置，本地 localhost 不受影响。
+    "RootDomains": [ "zradmin.net" ],
+    // 保留子域名：这些子域名不解析为租户（维持主库/后台访问）。缺省默认 www/admin/api/doc。
+    "ReservedSubDomains": [ "www", "admin", "api", "doc" ],
+    // 平台专属权限前缀，非主租户不允许访问（前缀匹配，例如 system:tenant: 会拦截 system:tenant:list 等所有子权限）
+    "PlatformMenuPermPrefixes": [
+      "system:menu:",
+      "system:tenant:",
+      "system:tenantplanmenu:",
+      "monitor:job:",
+      "monitor:online:",
+      "system:lang:",
+      "monitor:server",
+      "monitor:cache",
+      "system:datascreen:list",
+      "emaillog",
+      "tool:gen"
+    ]
+  },
+  "InjectClass": [], // 可选：额外扫描 [AppService] 的插件程序集名（ZR.* 业务程序集已自动扫描，一般留空）
+  "Quartz": {
+    "quartz.serializer.type": "binary"
+    // 需要持久化时可继续增加：
+    // "quartz.jobStore.type": "Quartz.Impl.AdoJobStore.JobStoreTX, Quartz",
+    // "quartz.jobStore.tablePrefix": "QRTZ_",
+    // "quartz.jobStore.driverDelegateType": "Quartz.Impl.AdoJobStore.MySQLDelegate, Quartz"
+  },
+  "ShowDbLog": false, //是否打印db日志
+  // 模块初始化开关：--initdb 时纳入初始化的模块（默认全部 false；与运行期功能开关 UseTenant/AiOptions.Enable 相互独立）
+  "ModuleInit": {
+    "Saas": false, // 初始化 SaaS 平台菜单/权限（租户管理、套餐菜单、字典种子等），无独立业务建表
+    "Mall": false, // 初始化商城模块（建表 + 内置定时任务 + 菜单）
+    "Workflow": false, // 初始化工作流模块（建表 + 内置定时任务 + 菜单）
+    "Pro": false // 初始化专业版(AI)菜单与按钮权限（AI 功能本身由 AiOptions.Enable 控制）
+  },
+  "DbMigration": {
+    "ReportOnly": false, // true=仅报告差异不执行迁移（安全审查模式）
+    "AdditionalTypes": [] // 业务模块（如工作流）实体由各自 ITenantModuleInitializer 注册，无需在此声明
+  },
+  "DemoMode": false, //是否演示模式
+  "SingleLogin": false, //是否允许多设备/浏览器登录
+  "workId": 1, //雪花id唯一数字
+  "sqlExecutionTime": 5, //Sql执行时间超过多少秒记录日志并警报
+  "Upload": {
+    "uploadUrl": "http://localhost:8888", //本地存储资源访问路径,生产环境请加上对应的访问前缀eg：/prod-api
+    "localSavePath": "", //本地上传默认文件存储目录 wwwroot
+    "maxSize": 15, //上传文件大小限制 15M
+    "notAllowedExt": [ ".bat", ".exe", ".jar", ".js" ],
+    "requestLimitSize": 50 //请求body大小限制
+  },
+  //阿里云存储配置
+  "ALIYUN_OSS": {
+    "REGIONID": "", //eg：cn-hangzhou
+    "KEY": "XX",
+    "SECRET": "XX",
+    "bucketName": "bucketName",
+    "domainUrl": "http://xxx.xxx.com", //访问资源域名
+    "maxSize": 100 //上传文件大小限制 100M
+  },
+  //企业微信通知配置
+  "WxCorp": {
+    "AgentID": "",
+    "CorpID": "",
+    "CorpSecret": "",
+    "SendUser": "@all"
+  },
+  //微信公众号设置
+  "WxOpen": {
+    "AppID": "",
+    "AppSecret": ""
+  },
+  //短信服务配置（Enabled=false 时为模拟发送仅记录日志；对接服务商后设为 true）
+  "SmsOptions": {
+    "Enabled": false,
+    "Provider": "None", //None/Aliyun/TencentCloud，对接时在 DefaultSmsSender 对应分支实现
+    "AccessKeyId": "", //阿里云 AccessKeyId / 腾讯云 SecretId
+    "AccessKeySecret": "", //阿里云 AccessKeySecret / 腾讯云 SecretKey
+    "SignName": "", //短信签名
+    "Endpoint": "", //阿里云 dysmsapi.aliyuncs.com / 腾讯云地域 ap-guangzhou
+    "SdkAppId": "", //腾讯云 SdkAppId
+    "Templates": { //业务场景->模板编号映射（可选）
+      //"login": "SMS_10001",
+      //"register": "SMS_10002"
+    }
+  },
+  //邮箱配置信息
+  "MailOptions": [
+    {
+      //发件人名称(请保证数组里面唯一)
+      "FromName": "system",
+      //发送人邮箱
+      "FromEmail": "", //eg：xxxx@qq.com
+      //发送人邮箱密码
+      "Password": "",
+      //协议
+      "Smtp": "smtp.qq.com",
+      "Port": 587,
+      "Signature": "系统邮件，请勿回复！",
+      "UseSsl": true
+    }
+  ],
+  //redis服务配置
+  "RedisServer": {
+    "open": 0, //是否启用redis
+    "dbCache": false, //数据库是否使用Redis缓存，如果启用open要为1
+    "Cache": "127.0.0.1:6379,defaultDatabase=0,poolsize=50,ssl=false,writeBuffer=10240,prefix=cache:",
+    "Session": "127.0.0.1:6379,defaultDatabase=0,poolsize=50,ssl=false,writeBuffer=10240,prefix=session:"
+  },
+  //工作流配置
+  "Workflow": {
+    "Notify": { //通知渠道：站内信始终发送，邮件/短信只对"行动类"通知额外分发（待办/催办/转办/委托/加签/改派）
+      "EmailEnabled": false, //邮件开关（需先配置上方 MailOptions 发件邮箱）
+      "SmsEnabled": false, //短信开关（真实发送还需 SmsOptions.Enabled=true 并在 Templates 配置 workflow 模板）
+      "MailFromName": "system" //使用 MailOptions 数组中哪个发件人配置
+    }
+  },
+  //验证码配置
+  "CaptchaOptions": {
+    "IgnoreCase": true // 比较时是否忽略大小写
+  },
+  // AI 配置已拆到 ai.json / ai.{Environment}.json，见 Program.cs
+  //代码生成配置
+  "CodeGen": {
+    //uniapp 版本号2/3(vue版本号)
+    "uniappVersion": 3,
+    //是否显示移动端代码生成
+    "showApp": true,
+    //自动去除表前缀
+    "autoPre": true,
+    //默认生成业务模块名
+    "moduleName": "business",
+    "author": "admin",
+    "tablePrefix": "sys_", //"表前缀（生成类名不会包含表前缀，多个用逗号分隔）",
+    "vuePath": "", //前端代码存储路径eg：D:\Work\ZRAdmin-Vue3
+    "uniappPath": "D:\\Work" //h5前端代码存储路径
+  }
+}

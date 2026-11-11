@@ -1,0 +1,18 @@
+<app-nav title="业务全览" back="{{true}}"></app-nav>
+<view class="app-page" style="{{theme.style}}">
+  <view class="top-bar"><theme-switch bind:change="onTheme"></theme-switch><text class="top-meta" bindtap="load">刷新角标 ↻</text></view>
+  <view class="page-head"><view><view class="eyebrow-row"><text class="seal-dot"></text><text class="eyebrow">ATELIER HUB</text></view><view class="page-title">业务全览</view><view class="page-sub">门店核心模块按柜面、私域与店务流转域归类，数据实时直连静悦云表。</view></view></view>
+  <view wx:if="{{loading}}" class="soft-panel" style="margin-bottom:16rpx;"><view class="row"><text class="seal-dot"></text><text class="muted small">正在同步实时角标</text></view></view>
+  <block wx:for="{{groups}}" wx:key="name">
+    <view class="section-head"><view class="row"><text class="seal-bar"></text><text class="section-title">{{item.name}}</text></view></view>
+    <view class="hub-grid">
+      <button wx:for="{{item.items}}" wx:for-item="cell" wx:key="name" class="hub-cell" data-path="{{cell.path}}" bindtap="open">
+        <view class="row-between"><text class="hub-icon">{{cell.icon}}</text><text class="tag tag-gold">{{cell.badge}}</text></view>
+        <view class="serif hub-name">{{cell.name}}</view>
+        <view class="hub-desc">{{cell.desc}}</view>
+      </button>
+    </view>
+  </block>
+  <view wx:if="{{error}}" class="glass-card small" style="color:var(--red);">{{error}}</view>
+</view>
+<bottom-nav active=""></bottom-nav>

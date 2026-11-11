@@ -1,0 +1,17 @@
+.metric {
+  position: relative; min-width: 0; padding: 26rpx 24rpx; overflow: hidden;
+  border: 1rpx solid var(--line); border-radius: 28rpx;
+  background: var(--surface);
+  box-shadow: var(--shadow), inset 0 2rpx 0 rgba(255,255,255,.7);
+  backdrop-filter: blur(24rpx); -webkit-backdrop-filter: blur(24rpx);
+}
+.metric::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4rpx;
+  background: var(--jade);
+}
+.metric-gold::before { background: var(--gold); }
+.metric-blue::before { background: var(--blue); }
+.metric-red::before { background: var(--red); }
+.metric-label { color: var(--muted); font-size: 21rpx; letter-spacing: 1rpx; }
+.metric-value { margin-top: 12rpx; overflow: hidden; color: var(--ink); font-family: "Songti SC","STSong",serif; font-size: 44rpx; font-weight: 700; line-height: 1.15; text-overflow: ellipsis; white-space: nowrap; }
+.metric-hint { margin-top: 10rpx; color: var(--muted); font-size: 20rpx; line-height: 1.45; opacity: .85; }

@@ -1,0 +1,5 @@
+<view class="field-row" bindtap="onTap">
+  <text class="field-key">{{label}}</text>
+  <view class="field-content {{value ? 'has-value' : ''}} {{disabled ? 'disabled' : ''}}">{{value || placeholder}}</view>
+  <text wx:if="{{!disabled}}" class="field-arrow">›</text>
+</view>

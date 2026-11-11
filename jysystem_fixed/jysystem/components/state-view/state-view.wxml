@@ -1,0 +1,6 @@
+<view class="state-view state-{{kind}}">
+  <view class="state-mark">{{kind === 'loading' ? '…' : kind === 'error' ? '!' : '◇'}}</view>
+  <view class="state-title">{{title || (kind === 'error' ? '暂时没有加载成功' : '这里还没有内容')}}</view>
+  <view wx:if="{{detail}}" class="state-detail">{{detail}}</view>
+  <button wx:if="{{action}}" class="state-action" bindtap="tapAction">{{action}}</button>
+</view>

@@ -1,0 +1,32 @@
+<app-nav title="月度目标" back="{{true}}"></app-nav>
+<view class="app-page" style="{{theme.style}}">
+  <view class="top-bar"><theme-switch bind:change="onTheme"></theme-switch><text class="top-meta" bindtap="load">刷新目标 ↻</text></view>
+  <view class="page-head"><view><view class="eyebrow-row"><text class="seal-dot"></text><text class="eyebrow">SALES COMPASS</text></view><view class="page-title">月度目标</view><view class="page-sub">实时解构全店月度业绩达成率、剩余天数日均冲刺额与各品类进度。</view></view></view>
+  <view wx:if="{{loading && !month}}" class="state"><view class="state-title">正在测算本月目标</view><view>正在读取销售目标与品类拆解。</view></view>
+  <view wx:elif="{{error && !month}}" class="state" bindtap="load"><view class="state-title">目标加载失败</view><view>{{error}}</view><text class="state-action">重试</text></view>
+  <block wx:else>
+    <view class="hero-banner goal-hero">
+      <view class="hero-orb"></view>
+      <view class="row-between">
+        <view class="grow"><view class="eyebrow">{{month || '本月'}} · 总业绩达成</view><view class="money goal-total">¥{{doneText}}</view><view class="muted small" style="margin-top:5rpx;">月度总目标：¥{{targetText}}</view></view>
+        <view class="goal-ring"><text class="serif goal-ring-value">{{percent}}%</text><text class="goal-ring-label">达成率</text></view>
+      </view>
+      <view class="progress-track" style="height:16rpx;margin-top:20rpx;"><view class="progress-fill" style="width:{{progressWidth}};"></view></view>
+      <view class="grid-3 goal-metrics">
+        <view><view class="mini-metric-label">今日贡献</view><view class="money goal-metric">¥{{todayText}}</view></view>
+        <view><view class="mini-metric-label">剩余缺口</view><view class="money goal-metric">¥{{leftText}}</view></view>
+        <view><view class="mini-metric-label">剩 {{daysLeft}} 天需日均</view><view class="money goal-metric" style="color:var(--gold);">¥{{needPerDayText}}</view></view>
+      </view>
+    </view>
+    <view class="section-head"><view class="row"><text class="seal-bar"></text><text class="section-title">各品类目标拆解</text></view><text class="section-note">{{categories.length}} 个品类</text></view>
+    <view wx:if="{{!categories.length}}" class="state"><view class="state-title">本月还没有品类目标</view><view>可继续在电脑端配置月度品类目标。</view></view>
+    <view wx:for="{{categories}}" wx:key="categoryId" class="glass-card">
+      <view class="row-between"><text style="font-size:25rpx;font-weight:700;">{{item.categoryName}}</text><text class="tag tag-gold">{{item.percent}}%</text></view>
+      <view class="row-between muted small" style="margin-top:7rpx;"><text>已完成 ¥{{item.doneText}}</text><text>目标 ¥{{item.targetText}}</text></view>
+      <view class="progress-track" style="margin-top:10rpx;"><view class="progress-fill" style="width:{{item.progressWidth}};"></view></view>
+      <view class="muted small" style="margin-top:8rpx;">尚需 ¥{{item.needText}}</view>
+    </view>
+    <view wx:if="{{error}}" class="glass-card small" style="color:var(--red);">{{error}}</view>
+  </block>
+</view>
+<bottom-nav active=""></bottom-nav>

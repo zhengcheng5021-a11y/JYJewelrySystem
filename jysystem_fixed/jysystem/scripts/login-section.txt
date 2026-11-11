@@ -1,0 +1,120 @@
+<!-- Main Login Section: Pure Username & Password Form -->
+      <div class="relative z-20 w-full px-5 sm:px-6 pb-6 pt-2">
+        <!-- Frosted Glass Card -->
+        <div id="formCard" class="theme-transition w-full bg-white/55 backdrop-blur-xl rounded-[28px] p-5 sm:p-6 shadow-[0_15px_35px_rgba(180,130,120,0.18)] border border-white/70 flex flex-col gap-4 relative overflow-hidden">
+
+          <!-- Silk Ambient Reflection Light -->
+          <div class="absolute -top-12 -right-12 w-28 h-28 bg-rose-200/30 rounded-full blur-2xl pointer-events-none"></div>
+
+          <!-- Card Header & Badge -->
+          <div class="flex items-center justify-between border-b border-black/5 pb-2.5">
+            <div class="flex items-center gap-2">
+              <span class="w-1.5 h-3.5 rounded-full bg-[#99554D]"></span>
+              <span id="formTitle" class="text-sm font-serifCn font-bold tracking-wider text-stone-800 transition-colors duration-500">
+                会员账号登录
+              </span>
+            </div>
+            <span class="text-[11px] font-serifCn text-stone-500/80 tracking-widest flex items-center gap-1">
+              <i class="ph-fill ph-shield-check text-rose-600/70"></i>
+              <span>官方认证通道</span>
+            </span>
+          </div>
+
+          <!-- Input Fields Group -->
+          <div class="space-y-3 font-serifCn">
+            <!-- 1. Username / Mobile Input -->
+            <div>
+              <label class="block text-[11px] text-stone-600 mb-1 tracking-wider font-medium">账号 / 手机号</label>
+              <div id="usernameBox" class="theme-transition relative flex items-center bg-white/80 rounded-2xl border border-stone-200/80 px-3.5 py-2.5 shadow-sm focus-within:border-rose-400 focus-within:ring-2 focus-within:ring-rose-200/50">
+                <i class="ph ph-user text-base text-stone-400 mr-2.5"></i>
+                <input type="text" id="usernameInput" placeholder="请输入用户名或手机号" class="w-full bg-transparent outline-none text-stone-800 text-xs sm:text-sm placeholder-stone-400">
+                <button type="button" id="clearUserBtn" class="text-stone-300 hover:text-stone-500 hidden" onclick="clearInput('usernameInput', 'clearUserBtn')">
+                  <i class="ph ph-x-circle-fill text-base"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- 2. Password Input -->
+            <div>
+              <label class="block text-[11px] text-stone-600 mb-1 tracking-wider font-medium">登录密码</label>
+              <div id="passwordBox" class="theme-transition relative flex items-center bg-white/80 rounded-2xl border border-stone-200/80 px-3.5 py-2.5 shadow-sm focus-within:border-rose-400 focus-within:ring-2 focus-within:ring-rose-200/50">
+                <i class="ph ph-lock-key text-base text-stone-400 mr-2.5"></i>
+                <input type="password" id="passwordInput" placeholder="请输入登录密码" class="w-full bg-transparent outline-none text-stone-800 text-xs sm:text-sm placeholder-stone-400">
+                <button type="button" id="togglePasswordBtn" class="text-stone-400 hover:text-stone-600 transition-colors" onclick="togglePasswordVisibility()">
+                  <i id="passwordEyeIcon" class="ph ph-eye-slash text-base"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Auxiliary Links: Remember me & Forgot Password -->
+            <div class="flex items-center justify-between text-[11px] text-stone-500 pt-0.5">
+              <label class="flex items-center gap-1.5 cursor-pointer select-none">
+                <input type="checkbox" id="rememberMe" checked class="w-3.5 h-3.5 accent-[#523533] rounded cursor-pointer">
+                <span>记住账号</span>
+              </label>
+              <button type="button" onclick="showToast('请联系客服微信或重置密码', false)" class="text-stone-500 hover:text-rose-900 transition-colors">
+                忘记密码？
+              </button>
+            </div>
+          </div>
+
+          <!-- Primary Action Button: Login -->
+          <button id="loginBtn" class="shimmer-active relative w-full h-[48px] rounded-full bg-gradient-to-r from-[#3C2827] via-[#5A3835] to-[#3C2827] hover:opacity-95 text-white font-medium text-sm flex items-center justify-center gap-2 shadow-[0_6px_20px_rgba(60,40,39,0.3)] active:scale-[0.98] transition-all duration-200 group">
+            <i class="ph-bold ph-key text-amber-200 text-sm"></i>
+            <span class="tracking-widest font-serifCn text-amber-50 font-medium">立 即 登 录</span>
+            <i class="ph-bold ph-arrow-right text-xs text-amber-100/70 group-hover:translate-x-1 transition-transform"></i>
+          </button>
+
+          <!-- Guest Mode & Register Entrance -->
+          <div class="flex items-center justify-between text-xs text-stone-500/90 font-serifCn px-1 pt-0.5">
+            <button onclick="showToast('欢迎新茶客！即将开启手作登记', true)" class="hover:text-rose-900 transition-colors">
+              新用户注册
+            </button>
+            <span class="text-stone-300">|</span>
+            <button onclick="showToast('以客卿身份入馆探索', true)" class="hover:text-rose-900 transition-colors flex items-center gap-0.5">
+              <span>暂不登录，先去手作集市逛逛</span>
+              <i class="ph ph-caret-right text-[10px]"></i>
+            </button>
+          </div>
+
+          <!-- Compliance & Agreement -->
+          <div class="pt-1 flex items-start justify-center gap-2 text-[10px] text-stone-500 leading-tight">
+            <input type="checkbox" id="agreementCheck" checked class="mt-0.5 w-3.5 h-3.5 accent-[#523533] rounded cursor-pointer">
+            <label for="agreementCheck" class="cursor-pointer select-none">
+              已阅读并同意
+              <a href="javascript:void(0)" onclick="openModal('userAgreement')" class="text-rose-900/90 hover:underline">《用户服务协议》</a>
+              与
+              <a href="javascript:void(0)" onclick="openModal('privacyPolicy')" class="text-rose-900/90 hover:underline">《隐私保护政策》</a>
+            </label>
+          </div>
+
+        </div>
+
+        <!-- iOS Home Indicator -->
+        <div class="w-full flex justify-center pt-3 pb-0.5">
+          <div id="homeIndicator" class="w-28 h-1 bg-stone-400/50 rounded-full transition-colors duration-500"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Agreement Modal -->
+  <div id="textModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl border border-rose-100 flex flex-col max-h-[80vh]">
+      <div class="flex items-center justify-between pb-2 border-b border-stone-100">
+        <h4 id="textModalTitle" class="font-serifCn font-bold text-stone-800 text-base">协议说明</h4>
+        <button onclick="closeTextModal()" class="text-stone-400 hover:text-stone-600">
+          <i class="ph ph-x text-lg"></i>
+        </button>
+      </div>
+      <div id="textModalBody" class="py-4 text-xs text-stone-600 leading-relaxed overflow-y-auto no-scrollbar font-serifCn">
+        <!-- Content inserted dynamically -->
+      </div>
+      <button onclick="closeTextModal()" class="w-full py-2.5 bg-[#523533] text-white rounded-xl text-xs font-serifCn tracking-widest active:scale-95 transition-transform">
+        已阅读并同意
+      </button>
+    </div>
+  </div>
+
+  

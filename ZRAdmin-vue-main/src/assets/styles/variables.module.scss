@@ -1,0 +1,116 @@
+// base color
+$blue: #324157;
+$light-blue: #3a71a8;
+$red: #c03639;
+$pink: #e65d6e;
+$green: #30b08f;
+$tiffany: #4ab7bd;
+$yellow: #fec171;
+$panGreen: #30b08f;
+
+// 默认菜单主题风格
+:root {
+  --base-text-color-rgba: rgba(0, 0, 0, 0.85);
+  --base-menu-background: #fff;
+  --base-logo-title-color: #40363a;
+  --base-bg-main: #fff8f6;
+  --base-sidebar-width: 236px;
+  // 左侧菜单宽度
+  --el-aside-width: 236px;
+  //底部高度
+  --base-footer-height: 30px;
+  --base-tags-height: 36px;
+  --base-header-height: 50px;
+  //登录框宽度
+  --base-login-width: 360px;
+
+  // 侧边栏图标大小
+  --el-menu-icon-width: 14px;
+
+  --el-menu-horizontal-height: 50px;
+
+  --el-menu-level-padding: 15px !important;
+
+  --vxe-table-column-padding-default: 7px 0 !important;
+
+  // 左侧菜单选中背景
+  --base-menu-active-bg: #f8e7ea;
+}
+
+/***侧边栏深色配置***/
+[data-theme='theme-black'] {
+  --base-menu-background: #324157;
+  --base-logo-title-color: #ffffff;
+  --base-topBar-background: #324157;
+  --base-topBar-color: #fff;
+
+  // el-ement ui 设置
+  // --el-fill-color-blank: #304156;
+  --el-text-color-primary: #e5eaf3;
+  --base-color-white: #ffffff;
+  --el-menu-text-color: var(--el-text-color-primary);
+
+  --base-menu-active-bg: #3a5070;
+}
+// 黑色主题
+html.dark {
+  /* custom dark bg color */
+  // --el-bg-color: #141414;
+  --base-color-white: #ffffff;
+  --base-text-color-rgba: #ffffff;
+  --base-menu-background: #000;
+  --base-topBar-background: #000;
+
+  // 左侧菜单选中背景
+  --base-menu-active-bg: #37373a;
+
+  .current-row {
+    color: #e65d6e;
+  }
+
+  .header-search {
+    .el-select {
+      background-color: #000;
+    }
+  }
+  /* 页签样式覆盖 */
+  .navbar {
+    box-shadow: 0 1px 4px rgba(255, 255, 255, 0.08);
+  }
+  .tags-view-container {
+    &.tags-view-container--chrome {
+      --chrome-strip-bg: var(--el-bg-color);
+      --chrome-strip-border: var(--el-border-color);
+      --chrome-tab-active-bg: var(--el-color-primary-light-9);
+      --chrome-tab-text: var(--el-text-color-secondary);
+      --chrome-tab-text-active: var(--el-color-primary);
+      .tags-view-wrapper .tags-view-item:not(.active) + .tags-view-item:not(.active) {
+        border-left-color: var(--el-border-color);
+      }
+      .tags-view-wrapper .tags-view-item {
+        &:hover:not(.active) {
+          background: var(--el-fill-color, #303030) !important;
+          color: var(--el-text-color-primary);
+        }
+        &.active {
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+        }
+      }
+    }
+  }
+  // wangEditor
+  --w-e-textarea-bg-color: #111;
+  --w-e-textarea-color: #fff;
+
+  --w-e-toolbar-color: #fff;
+  --w-e-toolbar-bg-color: #111;
+  --w-e-toolbar-active-color: #ccc;
+  --w-e-toolbar-active-bg-color: #111;
+  /* ...其他... */
+}
+html.cafe {
+  filter: sepia(0.9) hue-rotate(315deg) brightness(0.9);
+}
+html.contrast {
+  filter: contrast(2);
+}

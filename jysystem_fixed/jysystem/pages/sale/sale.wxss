@@ -1,0 +1,16 @@
+.soft-panel .input-bare { font-size: 28rpx; }
+.sale-line-row { align-items: flex-start; gap: 12rpx 16rpx; }
+.sale-line-copy { flex: 1 1 260rpx; }
+.sale-line-name { min-width: 0; line-height: 1.45; overflow-wrap: anywhere; }
+.sale-setting-row { gap: 10rpx 16rpx; }
+.sale-setting-label { min-width: 0; flex: 1 1 260rpx; line-height: 1.5; }
+.sale-setting-input { flex: 0 1 180rpx; min-width: 120rpx; }
+.sale-amount-breakdown { margin-top: 14rpx; padding: 14rpx 18rpx; display: flex; flex-direction: column; gap: 10rpx; }
+.sale-amount-breakdown .money { font-size: 26rpx; }
+.sale-amount-final { margin-top: 4rpx; padding-top: 12rpx; border-top: 1rpx dashed var(--line); }
+.sale-amount-final .money { font-size: 34rpx; font-weight: 700; color: var(--ink); }
+@media screen and (max-width: 360px) {
+  .soft-panel .action-row > .btn-mini { flex: 1 1 170rpx; }
+  .sale-setting-row > .btn-mini,
+  .sale-setting-input { flex: 1 1 auto; width: auto; text-align: left; }
+}

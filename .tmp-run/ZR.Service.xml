@@ -1,0 +1,889 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ZR.Service</name>
+    </assembly>
+    <members>
+        <member name="T:ZR.Service.Content.ArticleCategoryService">
+            <summary>
+            文章目录Service业务层处理
+            </summary>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleCategoryService.GetList(ZR.Model.Content.Dto.ArticleCategoryQueryDto)">
+            <summary>
+            查询文章目录列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleCategoryService.GetTreeList(ZR.Model.Content.Dto.ArticleCategoryQueryDto)">
+            <summary>
+            查询文章目录树列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleCategoryService.AddArticleCategory(ZR.Model.Content.ArticleCategory)">
+            <summary>
+            添加文章目录
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleCategoryService.PlusJoinNum(System.Int32)">
+            <summary>
+            增加加入圈子人数
+            </summary>
+            <param name="categoryId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleCategoryService.ReduceJoinNum(System.Int32)">
+            <summary>
+            减少加入圈子人数
+            </summary>
+            <param name="categoryId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleCommentService.GetMessageList(ZR.Model.Content.Dto.MessageQueryDto)">
+            <summary>
+            获取评论列表
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleCommentService.GetReplyComments(System.Int64,ZR.Model.Content.Dto.MessageQueryDto)">
+            <summary>
+            获取评论回复列表
+            </summary>
+            <param name="pager">分页</param>
+            <param name="cid"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleCommentService.AddMessage(ZR.Model.Content.ArticleComment)">
+            <summary>
+            评论
+            </summary>
+            <param name="message"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleCommentService.PraiseMessage(System.Int64)">
+            <summary>
+            评论点赞
+            </summary>
+            <param name="mid"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleCommentService.DeleteMessage(System.Int64,System.Int64)">
+            <summary>
+            删除评论
+            </summary>
+            <param name="commentId">评论ID</param>
+            <param name="userId">当前登录用户</param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleCommentService.GetMyMessageList(ZR.Model.Content.Dto.MessageQueryDto)">
+            <summary>
+            获取评论列表
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleCommentService.TopMessage(System.Int64,System.Int64)">
+            <summary>
+            置顶评论
+            </summary>
+            <param name="commentId"></param>
+            <param name="top"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticlePraiseService.#ctor(ZR.Service.Content.IService.IArticleService,ZR.ServiceCore.Services.ISysUserMsgService)">
+            <summary>
+            
+            </summary>
+            <param name="articleService"></param>
+            <param name="userMsgService"></param>
+        </member>
+        <member name="M:ZR.Service.Content.ArticlePraiseService.Praise(ZR.Model.Content.ArticlePraise)">
+            <summary>
+            点赞
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticlePraiseService.CanclePraise(System.Int64,System.Int64)">
+            <summary>
+            取消点赞点赞
+            </summary>
+            <param name="userid"></param>
+            <param name="articleId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticlePraiseService.PlusPraise(System.Int64)">
+            <summary>
+            恢复点赞
+            </summary>
+            <param name="pid"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleService.GetList(ZR.Model.Content.Dto.ArticleQueryDto)">
+            <summary>
+            查询文章管理列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleService.GetArticleList(ZR.Model.Content.Dto.ArticleQueryDto)">
+            <summary>
+            前台查询文章列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleService.GetNewArticleList">
+            <summary>
+            查询最新文章列表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleService.GetMonentList(ZR.Model.Content.Dto.ArticleQueryDto)">
+            <summary>
+            前台查询动态列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleService.GetCircleList(ZR.Model.Content.Dto.ArticleQueryDto)">
+            <summary>
+            查询圈子内容列表（文章+动态混合，按分类含子分类）
+            用于圈子详情页，统一返回该圈子下所有公开且审核通过的内容，
+            不限制内容类型，并补全点赞/评论数及当前用户是否点赞。
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleService.GetMyList(ZR.Model.Content.Dto.ArticleQueryDto)">
+            <summary>
+            查询我的文章列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleService.UpdateArticle(ZR.Model.Content.Article)">
+            <summary>
+            修改文章管理
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleService.TopArticle(ZR.Model.Content.Article)">
+            <summary>
+            置顶文章
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleService.ChangeComment(ZR.Model.Content.Article)">
+            <summary>
+            评论权限
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleService.ChangeArticlePublic(ZR.Model.Content.Article)">
+            <summary>
+            是否公开
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleService.UpdateArticleHit(System.Int64)">
+            <summary>
+            修改文章访问量
+            </summary>
+            <param name="cid"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleService.PraiseArticle(System.Int64)">
+            <summary>
+            点赞
+            </summary>
+            <param name="cid"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleService.Publish(ZR.Model.Content.Article)">
+            <summary>
+            前端-发布动态,文章
+            </summary>
+            <param name="article"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleService.GetArticle(System.Int64,System.Int64)">
+            <summary>
+            获取文章详情
+            </summary>
+            <param name="cid">内容id</param>
+            <param name="userId">当前用户id</param>
+            <returns></returns>
+            <exception cref="T:Infrastructure.CustomException"></exception>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleService.Passed(System.Int64[])">
+            <summary>
+            审核通过
+            </summary>
+            <param name="idsArr"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleService.Reject(System.String,System.Int64[])">
+            <summary>
+            审核不通过
+            </summary>
+            <param name="reason"></param>
+            <param name="idsArr"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleService.ExportList(ZR.Model.Content.Dto.ArticleQueryDto)">
+            <summary>
+            导出文章列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleService.ImportArticle(System.Collections.Generic.List{ZR.Model.Content.Dto.ArticleImportDto})">
+            <summary>
+            导入文章
+            </summary>
+            <param name="list"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Service.Content.ArticleTopicService">
+            <summary>
+            文章话题Service业务层处理
+            </summary>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleTopicService.GetList(ZR.Model.Content.Dto.ArticleTopicQueryDto)">
+            <summary>
+            查询文章话题列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleTopicService.GetInfo(System.Int64)">
+            <summary>
+            获取详情
+            </summary>
+            <param name="TopicId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleTopicService.AddArticleTopic(ZR.Model.Content.ArticleTopic)">
+            <summary>
+            添加文章话题
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleTopicService.UpdateArticleTopic(ZR.Model.Content.ArticleTopic)">
+            <summary>
+            修改文章话题
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleTopicService.ExportList(ZR.Model.Content.Dto.ArticleTopicQueryDto)">
+            <summary>
+            导出文章话题
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleTopicService.QueryExp(ZR.Model.Content.Dto.ArticleTopicQueryDto)">
+            <summary>
+            查询导出表达式
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleTopicService.GetTopicList(ZR.Model.Content.Dto.ArticleTopicQueryDto)">
+            <summary>
+            查询热门文章话题列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Service.Content.ArticleUserCirclesService">
+            <summary>
+            用户加入圈子Service业务层处理
+            </summary>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleUserCirclesService.GetList(ZR.Model.Content.Dto.ArticleUserCirclesQueryDto)">
+            <summary>
+            查询用户加入圈子列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleUserCirclesService.GetInfo(System.Int32)">
+            <summary>
+            获取详情
+            </summary>
+            <param name="Id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleUserCirclesService.QueryExp(ZR.Model.Content.Dto.ArticleUserCirclesQueryDto)">
+            <summary>
+            查询表达式
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleUserCirclesService.JoinCircle(System.Int32,System.Int32)">
+            <summary>
+            用户加入圈子
+            </summary>
+            <param name="userId"></param>
+            <param name="categoryId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleUserCirclesService.RemoveCircle(System.Int32,System.Int32)">
+            <summary>
+            删除用户加入圈子
+            </summary>
+            <param name="userId"></param>
+            <param name="categoryId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleUserCirclesService.IsJoin(System.Int32,System.Int32)">
+            <summary>
+            是否加入
+            </summary>
+            <param name="userId"></param>
+            <param name="categoryId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.ArticleUserCirclesService.GetMyJoinCircles(System.Int32)">
+            <summary>
+            查询我的圈子
+            </summary>
+            <param name="userId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Content.IService.IArticleService.GetCircleList(ZR.Model.Content.Dto.ArticleQueryDto)">
+            <summary>
+            查询圈子内容列表（文章+动态混合，按分类含子分类）
+            </summary>
+        </member>
+        <member name="T:ZR.Service.Content.IService.IArticleTopicService">
+            <summary>
+            文章话题service接口
+            </summary>
+        </member>
+        <member name="T:ZR.Service.Content.IService.IArticleUserCirclesService">
+            <summary>
+            用户加入圈子service接口
+            </summary>
+        </member>
+        <member name="T:ZR.Service.HelloService">
+            <summary>
+            动态api示例，继承IDynamicApi，使用看swagger生成的地址
+            </summary>
+        </member>
+        <member name="F:ZR.Service.HelloService.userService">
+            <summary>
+            引用User服务
+            </summary>
+        </member>
+        <member name="M:ZR.Service.HelloService.#ctor(ZR.ServiceCore.Services.ISysUserService)">
+            <summary>
+            
+            </summary>
+            <param name="userService"></param>
+        </member>
+        <member name="M:ZR.Service.HelloService.SayHello(System.String)">
+            <summary>
+            数据库使用案例
+            </summary>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.HelloService.SayHello2(ZR.Model.System.Dto.SysUserDto)">
+            <summary>
+            返回json内容
+            </summary>
+            <param name="userDto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.HelloService.SayHelloJson(ZR.Model.System.Dto.SysUserDto)">
+            <summary>
+            返回json内容
+            </summary>
+            <param name="userDto"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Service.IService.IHelloService">
+            <summary>
+            Hello接口
+            </summary>
+        </member>
+        <member name="M:ZR.Service.IService.IHelloService.SayHello(System.String)">
+            <summary>
+            
+            </summary>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyBillRuleService.IssueInTransaction(ZR.Service.JingYue.JyActor,System.String,System.String,System.Nullable{System.Int64},System.Nullable{System.DateTime})">
+            <summary>由调用方统一开启事务时使用，取号与业务写入同事务提交或回滚。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyCustomService.Update(ZR.Service.JingYue.JyActor,ZR.Model.JingYue.Dto.JyCustomEditDto)">
+            <summary>
+            修改未发生销售对冲、退款的定制单。已收定金不在这里直接改金额，
+            避免绕过定金流水；确需调整时走退定金或重新收定流程。
+            </summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyCustomService.Delete(ZR.Service.JingYue.JyActor,System.Int64)">
+            <summary>
+            软删除定制单。只有已退清且没有未完成销售占用的单据可删除，
+            保留定金流水用于财务追溯，同时释放仍被该单锁定的商品。
+            </summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyCustomService.Arrive(ZR.Service.JingYue.JyActor,ZR.Model.JingYue.Dto.JyCustomArrivalDto)">
+            <summary>
+            定金单货品到店。只更新到货状态和条码，不改定金金额、商品售价与已收定金；
+            未绑定商品时按条码校验在库商品并写入唯一货品编号，原有绑定不能被其它条码覆盖。
+            </summary>
+        </member>
+        <member name="T:ZR.Service.JingYue.JyDailyTaskService">
+            <summary>
+            每日必做。模板启用后按服务器日期生成当天快照，历史快照保留；
+            当天修改会同步回写模板，删除模板只停止以后生成。
+            </summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyDailyTaskService.List(ZR.Service.JingYue.JyActor,ZR.Model.JingYue.Dto.JyDailyTaskQueryDto)">
+            <summary>列出某天必做，并在打开页面时补齐当天快照。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyDailyTaskService.DeleteItem(ZR.Service.JingYue.JyActor,System.Int64)">
+            <summary>删除当天必做项。模板同步逻辑删除，次日不再生成；历史日期不允许删除。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyDailyTaskService.Generate(ZR.Service.JingYue.JyActor,System.DateTime)">
+            <summary>按模板补齐某天快照。唯一索引兜底，重复调用不会重复插入。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyDailyTaskService.EnsureToday(System.DateTime)">
+            <summary>历史日期只读，编辑/删除/勾选/排序只允许当天。</summary>
+        </member>
+        <member name="T:ZR.Service.JingYue.JyFactoryReturnService">
+            <summary>
+            商品返厂：草稿保存不动库存，确认返厂后商品变为状态 8（返厂出库）并写库存流水。
+            返厂不生成标签，标签只在入库时生成。
+            </summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyFactoryReturnService.FindGoods(ZR.Service.JingYue.JyActor,System.String)">
+            <summary>可返厂商品：仅状态 1（在库）、未锁定、数量充足。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyFactoryReturnService.Confirm(ZR.Service.JingYue.JyActor,System.Int64)">
+            <summary>确认返厂：商品状态改为 8，清空锁定，写库存流水。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyGoodsService.Options(ZR.Service.JingYue.JyActor)">
+            <summary>保留分类选项供库存页筛选，商品本身只能通过完成入库自动生成。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyGoodsService.Save(ZR.Service.JingYue.JyActor,ZR.Model.JingYue.Dto.JyGoodsItemEditDto)">
+            <summary>商品档案只允许编辑销售相关信息，不允许改动货品编码和来源。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyGoodsService.ApplyAttributes(System.String,ZR.Model.JingYue.Dto.JyGoodsItemEditDto)">
+            <summary>校验商品属性字典，并把服务端名称快照写入 DTO。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyInboundService.Save(ZR.Service.JingYue.JyActor,ZR.Model.JingYue.Dto.JyInboundEditDto)">
+            <summary>
+            保存入库单。明细可以暂时为空，便于先建档再陆续录入；编码只在新增明细时生成。
+            </summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyInboundService.Confirm(ZR.Service.JingYue.JyActor,System.Int64)">
+            <summary>
+            完成入库：只复制本单有效明细，不重新生成货品编码。
+            </summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyInboundService.CreateDraftGoods(ZR.Service.JingYue.JyActor,ZR.Model.JingYue.JyInbound,ZR.Model.JingYue.JyInboundLine,System.Nullable{System.Int64},System.DateTime)">
+            <summary>入库单保存草稿时生成商品身份证：状态 7（入库中），数量 0。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyInboundService.ApplyAttributes(System.String,System.Collections.Generic.List{ZR.Model.JingYue.Dto.JyInboundLineEditDto})">
+            <summary>批量校验并回填款式、材质、金属成色、证书类型，名称快照以字典为准。</summary>
+        </member>
+        <member name="T:ZR.Service.JingYue.JyMemberFollowService">
+            <summary>客户跟进记录。跟进时间与操作人始终由服务器写入。</summary>
+        </member>
+        <member name="T:ZR.Service.JingYue.JyMemberReviewService">
+            <summary>日 / 周 / 月 / 季 / 年复盘。保存时可复用现有待办与目标服务。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyMemberService.Export(ZR.Service.JingYue.JyActor,ZR.Model.JingYue.Dto.JyMemberQueryDto)">
+            <summary>导出与列表共用同一组筛选条件，不分页；上限防止误导出拖垮服务。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyMemberService.ApplySort(SqlSugar.ISugarQueryable{ZR.Model.JingYue.JyMember},ZR.Model.JingYue.Dto.JyMemberQueryDto)">
+            <summary>
+            列表和导出统一排序。字段与方向都走白名单，避免客户端把任意列拼进 SQL。
+            </summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyMemberService.CreateInCurrentTransaction(ZR.Service.JingYue.JyActor,System.Nullable{System.Int64},System.String,System.String,System.Int32)">
+            <summary>
+            在当前事务内创建会员（不新开事务），供销售定制等业务自动建档使用。
+            调用方必须已处于 UseTran 事务中，发生异常时随外层事务一起回滚。
+            </summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyMemberService.RemoveReferrer(ZR.Service.JingYue.JyActor,System.Int64,System.Int64)">
+            <summary>只隐藏关系，不物理删除；销售单与返现台账保留原推荐人。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyMemberService.GetHistory(ZR.Service.JingYue.JyActor,System.Int64)">
+            <summary>会员历史留痕：档案、最近消费单与积分流水。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyMemberService.GetPointRule(ZR.Service.JingYue.JyActor)">
+            <summary>读取当前积分规则；没有维护过时返回 1 元 1 积分的默认值。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyMemberService.SavePointRule(ZR.Service.JingYue.JyActor,ZR.Model.JingYue.Dto.JyPointRuleEditDto)">
+            <summary>维护唯一当前积分规则。保存启用规则时自动停用其他规则。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyMemberService.ClearAllPoints(ZR.Service.JingYue.JyActor)">
+            <summary>全库清零实时可用积分；累计积分、年度积分、等级与累计消费保持不变。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyMemberService.BuildStylePreferences(System.String,System.Collections.Generic.List{System.Int64})">
+            <summary>按已完成销售单汇总客户在一级款式分类下的实付金额与件数。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyMemberService.NormalizeReferrers(ZR.Service.JingYue.JyActor,System.Collections.Generic.List{ZR.Model.JingYue.Dto.JyMemberReferrerEditDto},System.String,System.Int64)">
+            <summary>维护客户的多位推荐人；同一个推荐人只保留一条有效关系。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyMemberService.ResolveMemberWechat(System.Nullable{System.Int64})">
+            <summary>
+            客户档案关联员工微信。必须来自用户管理维护的启用微信，不能手填；
+            同时校验所属员工账号有效，避免把客户挂到离职或停用账号。
+            </summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyMemberService.UpsertReferrer(ZR.Service.JingYue.JyActor,System.Int64,System.Int64,System.Int32,System.Nullable{System.Int64},System.Boolean,System.String,System.DateTime)">
+            <summary>
+            同一客户与推荐人只保留一条物理记录。关系被逻辑隐藏后再次添加时恢复原行，
+            不覆盖来源销售单和历史审计信息，避免唯一索引冲突。
+            </summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyMemberService.SyncReferrers(ZR.Service.JingYue.JyActor,ZR.Model.JingYue.JyMember,System.Collections.Generic.List{ZR.Model.JingYue.Dto.JyMemberReferrerEditDto})">
+            <summary>
+            编辑档案时同步推荐人：已有关系不做物理删除，未提交的只置 DelFlag=2 隐藏，
+            保证历史返现和关系网可追溯。
+            </summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyMemberService.NormalizeWechat(System.String)">
+            <summary>微信号允许字母、数字、下划线、中横线，最长 64 位。空值返回 null。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyMemberService.ResolveReferrer(ZR.Service.JingYue.JyActor,System.String,System.Nullable{System.Int64})">
+            <summary>按推荐人微信号解析会员 Id；找不到则直接报错，避免推荐关系丢失。</summary>
+        </member>
+        <member name="T:ZR.Service.JingYue.JyPricingService">
+            <summary>金价与会员折扣矩阵维护。销售计算只读取这里启用的有效记录。</summary>
+        </member>
+        <member name="T:ZR.Service.JingYue.JyReferralService">
+            <summary>
+            转介绍奖励服务。
+            规则：客户 A 建档时把 B 绑定为被推荐人（B.ReferrerMemberId = A），此后 B 每张
+            已完成销售单都会按当前积分规则里的返现口径生成一条奖励台账，永久保留。
+            </summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyReferralService.Settle(ZR.Service.JingYue.JyActor,ZR.Model.JingYue.Dto.JyReferralPayoutDto)">
+            <summary>
+            结算返现。两种入口：
+            1) 传 BeginTime/EndTime：把该区间内所有「待返现」记录一次结清（用户通常不是当天发放，回补时用区间）；
+            2) 只传 Ids：结算勾选的记录。
+            结算前可逐单调整金额，调整值写入台账并保留系统原始金额。
+            </summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyReferralService.AdjustAmount(ZR.Service.JingYue.JyActor,System.Int64,System.Decimal,System.String)">
+            <summary>只调整待返现金额，不改变状态；便于先逐单核对、最后按区间统一结算。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyReferralService.MarkPaid(ZR.Service.JingYue.JyActor,ZR.Model.JingYue.Dto.JyReferralPayoutDto)">
+            <summary>单条登记（保留旧接口语义），内部走同一套结算逻辑。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyReferralService.CancelPaid(ZR.Service.JingYue.JyActor,System.Int64)">
+            <summary>撤销发放登记（误操作时把已返现改回待返现）。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyReferralService.Graph(ZR.Service.JingYue.JyActor,System.Int64)">
+            <summary>以某个客户为中心，向上追溯推荐人、向下展开被推荐人，并附带各自单据摘要。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyReferralService.FindReferrer(ZR.Service.JingYue.JyActor,System.String)">
+            <summary>按手机号或微信号查找可作推荐人的会员。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyReferralService.AwardForSaleInTransaction(ZR.Service.JingYue.JyActor,ZR.Model.JingYue.JySaleOrder,System.DateTime)">
+            <summary>销售单确认时调用（必须在调用方事务内）：为买家生成推荐人奖励台账。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyReferralService.VoidForSaleInTransaction(ZR.Service.JingYue.JyActor,System.Int64,System.DateTime)">
+            <summary>销售单作废时调用：把对应奖励台账置为已作废（保留记录）。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyReferralService.ResolveSaleReferrerId(ZR.Service.JingYue.JyActor,ZR.Model.JingYue.JySaleOrder)">
+            <summary>
+            本单返现归属只认销售单上明确选择的推荐人。
+            会员档案中的历史推荐关系仍用于客户关系展示，但不会在未选择时自动产生新返点。
+            </summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyReferralService.Rates(ZR.Service.JingYue.JyActor)">
+            <summary>一级款式分类及其当前在库件数，供规则维护页面使用。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyReferralService.SaveRates(ZR.Service.JingYue.JyActor,ZR.Model.JingYue.Dto.JyReferralRateEditDto)">
+            <summary>批量保存分类返点。只维护已存在的一级分类，未传的分类保持原值。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyReferralService.CalcReward(ZR.Service.JingYue.JyActor,ZR.Model.JingYue.JySaleOrder)">
+            <summary>
+            按销售明细的一级款式分类分别计算返现：
+            每个分类的成交额按整单实付比例折算，再乘以该分类返点。
+            </summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyReferralService.StyleRoots(ZR.Service.JingYue.JyActor)">
+            <summary>当前租户的一级款式分类。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyReferralService.LeafToRoot(ZR.Service.JingYue.JyActor)">
+            <summary>叶子款式分类 → 一级分类 Id。</summary>
+        </member>
+        <member name="T:ZR.Service.JingYue.JyReportService">
+            <summary>
+            销售经营指标。金额取销售单实际实付 PayAmount；退货按退货发生时间从对应周期冲减。
+            客件数 = 净销售件数 / 成交单数，件单数 = 净销售额 / 净销售件数。
+            </summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyReportService.BuildCombos(ZR.Service.JingYue.JyActor,System.DateTime,System.DateTime)">
+            <summary>首页只读启用组合，占比固定取服务器今天往前 7 天。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyReportService.ComboCategoryAmounts(ZR.Service.JingYue.JyActor,System.DateTime,System.DateTime)">
+            <summary>按一级款式归并销售净额：整单实付按明细原价占比分摊，退货按明细退款冲减。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyReportService.ResolveCategoryPath(System.Nullable{System.Int64},System.Collections.Generic.Dictionary{System.Int64,ZR.Model.JingYue.JyLookupItem},System.Collections.Generic.Dictionary{System.Int64,ZR.Model.JingYue.JyLookupItem})">
+            <summary>
+            返回一级分类和命中的二级款式。未分类商品归到 0，不混入任何款式。
+            </summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyReportService.LeafCategories(System.Collections.Generic.List{ZR.Model.JingYue.JyLookupItem},System.Collections.Generic.Dictionary{System.Int64,ZR.Model.JingYue.JyLookupItem},System.Collections.Generic.Dictionary{System.Int64,System.Int64}@)">
+            <summary>可单独展示的款式节点：不含重复名称的一级分类，以及挂在一级分类下的二级款式。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyReportService.StyleItems(System.String)">
+            <summary>
+            款式字典允许重复初始化，历史数据可能引用不同批次但名称相同的分类。
+            报表按名称归并，避免同大类被拆成多行。
+            </summary>
+        </member>
+        <member name="T:ZR.Service.JingYue.JySaleReturnService">
+            <summary>销售退货：整单或按明细部分退货，库存、积分与会员累计消费同事务回滚。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JySaleReturnService.ReturnableOrders(ZR.Service.JingYue.JyActor,ZR.Model.JingYue.Dto.JySaleReturnQueryDto)">
+            <summary>查询可退货的已完成销售单。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JySaleReturnService.Save(ZR.Service.JingYue.JyActor,ZR.Model.JingYue.Dto.JySaleReturnEditDto)">
+            <summary>提交退货。支持整单或任意明细组合，退款金额按原单实付比例分摊。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JySaleService.MatchCustomer(ZR.Service.JingYue.JyActor,System.String)">
+            <summary>按手机号/姓名识别客户；手机号精确优先，其次姓名精确，再返回模糊候选。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JySaleService.LoadReferrers(System.String,System.Int64)">
+            <summary>开单时展示该客户已维护的多位推荐人，默认带出主推荐人。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JySaleService.FindSaleGoods(ZR.Service.JingYue.JyActor,System.String,System.Nullable{System.Int64},System.String)">
+            <summary>扫码/输入编码返回可售货品。已绑定当前客户的定制定金商品也可售，但必须走定金冲抵。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JySaleService.LoadDiscountRules(ZR.Service.JingYue.JyActor,System.Nullable{System.Int64})">
+            <summary>读取当前会员等级可用的折扣矩阵；匹配优先级为二级分类、一级分类、全部。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JySaleService.AllocateLineActivity(System.Collections.Generic.List{ZR.Model.JingYue.Dto.JySaleItemDto},System.Decimal)">
+            <summary>把订单级活动优惠按行折后金额分摊，便于退货按原行实付计算。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JySaleService.AllocateLinePayments(System.Collections.Generic.List{ZR.Model.JingYue.Dto.JySaleItemDto},System.Decimal)">
+            <summary>把订单调价和抹零按行折后金额分摊，保证各行实付之和等于订单实付。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JySaleService.WriteLineSnapshots(ZR.Service.JingYue.JyActor,System.Collections.Generic.List{ZR.Model.JingYue.JySaleOrderItem},System.Collections.Generic.List{ZR.Model.JingYue.Dto.JySaleItemDto},System.DateTime)">
+            <summary>确认草稿后把最终优惠、活动和行实付回写到销售明细，退货按这份快照结算。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JySaleService.BirthdayText(System.Nullable{System.DateTime},System.Nullable{System.Int32})">
+            <summary>生日展示：年份未知时仅显示月日。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JySaleService.FindCustomerLockedGoodsIds(ZR.Service.JingYue.JyActor,System.Nullable{System.Int64},System.String)">
+            <summary>查询该客户当前被定制定金锁定的商品 Id 集合。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JySaleService.ValidateLockedGoods(ZR.Service.JingYue.JyActor,ZR.Model.JingYue.Dto.JySaleEditDto,System.Nullable{System.Int64},ZR.Model.JingYue.JyGoodsItem)">
+            <summary>校验被定制定金锁定的商品是否允许本单销售。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JySaleService.EnsureAutoOffsets(ZR.Service.JingYue.JyActor,ZR.Model.JingYue.JySaleOrder,ZR.Service.JingYue.JySaleService.SaleCalc,System.DateTime)">
+            <summary>确认销售时，为已绑定本次商品的定制定金自动生成冲抵计划；手工计划优先。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JySaleService.ResolveGoodsRestore(ZR.Service.JingYue.JyActor,System.Int64)">
+            <summary>商品恢复到在库或定制定金锁定状态。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JySaleService.NormalizeWechat(System.String)">
+            <summary>微信号允许字母、数字、下划线、中横线、点，最长 64 位。空值返回 null。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JySaleService.ResolveReferrerForSale(ZR.Service.JingYue.JyActor,System.String)">
+            <summary>按推荐人微信号解析会员 Id；找不到直接报错，避免推荐关系静默丢失。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JySaleService.EnsureReferrer(ZR.Service.JingYue.JyActor,System.Nullable{System.Int64},System.Int64)">
+            <summary>校验本单推荐人：必须是有效会员，且不能是买家本人。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JySaleService.ResolveSaleReferrer(ZR.Service.JingYue.JyActor,System.Nullable{System.Int64},System.Nullable{System.Int64},System.String,System.Nullable{System.Int64},System.Nullable{System.DateTime})">
+            <summary>
+            解析本单唯一推荐人：优先会员 Id，其次微信号；新客户不传时可为空。
+            已选推荐人会自动补入客户的多推荐人关系（同人只留一条）。
+            </summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JySaleService.BindReferrer(ZR.Service.JingYue.JyActor,System.Int64,System.Int64,System.Int32,System.Nullable{System.Int64},System.DateTime)">
+            <summary>销售单绑定推荐关系；同一客户同一推荐人只保留一条，不覆盖历史。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyStocktakeService.Initialize(ZR.Service.JingYue.JyActor,ZR.Model.JingYue.Dto.JyStocktakeInitDto,ZR.Service.JingYue.JyBillRuleService)">
+            <summary>按当前库存创建全量盘点快照。分类和账面数在此刻固定，后续盘点不会漏掉新建前已存在的条目。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyStocktakeService.Save(ZR.Service.JingYue.JyActor,ZR.Model.JingYue.Dto.JyStocktakeEditDto,ZR.Service.JingYue.JyBillRuleService)">
+            <summary>保存草稿。账面数在保存时锁定；确认时要求库存仍与账面快照一致。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyStocktakeService.PersistSnapshotLines(ZR.Service.JingYue.JyActor,System.Collections.Generic.List{ZR.Model.JingYue.JyStocktakeLine})">
+            <summary>草稿保存时写回实盘结果；任一明细未更新则整单回滚。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyStocktakeService.LoadStyleParents(System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>款式二级分类指向一级分类；无字典项的历史货品保留到“未分类”。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyStocktakeService.EnsureParentAnomalyRemarks(System.Collections.Generic.List{ZR.Model.JingYue.Dto.JyStocktakeCategoryEditDto},System.Collections.Generic.List{ZR.Model.JingYue.JyStocktakeLine},System.Int32)">
+            <summary>正品一级分类账实不一致时必须说明原因；物料仍按二级分类盘点。</summary>
+        </member>
+        <member name="T:ZR.Service.JingYue.JyWorkItemService">
+            <summary>
+            待办与目标工作台。自动指标按目标区间做全量快照重算，重复业务事件不会重复累计。
+            </summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyWorkItemService.TryRecalculateByBusinessDate(ZR.Service.JingYue.JyActor,System.DateTime)">
+            <summary>业务事件发生后安全重算；失败只记录日志，不影响销售/退货主流程。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyWorkItemService.TryRecalculateCustomerMetricsByBusinessDate(ZR.Service.JingYue.JyActor,System.DateTime)">
+            <summary>
+            客户跟进保存后，按服务器业务日期重算覆盖该日期的客户类自动目标。
+            不要求跟进记录先绑定某个目标，避免全库客户目标长期使用旧快照。
+            </summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyWorkItemService.SalesQty(ZR.Service.JingYue.JyActor,System.DateTime,System.DateTime,System.Collections.Generic.List{System.Int64})">
+            <summary>销售件数：销售明细数量减退货数量；退货按退货发生月份冲减，不与金额折扣混算。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyWorkItemService.CompareGroups(ZR.Model.JingYue.JyWorkItem,ZR.Model.JingYue.JyWorkItem,System.Collections.Generic.Dictionary{System.Int64,System.Collections.Generic.List{ZR.Model.JingYue.JyWorkItem}},System.DateTime,System.DateTime,System.DateTime)">
+            <summary>
+            统一排序：未完成、逾期、今日到期、高优先级、7 天内到期、截止时间、排序号。
+            父目标组按“最紧急的可执行子目标”参与排序。
+            </summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyWorkItemService.ResolveOwnerName(ZR.Service.JingYue.JyActor,System.Nullable{System.Int64},System.String)">
+            <summary>从前端只提交用户 ID 时回填可靠的负责人名称。</summary>
+        </member>
+        <member name="M:ZR.Service.JingYue.JyWorkItemService.NextItemNo(SqlSugar.ISqlSugarClient,System.String,System.DateTime)">
+            <summary>
+            在业务事务内分配待办编号。严格识别 WT+yyyyMMdd+4 位数字，
+            忽略历史模板生成的随机后缀；SQL Server 应用锁保证并发取号不重复。
+            </summary>
+        </member>
+        <member name="T:ZR.Service.JingYue.JyWorkTemplateService">
+            <summary>目标模板维护与应用。</summary>
+        </member>
+        <member name="T:ZR.Service.Public.BannerConfigService">
+            <summary>
+            广告管理Service业务层处理
+            </summary>
+        </member>
+        <member name="M:ZR.Service.Public.BannerConfigService.GetList(ZR.Model.Public.Dto.BannerConfigQueryDto)">
+            <summary>
+            查询广告管理列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Public.BannerConfigService.GetInfo(System.Int32)">
+            <summary>
+            获取详情
+            </summary>
+            <param name="Id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Public.BannerConfigService.AddBannerConfig(ZR.Model.Public.BannerConfig)">
+            <summary>
+            添加广告管理
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Public.BannerConfigService.UpdateBannerConfig(ZR.Model.Public.BannerConfig)">
+            <summary>
+            修改广告管理
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Public.BannerConfigService.ExportList(ZR.Model.Public.Dto.BannerConfigQueryDto)">
+            <summary>
+            导出广告管理
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Public.BannerConfigService.QueryExp(ZR.Model.Public.Dto.BannerConfigQueryDto)">
+            <summary>
+            查询导出表达式
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Public.BannerConfigService.GetBannerList(ZR.Model.Public.Dto.BannerConfigQueryDto)">
+            <summary>
+            查询广告管理列表
+            </summary>
+            <param name="parm"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ZR.Service.Public.IPublicService.IBannerConfigService">
+            <summary>
+            广告管理service接口
+            </summary>
+        </member>
+        <member name="M:ZR.Service.Social.IService.ISocialFansService.FollowList(ZR.Model.social.FansQueryDto)">
+            <summary>
+            查询关注/粉丝列表
+            </summary>
+        </member>
+        <member name="M:ZR.Service.Social.IService.ISocialFansService.IsFollow(System.Int32)">
+            <summary>
+            是否关注
+            </summary>
+        </member>
+        <member name="M:ZR.Service.Social.IService.ISocialFansService.Follow(ZR.Model.social.SocialFansDto)">
+            <summary>
+            关注
+            </summary>
+        </member>
+        <member name="M:ZR.Service.Social.IService.ISocialFansService.CancelFollow(ZR.Model.social.SocialFansDto)">
+            <summary>
+            取消关注
+            </summary>
+        </member>
+        <member name="T:ZR.Service.Social.SocialFansService">
+            <summary>
+            粉丝
+            </summary>
+        </member>
+        <member name="M:ZR.Service.Social.SocialFansService.FollowList(ZR.Model.social.FansQueryDto)">
+            <summary>
+            查询关注/粉丝列表
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Social.SocialFansService.IsFollow(System.Int32)">
+            <summary>
+            是否关注
+            </summary>
+            <param name="toUserid"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Social.SocialFansService.Follow(ZR.Model.social.SocialFansDto)">
+            <summary>
+            关注
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ZR.Service.Social.SocialFansService.CancelFollow(ZR.Model.social.SocialFansDto)">
+            <summary>
+            取消关注
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

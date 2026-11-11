@@ -1,0 +1,141 @@
+.login-container {
+  --brand-1: #c4788a;
+  --brand-2: #e2a3b2;
+  --brand-1-rgb: 196, 120, 138;
+  --brand-2-rgb: 226, 163, 178;
+  display: flex;
+  height: 100%;
+  overflow: hidden;
+  background: #fff;
+}
+
+.form-panel {
+  position: relative;
+  flex: 1 1 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 36px 48px 56px;
+  overflow-y: auto;
+  background: #fff;
+}
+
+.login-card {
+  position: relative;
+  width: min(400px, 100%);
+  padding: 12px 4px 4px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.form-mark {
+  display: block;
+  width: 148px;
+  height: auto;
+  margin: 0 auto 6px;
+}
+
+.langSet {
+  position: absolute;
+  right: 28px;
+  top: 22px;
+  z-index: 2;
+}
+
+.card-title {
+  margin: 0;
+  text-align: center;
+  font-size: 28px;
+  font-weight: 650;
+  letter-spacing: 6px;
+  color: #3d2c32;
+}
+
+.card-subtitle {
+  margin: 8px 0 22px;
+  text-align: center;
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: #a08a92;
+}
+
+.tabs-wrap {
+  :deep(.el-tabs__header) { margin-bottom: 18px; }
+  :deep(.el-tabs__nav-wrap::after) { background-color: #f3e4e8; }
+  :deep(.el-tabs__nav-scroll) { display: flex; }
+  :deep(.el-tabs__nav) { display: flex; float: none; width: 100%; }
+  :deep(.el-tabs__item) { flex: 1; padding: 0; text-align: center; color: #a08a92; font-size: 15px; }
+  :deep(.el-tabs__item.is-active) { color: #c4788a; font-weight: 600; }
+  :deep(.el-tabs__active-bar) { background: #c4788a; }
+}
+
+.login-form {
+  .input-icon { height: 30px; width: 14px; margin-left: 0; color: #c4788a; }
+  :deep(.el-input__wrapper),
+  :deep(.el-select__wrapper) {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 0 1px #f0e2e6 inset;
+  }
+  :deep(.el-input__wrapper.is-focus),
+  :deep(.el-select__wrapper.is-focused) {
+    box-shadow: 0 0 0 1px #c4788a inset, 0 0 0 3px rgba(196, 120, 138, 0.16);
+  }
+  :deep(.el-input__inner) { color: #3d2c32; height: 40px; }
+  :deep(.el-checkbox__label) { color: #7d6270; }
+  :deep(.el-checkbox__input.is-checked .el-checkbox__inner) { background-color: #c4788a; border-color: #c4788a; }
+}
+
+.login-btn {
+  width: 100%;
+  height: 46px;
+  margin-top: 16px;
+  border: none;
+  border-radius: 12px;
+  letter-spacing: 4px;
+  font-size: 15px;
+  color: #fff;
+  background: linear-gradient(135deg, #e2a3b2, #c4788a);
+  box-shadow: 0 10px 22px rgba(196, 120, 138, 0.28);
+}
+.login-btn:hover,
+.login-btn:focus {
+  color: #fff;
+  background: linear-gradient(135deg, #d992a4, #b86b7e);
+}
+
+.forget-pwd {
+  margin-left: 10px;
+  padding-left: 10px;
+  color: #a08a92;
+  cursor: pointer;
+  border-left: 1px solid #f0e2e6;
+}
+.forget-pwd:hover { color: #c4788a; }
+.link-type { color: #c4788a; }
+
+.login-code { width: 33%; height: 40px; float: right; }
+.login-code-img { height: 40px; width: 100%; padding-left: 12px; border-radius: 10px; cursor: pointer; }
+
+.el-login-footer {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  width: 50%;
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
+  color: #c4b0b6;
+  font-size: 12px;
+  z-index: 3;
+}
+
+.other-login .other-tip { color: #c4b0b6 !important; }
+.qrCode { border-color: #f3e4e8 !important; background: #fff; }
+
+@media (max-width: 900px) {
+  .form-panel { flex: 1; padding: 28px 18px 64px; }
+  .el-login-footer { width: 100%; }
+  .form-mark { width: 124px; }
+}

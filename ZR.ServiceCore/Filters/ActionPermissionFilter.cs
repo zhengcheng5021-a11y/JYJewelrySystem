@@ -1,0 +1,135 @@
+﻿using Infrastructure;
+using Infrastructure.Model;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+using ZR.Model.System.Dto;
+using ZR.ServiceCore.Services;
+
+namespace ZR.ServiceCore.Middleware
+{
+    /// <summary>
+    /// API授权判断
+    /// </summary>
+    public class ActionPermissionFilter : ActionFilterAttribute//, IAsyncActionFilter
+    {
+        private NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+
+        /// <summary>
+        /// 权限字符串，多个用逗号隔开，例如 system:user:view,system:user:add
+        /// </summary>
+        public string Permission { get; set; } = string.Empty;
+        /// <summary>
+        /// 角色字符串，例如 common,admin
+        /// </summary>
+        public string RolePermi { get; set; } = string.Empty;
+
+        public ActionPermissionFilter() { }
+        public ActionPermissionFilter(string permission)
+        {
+            Permission = permission;
+        }
+
+        /// <summary>
+        /// 执行Action前校验是否有权限访问
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="next"></param>
+        /// <returns></returns>
+        public override Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+        {
+            var hasPermi = false;
+            // 优先从 Items 读取，避免重复解析 JWT（JwtAuthMiddleware 已解析并存入）
+            LoginUser info = context.HttpContext.Items.TryGetValue(HttpContextExtension.CurrentUserCacheKey, out var cached) && cached is LoginUser user
+                ? user
+                : JwtUtil.GetLoginUser(context.HttpContext);
+
+            if (App.IsTenantEnabled() && !string.IsNullOrWhiteSpace(Permission))
+            {
+                var mainDb = App.MainDbConfigId;
+                var tenantId = App.GetCurrentTenantId();
+                var isMainTenant = string.Equals(tenantId, mainDb, StringComparison.OrdinalIgnoreCase);
+
+                // 非主租户不允许访问平台菜单能力，前缀列表从 appsettings.json 的 TenantSettings:PlatformMenuPermPrefixes 读取
+                if (!isMainTenant && TenantFeaturePolicy.IsPlatformMenuPermission(Permission))
+                {
+                    var apiResult = ApiResult.Error(ResultCode.FORBIDDEN, "当前租户不允许访问平台级能力，请切换主租户");
+                    context.HttpContext.Response.StatusCode = 403;
+                    context.Result = new JsonResult(apiResult) { StatusCode = 403 };
+                    return Task.CompletedTask;
+                }
+            }
+
+            if (info != null && info?.UserId > 0)
+            {
+                long userId = info.UserId;
+                List<string> perms = CacheService.GetUserPerms(GlobalConstant.UserPermKEY + userId);
+                List<string> rolePerms = info.RoleKeys;
+
+                if (perms == null)
+                {
+                    var sysPermissionService = App.GetService<ISysPermissionService>();
+                    perms = sysPermissionService.GetMenuPermission(new SysUserDto() { UserId = userId });
+                    //logger.Info("从数据库读取权限");
+                    CacheService.SetUserPerms(GlobalConstant.UserPermKEY + userId, perms);
+                }
+                info.Permissions = perms;
+                if (perms.Exists(f => f.Equals(GlobalConstant.AdminPerm)))
+                {
+                    hasPermi = true;
+                }
+                else if (rolePerms.Exists(f => f.Equals(GlobalConstant.AdminRole)))
+                {
+                    hasPermi = true;
+                }
+                else if (!string.IsNullOrEmpty(Permission))
+                {
+                    //HasPermi = perms.Exists(f => f.ToLower() == Permission.ToLower());
+                    var requiredPerms = Permission.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                                  .Select(p => p.ToLower()).ToList();
+                    hasPermi = perms.Select(p => p.ToLower()).Intersect(requiredPerms).Any();
+                }
+                if (!hasPermi && !string.IsNullOrEmpty(RolePermi))
+                {
+                    hasPermi = info.RoleKeys.Contains(RolePermi);
+                }
+                bool isDemoMode = AppSettings.GetAppConfig("DemoMode", false);
+                bool isGet = HttpMethods.IsGet(context.HttpContext.Request.Method);
+                var url = context.HttpContext.Request.Path;
+                //演示公开环境屏蔽权限：针对写操作动词；"common" 是"登录即放行"标记（见下方放行逻辑），
+                //不再列入 denyPerms，避免误伤 common 只读接口（如流程详情/列表/抄送）。common 的写操作
+                //（POST/PUT/DELETE）仍按 HttpMethod 在下方兜底屏蔽。
+                string[] denyPerms = ["update", "add", "remove", "add", "edit", "delete", "import", "run", "start", "stop", "clear", "send", "export", "upload", "gencode", "reset", "forceLogout", "batchLogout"];
+                if (isDemoMode)
+                {
+                    var requiredPerms = Permission.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    //common 标记：GET（只读查询，登录即可访问）在演示模式放行；写动词仍屏蔽，保护演示数据
+                    var isCommonRead = Permission.Equals("common", StringComparison.OrdinalIgnoreCase) && isGet;
+                    if (!isCommonRead && requiredPerms.Any(p => denyPerms.Any(d => p.Contains(d, StringComparison.OrdinalIgnoreCase))))
+                    {
+                        // 非 GET 写操作被演示模式拦截时，前端仅提示不跳转 403 页
+                        context.Result = new JsonResult(new { code = (int)ResultCode.FORBIDDEN, msg = "演示模式 , 不允许操作", jumpStatus = !isGet });
+                    }
+                }
+                if (!hasPermi && !Permission.Equals("common"))
+                {
+                    logger.Info($"用户{info.UserName}没有权限访问{url}，当前权限[{Permission}]");
+                    var apiResult = new ApiResult((int)ResultCode.FORBIDDEN, $"你当前没有权限访问,请联系管理员", url);
+                    apiResult.Put("permi", Permission);
+                    // 非 GET 请求无权限：前端仅提示不跳转 403 页（GET 默认跳转）
+                    if (!isGet) apiResult.Put("jumpStatus", true);
+                    JsonResult result = new(apiResult)
+                    {
+                        StatusCode = 403,
+                        ContentType = "application/json",
+                        Value = JsonConvert.SerializeObject(apiResult)
+                    };
+                    context.HttpContext.Response.StatusCode = 403;
+                    context.Result = result;
+                }
+            }
+
+            return base.OnActionExecutionAsync(context, next);
+        }
+    }
+}

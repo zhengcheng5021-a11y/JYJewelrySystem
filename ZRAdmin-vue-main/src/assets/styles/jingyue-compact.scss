@@ -1,0 +1,128 @@
+/* 静悦业务页：压低说明头、装饰和过大字号，把空间留给单据和明细 */
+.jy-sale,
+.jy-records,
+.jy-return,
+.jy-stock,
+.jy-member,
+.jy-inbound,
+.jy-goods,
+.jy-activity,
+.jy-bill,
+.jy-sheet,
+.jy-custom {
+  font-size: 13px;
+}
+
+.jy-sale .eyebrow,
+.jy-records .eyebrow,
+.jy-return .eyebrow,
+.jy-stock .eyebrow,
+.jy-member .eyebrow,
+.jy-inbound .eyebrow,
+.jy-goods .eyebrow,
+.jy-activity .eyebrow,
+.jy-bill .eyebrow,
+.jy-sheet .eyebrow,
+.jy-custom .eyebrow,
+.jy-sale .section-kicker,
+.jy-records .section-kicker,
+.jy-return .section-kicker,
+.jy-stock .section-kicker,
+.jy-member .section-kicker,
+.jy-inbound .section-kicker,
+.jy-activity .section-kicker,
+.jy-bill .section-kicker,
+.jy-custom .section-kicker {
+  display: none !important;
+}
+
+.jy-sale .sale-topbar p,
+.jy-records .records-hero p,
+.jy-return .return-hero p,
+.jy-stock .stock-hero p,
+.jy-member .member-hero p,
+.jy-inbound .page-hero p,
+.jy-goods .archive-hero p,
+.jy-activity .activity-hero p,
+.jy-member .rail-note,
+.jy-stock .panel-head p,
+.jy-goods .hero-note {
+  display: none !important;
+}
+
+.jy-sale .sale-topbar,
+.jy-records .records-hero,
+.jy-return .return-hero,
+.jy-stock .stock-hero,
+.jy-member .member-hero,
+.jy-inbound .page-hero,
+.jy-goods .archive-hero,
+.jy-activity .activity-hero,
+.jy-custom .page-bar {
+  min-height: 0 !important;
+  margin-bottom: 8px !important;
+  padding: 8px 12px !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+.jy-sale h1,
+.jy-records h1,
+.jy-return h1,
+.jy-stock h1,
+.jy-member h1,
+.jy-inbound h1,
+.jy-goods h1,
+.jy-activity h1,
+.jy-custom h1 {
+  margin: 0 !important;
+  font-size: 16px !important;
+  font-weight: 650 !important;
+  letter-spacing: 0 !important;
+}
+
+.jy-sale .hero-orbit,
+.jy-stock .hero-orbit,
+.jy-member .hero-seal,
+.jy-member .seal-ring,
+.jy-inbound .hero-ornament,
+.jy-goods .hero-rings,
+.jy-activity .hero-glow,
+.jy-activity .hero-calendar {
+  display: none !important;
+}
+
+.jy-member .metric-board,
+.jy-activity .metric-board,
+.jy-stock .metric-board,
+.jy-goods .hero-stats {
+  margin-bottom: 8px !important;
+  gap: 8px !important;
+}
+
+.jy-member .metric-board article,
+.jy-activity .metric-board article,
+.jy-stock .metric-board article {
+  padding: 8px 12px !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+.jy-member .metric-board strong,
+.jy-activity .metric-board strong,
+.jy-stock .metric-board strong {
+  font-size: 18px !important;
+  line-height: 1.3 !important;
+}
+
+.jy-sale .pay-panel strong { font-size: 22px !important; }
+.jy-sale .summary-card { grid-template-columns: 1fr !important; padding: 10px 12px !important; }
+.jy-sale .sale-workspace { margin-top: 8px !important; gap: 10px !important; }
+.jy-sale .sale-main { gap: 8px !important; }
+.jy-sale .lines-card,
+.jy-records .records-card,
+.jy-return .detail-panel,
+.jy-stock .stock-panel {
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}

@@ -1,0 +1,59 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<UserSecretsId>ab105cb4-b03c-419a-bd44-303b90114268</UserSecretsId>
+		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<NoWarn>1701;1702;1591,8603,8602,8604,8600,8618</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\ZR.CodeGenerator\ZR.CodeGenerator.csproj" />
+		<ProjectReference Include="..\ZR.Mall\ZR.Mall.csproj" />
+		<ProjectReference Include="..\ZR.Workflow\ZR.Workflow.csproj" />
+		<ProjectReference Include="..\ZR.Service\ZR.Service.csproj" />
+		<ProjectReference Include="..\ZR.Tasks\ZR.Tasks.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+
+		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
+		<PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="10.0.1" />
+		<PackageReference Include="NLog.Web.AspNetCore" Version="6.0.4" />
+		<PackageReference Include="Mapster" Version="10.0.7" />
+		<PackageReference Include="FluentValidation" Version="11.11.0" />
+		<PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
+		<PackageReference Include="SharpGrip.FluentValidation.AutoValidation.Mvc" Version="2.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="Properties\PublishProfiles\" />
+	</ItemGroup>
+
+	<!-- 工作流 AI 提示词目录：复制随部署（缺失不影响编译；运行时按 AiOptions:PromptDir 读取） -->
+	<ItemGroup>
+		<Content Include="Prompts\**\*.md">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Update="ai.json;ai.*.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</Content>
+		<None Update="ip2region_v4.xdb">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<Content Update="wwwroot\Generatecode\**\*">
+			<CopyToPublishDirectory>Never</CopyToPublishDirectory>
+		</Content>
+		<Content Update="wwwroot\export\**\*">
+			<CopyToPublishDirectory>Never</CopyToPublishDirectory>
+		</Content>
+	</ItemGroup>
+</Project>

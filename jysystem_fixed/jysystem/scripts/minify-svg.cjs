@@ -1,0 +1,7 @@
+const fs = require('fs')
+let svg = fs.readFileSync('scripts/logo-svg.txt', 'utf8')
+svg = svg.replace(/<!--[\s\S]*?-->/g, '')
+svg = svg.replace(/\s*\n\s*/g, '')
+svg = svg.replace('class="w-full h-full drop-shadow-[0_12px_24px_rgba(180,120,110,0.22)]"', 'class="logo-art"')
+fs.writeFileSync('scripts/logo-svg.min.txt', svg)
+console.log(svg.slice(0, 200))

@@ -1,0 +1,5 @@
+const fs = require('fs')
+let svg = fs.readFileSync('scripts/logo-svg.min.txt', 'utf8')
+svg = svg.replace('"/></defs>', '" />')
+fs.writeFileSync('scripts/logo-svg.min.txt', svg)
+console.log(svg.slice(0, 100))

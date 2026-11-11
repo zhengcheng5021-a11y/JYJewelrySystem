@@ -1,0 +1,122 @@
+.app-nav-wrap {
+  position: relative;
+  width: 100%;
+  flex: none;
+  z-index: 90;
+}
+.app-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 90;
+  background: var(--nav-bg);
+  color: var(--nav-front);
+  box-shadow: 0 6rpx 24rpx rgba(60, 40, 39, 0.06);
+  backdrop-filter: blur(26rpx);
+  -webkit-backdrop-filter: blur(26rpx);
+  transition: background 400ms ease, color 400ms ease;
+}
+.status-space { width: 100%; background: transparent; }
+.nav-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 28rpx;
+  border-bottom: 1rpx solid var(--line);
+  box-sizing: border-box;
+  background: transparent;
+  color: var(--nav-front);
+}
+button,
+button:not([size='mini']) {
+  width: auto;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-weight: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  font-family: inherit;
+}
+button::after { display: none; border: 0; }
+.nav-side { display: flex; align-items: center; min-width: 74px; }
+.nav-side.left {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  max-width: 34%;
+}
+.nav-side.right {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-left: auto;
+  max-width: 26%;
+}
+.nav-title {
+  position: absolute;
+  left: 50%;
+  max-width: 40%;
+  overflow: hidden;
+  transform: translateX(-50%);
+  color: inherit;
+  font-family: "Songti SC","STSong",serif;
+  font-size: 31rpx;
+  font-weight: 700;
+  letter-spacing: 3rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+}
+button.back-btn,
+.back-btn {
+  display: inline-flex;
+  width: auto;
+  align-items: center;
+  justify-content: center;
+  min-height: 70rpx;
+  margin: 0;
+  padding: 11rpx 28rpx 11rpx 22rpx;
+  border: 1rpx solid var(--line);
+  border-radius: 999rpx;
+  background: var(--surface);
+  color: var(--muted);
+  box-shadow: 0 3rpx 12rpx rgba(60, 40, 39, 0.06);
+  backdrop-filter: blur(16rpx);
+  -webkit-backdrop-filter: blur(16rpx);
+  line-height: 1.3;
+  box-sizing: border-box;
+}
+.back-btn-hover { opacity: .68; transform: scale(.96); }
+.back-chevron {
+  font-size: 32rpx;
+  font-weight: 300;
+  margin-right: 4rpx;
+  margin-top: -2rpx;
+}
+.back-text {
+  font-size: 24rpx;
+  font-weight: 600;
+}
+button.nav-action,
+.nav-action {
+  display: inline-flex;
+  width: auto;
+  align-items: center;
+  justify-content: center;
+  min-height: 68rpx;
+  margin: 0;
+  padding: 10rpx 26rpx;
+  border-radius: 999rpx;
+  color: inherit;
+  font-size: 23rpx;
+  line-height: 1.4;
+  text-align: center;
+  overflow-wrap: anywhere;
+  opacity: .86;
+}

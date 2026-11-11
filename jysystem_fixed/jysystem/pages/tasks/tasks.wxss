@@ -1,0 +1,7 @@
+.check-circle { display: flex; width: 46rpx; height: 46rpx; flex: none; align-items: center; justify-content: center; border: 3rpx solid var(--jade); border-radius: 50%; background: transparent; color: var(--paper); font-size: 22rpx; }
+.check-circle.on { background: var(--jade); }
+.task-meta { align-items: center; gap: 8rpx 14rpx; }
+.task-state { flex: none; padding: 6rpx 0 6rpx 8rpx; line-height: 1.4; white-space: nowrap; }
+@media screen and (max-width: 360px) {
+  .task-state { width: 100%; padding-left: 62rpx; text-align: left; white-space: normal; }
+}

@@ -1,0 +1,5583 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ZR.Model</name>
+    </assembly>
+    <members>
+        <member name="T:ZR.Model.AI.AiAccessPolicy">
+            <summary>
+            AI 访问与额度策略。集中存放于主库，ScopeType 支持 global/tenant/role/user。
+            TenantId、SubjectId 使用空值等价的规范值（""、0），便于建立唯一约束。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.AI.AiAccessPolicy.ScopeType">
+            <summary>global / tenant / role / user</summary>
+        </member>
+        <member name="P:ZR.Model.AI.AiAccessPolicy.TenantId">
+            <summary>租户标识；全局策略为空字符串。</summary>
+        </member>
+        <member name="P:ZR.Model.AI.AiAccessPolicy.SubjectId">
+            <summary>角色或用户 ID；全局和租户策略为 0。</summary>
+        </member>
+        <member name="P:ZR.Model.AI.AiAccessPolicy.Scene">
+            <summary>能力场景；* 表示该作用域默认规则。</summary>
+        </member>
+        <member name="P:ZR.Model.AI.AiAccessPolicy.IsEnabled">
+            <summary>空表示继承；0 禁用；1 启用。</summary>
+        </member>
+        <member name="P:ZR.Model.AI.AiAccessPolicy.Status">
+            <summary>0 正常，1 停用。停用策略不参与计算。</summary>
+        </member>
+        <member name="T:ZR.Model.AI.AiCallLog">
+            <summary>
+            AI 调用 token 用量审计流水（每次模型 HTTP 调用一条，供审计/统计）。
+            <para>
+            幂等约束：RequestId 上建有唯一索引 uk_ai_call_request，保证同一调用租约在并发/重入结算时只落一行。
+            其生效前提是"重试复用同一租约"——重试必须落在 Infrastructure.AI.AiLlmClient 内部
+            （BeginGovernedCallAsync 之后、发送 HTTP 之前）。若把重试提到网关 AiChatLlmGateway，
+            每次重试都会重新 BeginAsync 生成新的 RequestId，唯一约束即形同虚设。
+            </para>
+            </summary>
+        </member>
+        <member name="P:ZR.Model.AI.AiCallLog.Scene">
+            <summary>能力标识：ai_chat / wf_generate / lang_translate / login_security 等</summary>
+        </member>
+        <member name="P:ZR.Model.AI.AiCallLog.TenantId">
+            <summary>租户快照；平台或无法确定租户时为 MainDb。</summary>
+        </member>
+        <member name="P:ZR.Model.AI.AiCallLog.RequestId">
+            <summary>
+            一次模型 HTTP 调用的唯一标识（结算幂等键，见类注释）。
+            由治理层 BeginAsync 生成，列上建唯一索引 uk_ai_call_request：同一租约重复结算只落一行。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.AI.AiCallLog.Success">
+            <summary>1 成功、0 失败；历史记录为空，统计成功率时排除。</summary>
+        </member>
+        <member name="P:ZR.Model.AI.AiCallLog.Status">
+            <summary>success/rejected/timeout/cancelled/http/provider/parse/empty/unknown。</summary>
+        </member>
+        <member name="P:ZR.Model.AI.AiCallLog.PromptTokens">
+            <summary>输入 token（prompt）</summary>
+        </member>
+        <member name="P:ZR.Model.AI.AiCallLog.CompletionTokens">
+            <summary>输出 token（completion）</summary>
+        </member>
+        <member name="P:ZR.Model.AI.AiCallLog.TotalTokens">
+            <summary>合计 token</summary>
+        </member>
+        <member name="P:ZR.Model.AI.AiCallLog.UserId">
+            <summary>触发用户ID（请求登录人；后台任务无登录上下文时为 0）</summary>
+        </member>
+        <member name="P:ZR.Model.AI.AiCallLog.UserName">
+            <summary>触发用户（请求登录人；后台任务无登录上下文时为空）</summary>
+        </member>
+        <member name="P:ZR.Model.AI.AiCallLog.HasUsage">
+            <summary>是否取得 Provider 返回的实际 usage。</summary>
+        </member>
+        <member name="T:ZR.Model.AI.AiChatMessage">
+            <summary>
+            AI 聊天消息
+            </summary>
+        </member>
+        <member name="T:ZR.Model.AI.AiChatSession">
+            <summary>
+            AI 助手会话
+            </summary>
+        </member>
+        <member name="T:ZR.Model.AI.AiModelPrice">
+            <summary>
+            AI 模型单价。金额按每百万 Token 计，调用流水保存命中价格的快照。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.AI.AiModelPrice.Status">
+            <summary>0 正常，1 停用。</summary>
+        </member>
+        <member name="T:ZR.Model.AI.AiSceneCatalog">
+            <summary>
+            AI 调用场景目录：治理策略（额度/限流/审计）的匹配键，也是各调用点传参的取值来源。
+            调用点一律引用本类常量，不再手写字符串——避免场景改名时漏改、或多处写成不同拼写导致
+            策略匹配不上（策略是按场景精确匹配的，拼错不会报错，只会静默不生效）。
+            新增场景须同步三处：① 在此声明常量 ② 加入 <see cref="F:ZR.Model.AI.AiSceneCatalog.All"/> ③ 调用点使用该常量。
+            </summary>
+        </member>
+        <member name="F:ZR.Model.AI.AiSceneCatalog.AiChat">
+            <summary>对话助手。唯一启用分钟限流（ChatRateLimitPerMinute）与默认兜底额度的场景。</summary>
+        </member>
+        <member name="F:ZR.Model.AI.AiSceneCatalog.LangTranslate">
+            <summary>界面文案批量翻译（sys_common_lang 草稿）</summary>
+        </member>
+        <member name="F:ZR.Model.AI.AiSceneCatalog.CronParse">
+            <summary>自然语言生成 Quartz Cron 表达式</summary>
+        </member>
+        <member name="F:ZR.Model.AI.AiSceneCatalog.ScheduleParse">
+            <summary>口语化描述解析为日程字段</summary>
+        </member>
+        <member name="F:ZR.Model.AI.AiSceneCatalog.WeeklyReport">
+            <summary>日程汇总生成周报草稿</summary>
+        </member>
+        <member name="F:ZR.Model.AI.AiSceneCatalog.GenColumns">
+            <summary>代码生成器列配置推断</summary>
+        </member>
+        <member name="F:ZR.Model.AI.AiSceneCatalog.LoginSecurity">
+            <summary>登录日志安全分析报告</summary>
+        </member>
+        <member name="F:ZR.Model.AI.AiSceneCatalog.OperHealth">
+            <summary>操作日志健康分析报告</summary>
+        </member>
+        <member name="F:ZR.Model.AI.AiSceneCatalog.WfGenerate">
+            <summary>工作流：自然语言生成流程草稿</summary>
+        </member>
+        <member name="F:ZR.Model.AI.AiSceneCatalog.WfApprovalSuggest">
+            <summary>工作流：审批意见话术建议（支持图片附件）</summary>
+        </member>
+        <member name="F:ZR.Model.AI.AiSceneCatalog.WfFlowOptimize">
+            <summary>工作流：流程优化体检</summary>
+        </member>
+        <member name="F:ZR.Model.AI.AiSceneCatalog.WfIntentMatch">
+            <summary>工作流：自然语言匹配流程并预填表单</summary>
+        </member>
+        <member name="F:ZR.Model.AI.AiSceneCatalog.WfInstanceSummary">
+            <summary>工作流：流程实例审批链摘要</summary>
+        </member>
+        <member name="F:ZR.Model.AI.AiSceneCatalog.WfRiskCheck">
+            <summary>工作流：审批风险预判（支持图片附件）</summary>
+        </member>
+        <member name="F:ZR.Model.AI.AiSceneCatalog.WfApprovalSummary">
+            <summary>工作流：审批记录摘要</summary>
+        </member>
+        <member name="F:ZR.Model.AI.AiSceneCatalog.HealthCheck">
+            <summary>治理自检：Provider 连通性探测</summary>
+        </member>
+        <member name="F:ZR.Model.AI.AiSceneCatalog.All">
+            <summary>
+            策略可填的场景全集（含通配 "*"，表示对全部场景生效），供策略保存时做白名单校验。
+            </summary>
+        </member>
+        <member name="T:ZR.Model.AI.Dto.AiChartFieldDef">
+            <summary>图表字段定义（给模型选 xField / series.field）</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiChartFieldDef.Kind">
+            <summary>category | number</summary>
+        </member>
+        <member name="T:ZR.Model.AI.Dto.AiChartDimension">
+            <summary>图表数据集的一个统计维度（同一份数据的不同切片）</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiChartDimension.Key">
+            <summary>维度 Key，模型传 dimension 时使用；同时作为该类目字段名</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiChartDimension.Label">
+            <summary>维度中文名，用于工具描述与图表标题</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiChartDimension.Hint">
+            <summary>什么问题时该选这个维度，帮助模型判断</summary>
+        </member>
+        <member name="T:ZR.Model.AI.Dto.AiChartSeriesSpec">
+            <summary>单条系列配置（AI 产出，后端校验）</summary>
+        </member>
+        <member name="T:ZR.Model.AI.Dto.AiChartSpecDto">
+            <summary>受约束的图表配置，禁止完整 ECharts option / formatter</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiChartSpecDto.Type">
+            <summary>line | bar | pie</summary>
+        </member>
+        <member name="T:ZR.Model.AI.Dto.AiChartQueryResult">
+            <summary>工具查数结果：schema + 聚合行（数值以后端为准）</summary>
+        </member>
+        <member name="T:ZR.Model.AI.Dto.AiChartViewDto">
+            <summary>下发给前端渲染的图表（配置 + 后端数据）</summary>
+        </member>
+        <member name="T:ZR.Model.AI.Dto.AiUsageQueryDto">
+            <summary>
+            AI 用量统计查询参数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiUsageQueryDto.UserId">
+            <summary>目标用户（0/null：管理员看全量，普通用户强制本人）</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiUsageQueryDto.UserName">
+            <summary>用户名模糊筛选（按用户聚合列表用）</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiUsageQueryDto.Scene">
+            <summary>能力场景过滤（ai_chat / wf_generate / lang_translate 等），空为全部</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiUsageQueryDto.BeginTime">
+            <summary>统计开始时间（默认最近 30 天）</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiUsageQueryDto.EndTime">
+            <summary>统计结束时间（默认当前时间）</summary>
+        </member>
+        <member name="T:ZR.Model.AI.Dto.AiUsageSummaryDto">
+            <summary>
+            AI 用量汇总结果（时间窗累计 + 按天 + 按能力场景）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiUsageSummaryDto.TotalCalls">
+            <summary>调用次数</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiUsageSummaryDto.TotalPromptTokens">
+            <summary>输入 token 合计</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiUsageSummaryDto.TotalCompletionTokens">
+            <summary>输出 token 合计</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiUsageSummaryDto.TotalTokens">
+            <summary>总 token 合计</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiUsageSummaryDto.Daily">
+            <summary>按天分布（升序）</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiUsageSummaryDto.Scenes">
+            <summary>按能力场景分布（token 倒序）</summary>
+        </member>
+        <member name="T:ZR.Model.AI.Dto.AiUsageUserDto">
+            <summary>
+            按用户聚合的时间窗 token 用量（每个用户一行）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiUsageUserDto.UserName">
+            <summary>用户名；后台任务（UserId=0）显示为系统任务</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiUsageUserDto.Calls">
+            <summary>调用次数</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiUsageUserDto.PromptTokens">
+            <summary>输入 token 合计</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiUsageUserDto.CompletionTokens">
+            <summary>输出 token 合计</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiUsageUserDto.TotalTokens">
+            <summary>token 合计</summary>
+        </member>
+        <member name="T:ZR.Model.AI.Dto.AiUsageDailyDto">
+            <summary>
+            按天用量项
+            </summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiUsageDailyDto.Day">
+            <summary>日期 yyyy-MM-dd</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiUsageDailyDto.Calls">
+            <summary>调用次数</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiUsageDailyDto.TotalTokens">
+            <summary>token 合计</summary>
+        </member>
+        <member name="T:ZR.Model.AI.Dto.AiUsageSceneDto">
+            <summary>
+            按能力场景用量项
+            </summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiUsageSceneDto.Calls">
+            <summary>调用次数</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiUsageSceneDto.TotalTokens">
+            <summary>token 合计</summary>
+        </member>
+        <member name="T:ZR.Model.AI.Dto.AiUsageLogDto">
+            <summary>
+            AI 调用流水行（明细列表）
+            </summary>
+        </member>
+        <member name="T:ZR.Model.AI.Dto.SysAiChatSessionDto">
+            <summary>
+            AI 助手会话项（列表 / 新建返回）
+            </summary>
+        </member>
+        <member name="T:ZR.Model.AI.Dto.SysAiChatMessageDto">
+            <summary>
+            历史消息项
+            </summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatMessageDto.PromptTokens">
+            <summary>本消息消耗输入 token（仅 assistant 消息有值；usage 缺失时为 null）</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatMessageDto.CompletionTokens">
+            <summary>本消息输出 token</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatMessageDto.TotalTokens">
+            <summary>本消息 token 合计</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatMessageDto.Charts">
+            <summary>本条助手消息附带的图表（配置+后端数据），用户消息为空</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatMessageDto.ImageUrls">
+            <summary>本条用户消息附带的图片 URL（助手消息为空）</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatMessageDto.Tools">
+            <summary>本条助手消息本轮调用过的工具（用户消息为空）</summary>
+        </member>
+        <member name="T:ZR.Model.AI.Dto.SysAiChatDetailDto">
+            <summary>
+            会话详情（标题 + 历史消息）
+            </summary>
+        </member>
+        <member name="T:ZR.Model.AI.Dto.SysAiChatRequestDto">
+            <summary>
+            发起对话请求。SessionId 为 0 时服务端自动新建会话
+            </summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatRequestDto.ImageUrls">
+            <summary>
+            本轮图片（已上传后的访问 URL 或站点相对路径），最多 4 张。
+            有图时本轮走视觉模型、不调用工具；无图时走原文本+工具编排。
+            </summary>
+        </member>
+        <member name="T:ZR.Model.AI.Dto.SysAiChatResultDto">
+            <summary>
+            对话结果
+            </summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatResultDto.Reply">
+            <summary>助手最终回复（markdown）</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatResultDto.IsNewSession">
+            <summary>本次是否新建了会话</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatResultDto.PromptTokens">
+            <summary>本次对话累计输入 token（多次工具调用合并；模型未返回 usage 时为 null）</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatResultDto.CompletionTokens">
+            <summary>本次对话累计输出 token</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatResultDto.TotalTokens">
+            <summary>本次对话累计 token 合计</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatResultDto.Charts">
+            <summary>本轮助手回复附带的图表（配置+数据），无图时为空</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatResultDto.Tools">
+            <summary>本轮调用过的工具摘要</summary>
+        </member>
+        <member name="T:ZR.Model.AI.Dto.SysAiChatRenameDto">
+            <summary>
+            重命名会话
+            </summary>
+        </member>
+        <member name="T:ZR.Model.AI.Dto.AiToolDef">
+            <summary>
+            供模型 function calling 识别的工具定义。
+            Name/Description/Parameters 参与模型请求；Label/Permission 仅用于前端展示与清单过滤，不下发给模型。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiToolDef.Label">
+            <summary>工具中文展示名（前端"正在调用 XX"）。留空时前端降级显示 Name。</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiToolDef.Permission">
+            <summary>
+            可选权限码。非空时该工具仅对拥有此权限（或管理员）的用户出现在工具清单中，
+            避免把受限能力名暴露给无权限用户。留空表示不做清单过滤（工具内部仍按 userId 隔离数据）。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiToolDef.Parameters">
+            <summary>JSON Schema（object），例如 { type="object", properties=..., required=... }</summary>
+        </member>
+        <member name="T:ZR.Model.AI.Dto.AiToolCatalogItemDto">
+            <summary>
+            下发给前端的工具展示名清单项（GET aichat/tools）。
+            只含展示所需字段，不含 Description，避免把工具能力细节透给前端。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiToolCatalogItemDto.Name">
+            <summary>工具名，与 SSE tool 事件的 ToolName 对应</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.AiToolCatalogItemDto.Label">
+            <summary>中文展示名；后端未登记时为 null，前端应降级显示 Name</summary>
+        </member>
+        <member name="T:ZR.Model.AI.Dto.AiToolExecResult">
+            <summary>
+            工具执行结果（回灌给模型的内容文本）
+            </summary>
+        </member>
+        <member name="T:ZR.Model.AI.Dto.SysAiChatStreamDto">
+            <summary>
+            AI 流式对话 SSE 事件。Type 决定本次事件读取哪些字段：
+            <para>delta：文本增量（打字机逐字展示），读 Content；</para>
+            <para>tool：工具执行状态，读 ToolName / ToolStatus(start|done) / ToolOk；</para>
+            <para>done：整轮对话结束（已落库），读 SessionId/Title/Model/Reply/IsNewSession/tokens/Charts；</para>
+            <para>error：异常终止，读 Error。</para>
+            </summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatStreamDto.Type">
+            <summary>事件类型：delta | tool | done | error</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatStreamDto.Content">
+            <summary>delta：本次增量文本</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatStreamDto.ToolName">
+            <summary>tool：工具名</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatStreamDto.ToolStatus">
+            <summary>tool：start=开始执行；done=执行结束</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatStreamDto.ToolOk">
+            <summary>tool(done)：工具是否执行成功</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatStreamDto.SessionId">
+            <summary>done：会话 ID</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatStreamDto.Title">
+            <summary>done：会话标题</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatStreamDto.Model">
+            <summary>done：实际使用模型</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatStreamDto.Reply">
+            <summary>done：助手最终回复（markdown，含图表占位由前端配合 Charts 渲染）</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatStreamDto.IsNewSession">
+            <summary>done：本次是否新建了会话</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatStreamDto.PromptTokens">
+            <summary>done：本次累计输入 token（无 usage 时为 null）</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatStreamDto.CompletionTokens">
+            <summary>done：本次累计输出 token</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatStreamDto.TotalTokens">
+            <summary>done：本次累计 token 合计</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatStreamDto.Charts">
+            <summary>done：本轮回复附带的图表（配置+数据），无图时为空</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatStreamDto.Tools">
+            <summary>done：本轮工具调用摘要</summary>
+        </member>
+        <member name="P:ZR.Model.AI.Dto.SysAiChatStreamDto.Error">
+            <summary>error：错误描述（可展示给用户）</summary>
+        </member>
+        <member name="T:ZR.Model.AI.Dto.AiChatToolCallDto">
+            <summary>助手本轮一次工具调用的落库/展示摘要</summary>
+        </member>
+        <member name="T:ZR.Model.Content.Article">
+            <summary>
+            文章表
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Article.Cid">
+            <summary>
+            文章id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Article.Title">
+            <summary>
+            文章标题
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Article.CreateTime">
+            <summary>
+            发布时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Article.UpdateTime">
+            <summary>
+            修改时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Article.Content">
+            <summary>
+            文章内容
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Article.AuthorName">
+            <summary>
+            作者名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Article.UserId">
+            <summary>
+            发布者用户id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Article.Status">
+            <summary>
+            文章状态 1、发布 2、草稿
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Article.EditorType">
+            <summary>
+            编辑器类型 markdown,html
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Article.Tags">
+            <summary>
+            文章标签eg：Net5,java
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Article.Hits">
+            <summary>
+            点击量
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Article.CoverUrl">
+            <summary>
+            封面地址
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Article.IsPublic">
+            <summary>
+            是否公开 1、公开 0、不公开
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Article.IsTop">
+            <summary>
+            是否置顶
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Article.ArticleType">
+            <summary>
+            0、文章 1、随笔 2、动态
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Article.AbstractText">
+            <summary>
+            摘要
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Article.CategoryNav">
+            <summary>
+            分类
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Article.CommentNum">
+            <summary>
+            评论数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Article.PraiseNum">
+            <summary>
+            点赞数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Article.UserIP">
+            <summary>
+            用户IP
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Article.Location">
+            <summary>
+            地理位置
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Article.TopicId">
+            <summary>
+            话题ID
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Article.CommentSwitch">
+            <summary>
+            评论开关 0、所有人可评论 1、仅粉丝 2、仅自己
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Article.AuditStatus">
+            <summary>
+            审核状态 0、待审核 1、通过 2、驳回
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleBrowsingLog.ArticleId">
+            <summary>
+            文章ID
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Content.ArticleCategory">
+            <summary>
+            文章目录
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleCategory.CategoryId">
+            <summary>
+            目录id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleCategory.OrderNum">
+            <summary>
+            排序id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleCategory.BgImg">
+            <summary>
+            背景图
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleCategory.Introduce">
+            <summary>
+            介绍
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleCategory.CategoryType">
+            <summary>
+            分类类型 0、文章  1、圈子
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleCategory.ArticleNum">
+            <summary>
+            文章数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleCategory.JoinNum">
+            <summary>
+            加入人数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleCategory.CreateTime">
+            <summary>
+            创建时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleComment.CommentId">
+            <summary>
+            评论ID
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleComment.UserId">
+            <summary>
+            用户id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleComment.Content">
+            <summary>
+            内容
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleComment.ParentId">
+            <summary>
+            最顶级留言id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleComment.AddTime">
+            <summary>
+            评论时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleComment.ReplyUserId">
+            <summary>
+            回复用户id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleComment.ReplyId">
+            <summary>
+            回复留言id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleComment.UserIP">
+            <summary>
+            用户ip
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleComment.Location">
+            <summary>
+            地理位置
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleComment.PraiseNum">
+            <summary>
+            喜欢次数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleComment.ReplyNum">
+            <summary>
+            评论次数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleComment.AuditStatus">
+            <summary>
+            审核状态 0、待审核 1、通过 -1、未通过
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleComment.IsDelete">
+            <summary>
+            描述 :是否删除 1、删除 0、正常
+            空值 : true  
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleComment.ChatImg">
+            <summary>
+            聊天图片
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleComment.ClassifyId">
+            <summary>
+            分类id（可以对应表)
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleComment.TargetId">
+            <summary>
+            目标id(内容id)
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleComment.Top">
+            <summary>
+            是否置顶
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleComment.AuthorReply">
+            <summary>
+            作者回复过
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Content.ArticleTopic">
+            <summary>
+            话题
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleTopic.TopicId">
+            <summary>
+            话题ID 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleTopic.TopicName">
+            <summary>
+            话题名 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleTopic.TopicDescription">
+            <summary>
+            话题描述 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleTopic.JoinNum">
+            <summary>
+            参与/发起次数 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleTopic.ViewNum">
+            <summary>
+            浏览次数 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleTopic.AddTime">
+            <summary>
+            创建时间 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleTopic.TopicType">
+            <summary>
+            话题分类 
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Content.ArticleUserCircles">
+            <summary>
+            用户加入圈子
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleUserCircles.Id">
+            <summary>
+            主键 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleUserCircles.CategoryId">
+            <summary>
+            圈子ID 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleUserCircles.UserId">
+            <summary>
+            用户ID 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleUserCircles.JoinTime">
+            <summary>
+            加入时间 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.ArticleUserCircles.Status">
+            <summary>
+            状态 0=待审核，1=已加入，2=已拒绝
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Content.Dto.ArticleCategoryDto">
+            <summary>
+            文章目录输入对象
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleCategoryDto.BgImg">
+            <summary>
+            背景图
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleCategoryDto.Introduce">
+            <summary>
+            介绍
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleCategoryDto.ArticleNum">
+            <summary>
+            文章数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleCategoryDto.JoinNum">
+            <summary>
+            加入人数
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Content.Dto.ArticleCategoryQueryDto">
+            <summary>
+            文章目录查询对象
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Content.Dto.MessageQueryDto">
+            <summary>
+            评论
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleCommentDto.UserId">
+            <summary>
+            用户id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleCommentDto.Content">
+            <summary>
+            留言内容
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleCommentDto.ParentId">
+            <summary>
+            最顶级留言id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleCommentDto.AddTime">
+            <summary>
+            评论时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleCommentDto.ReplyUserId">
+            <summary>
+            回复用户id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleCommentDto.ReplyId">
+            <summary>
+            回复留言id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleCommentDto.UserIP">
+            <summary>
+            用户ip
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleCommentDto.Location">
+            <summary>
+            地理位置
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleCommentDto.PraiseNum">
+            <summary>
+            喜欢次数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleCommentDto.ReplyNum">
+            <summary>
+            评论次数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleCommentDto.IsDelete">
+            <summary>
+            描述 :是否删除 1、删除 0、正常
+            空值 : true  
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleCommentDto.ClassifyId">
+            <summary>
+            分类id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleCommentDto.TargetId">
+            <summary>
+            目标id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleCommentDto.Top">
+            <summary>
+            置顶
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleCommentDto.ReplyList">
+            <summary>
+            回复列表
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleQueryDto.TabId">
+            <summary>
+            1、最新 2、私密 3、热门
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleQueryDto.TopicId">
+            <summary>
+            话题ID
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleQueryDto.OrderBy">
+            <summary>
+            排序 1、热门 2、最新
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleQueryDto.AuditStatus">
+            <summary>
+            审核状态
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleQueryDto.QueryMyJoin">
+            <summary>
+            查询我加入的圈子
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleQueryDto.SearchText">
+            <summary>
+            搜索内容
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Content.Dto.ArticleDto">
+            <summary>
+            输入输出对象
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleDto.ArticleType">
+            <summary>
+            内容类型
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleDto.PraiseNum">
+            <summary>
+            点赞数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleDto.CommentNum">
+            <summary>
+            评论数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleDto.ShareNum">
+            <summary>
+            分享数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleDto.UserIP">
+            <summary>
+            用户IP
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleDto.Location">
+            <summary>
+            地理位置
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleDto.CoverImgList">
+            <summary>
+            封面图片集合
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleDto.Position">
+            <summary>
+            地理位置
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleDto.IsPraise">
+            <summary>
+            是否点赞
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.ArticleDto.AuditStatus">
+            <summary>
+            审核状态
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Content.Dto.ArticleImportDto">
+            <summary>
+            文章导入对象（Excel）
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Content.Dto.ArticleExportDto">
+            <summary>
+            文章导出对象（Excel）
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Content.Dto.ArticleTopicQueryDto">
+            <summary>
+            话题查询对象
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Content.Dto.ArticleTopicDto">
+            <summary>
+            话题输入输出对象
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Content.Dto.ArticleUserCirclesQueryDto">
+            <summary>
+            用户加入圈子查询对象
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Content.Dto.ArticleUserCirclesDto">
+            <summary>
+            用户加入圈子输入输出对象
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.CircleInfoDto.BgImg">
+            <summary>
+            背景图
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.CircleInfoDto.Introduce">
+            <summary>
+            介绍
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.CircleInfoDto.ArticleNum">
+            <summary>
+            文章数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.CircleInfoDto.JoinNum">
+            <summary>
+            加入人数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.CircleInfoDto.IsJoin">
+            <summary>
+            是否加入
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Content.Dto.UserDto.Sex">
+            <summary>
+            用户性别（0男 1女 2未知）
+            </summary>
+        </member>
+        <member name="F:ZR.Model.Enum.ArticleTypeEnum.Article">
+            <summary>
+            文章
+            </summary>
+        </member>
+        <member name="F:ZR.Model.Enum.ArticleTypeEnum.Essay">
+            <summary>
+            笔记
+            </summary>
+        </member>
+        <member name="F:ZR.Model.Enum.ArticleTypeEnum.Monent">
+            <summary>
+            动态
+            </summary>
+        </member>
+        <member name="F:ZR.Model.Enum.ArticleTypeEnum.Audio">
+            <summary>
+            视频
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Enum.CommentSwitchEnum">
+            <summary>
+            评论开关
+            </summary>
+        </member>
+        <member name="P:ZR.Model.ImportResultDetailDto.StorageMessage">
+            <summary>
+            错误/忽略信息
+            </summary>
+        </member>
+        <member name="P:ZR.Model.ImportResultDetailDto.Record">
+            <summary>
+            对应记录数据
+            </summary>
+        </member>
+        <member name="P:ZR.Model.ImportResultDto.TotalCount">
+            <summary>
+            总数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.ImportResultDto.SuccessCount">
+            <summary>
+            成功数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.ImportResultDto.FailedCount">
+            <summary>
+            失败数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.ImportResultDto.IgnoreCount">
+            <summary>
+            忽略数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.ImportResultDto.InsertCount">
+            <summary>
+            插入数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.ImportResultDto.UpdateCount">
+            <summary>
+            更新数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.ImportResultDto.Summary">
+            <summary>
+            结果摘要
+            </summary>
+        </member>
+        <member name="P:ZR.Model.ImportResultDto.ErrorDetails">
+            <summary>
+            错误明细前N条
+            </summary>
+        </member>
+        <member name="P:ZR.Model.ImportResultDto.IgnoreDetails">
+            <summary>
+            忽略明细前N条
+            </summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyInboundLineEditDto.Qty">
+            <summary>本件货品内含数量，例如 1 对、2 套、5 颗。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyInboundLineEditDto.Weight">
+            <summary>单件银重（克），与计量单位相互独立。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyInboundLineEditDto.Unit">
+            <summary>计量单位，固定选项：条/颗/对/件/套。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyInboundLineEditDto.StyleItemName">
+            <summary>由服务端按字典回填，客户端传值会被覆盖。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyGoodsItemEditDto.StyleItemName">
+            <summary>由服务端按字典回填，客户端传值会被覆盖。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyStockLedgerDto.BizTypeText">
+            <summary>库存流水的业务类型中文名称，保留 BizType 供已有调用方兼容。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JySaleItemEditDto.Weight">
+            <summary>本单银重（克）；为空时沿用货品档案。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JySaleItemEditDto.Unit">
+            <summary>本单数量单位；为空时沿用货品档案。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JySaleItemEditDto.PreservePriceSnapshot">
+            <summary>确认草稿时保留已保存的价格快照，不重新取金价或会员折扣。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JySaleEditDto.AdjustAmount">
+            <summary>手工调价，正数加价、负数减价；与抹零分开保存。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JySaleEditDto.RoundOffAmount">
+            <summary>抹零金额，始终以正数保存。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JySaleEditDto.ApplyMemberDiscount">
+            <summary>是否按会员等级折扣。默认 false，不选就不抵扣。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JySaleEditDto.CustomerWechatNo">
+            <summary>客户本人微信号</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JySaleEditDto.ReferrerWechatNo">
+            <summary>推荐人微信号；仅当本单客户为新客户时用于绑定推荐关系</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JySaleEditDto.ReferrerMemberId">
+            <summary>本次成交的推荐人会员 Id；一张单只允许一位，优先于微信号</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JySaleEditDto.CustomerBirthday">
+            <summary>生日；未知年份时日期年份为 1900，BirthYear 为空。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyCustomerMatchDto.Referrers">
+            <summary>库内会员已维护的推荐人，供开单选择本次归属</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JySaleItemDto.StyleCategoryName">
+            <summary>款式分类的父级大类名称；两级分类时展示“大类 / 子类”。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JySaleDto.ApplyMemberDiscount">
+            <summary>是否使用会员等级折扣；有折扣的历史草稿重新打开时还原为已勾选。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyMemberQueryDto.MemberWechatNo">
+            <summary>按客户绑定的员工微信筛选；传微信快照或 sys_user_wechat.Id</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyMemberQueryDto.SortBy">
+            <summary>排序字段：totalAmount 累计消费，createTime 建档时间</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyMemberQueryDto.SortDirection">
+            <summary>排序方向：asc 升序，desc 降序</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyMemberEditDto.WechatNo">
+            <summary>本人微信号，可被任意搜索命中</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyMemberEditDto.ReferrerWechatNo">
+            <summary>推荐人（介绍人）微信号；只用于建档时绑定推荐关系</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyMemberEditDto.Referrers">
+            <summary>客户可关联多个推荐人；销售单仍只选其中一位</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyMemberEditDto.ReferrersTouched">
+            <summary>前端是否提交了推荐人区域；未提交时不改动已有关系</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyMemberEditDto.MemberWechatId">
+            <summary>客户加的员工微信 Id；0/空表示未选择，只能从用户管理维护的微信中选择</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyMemberDto.MemberWechatId">
+            <summary>客户加的员工微信，员工姓名来自 sys_user</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyMemberReferrerEditDto.ReferrerMemberId">
+            <summary>推荐人会员 Id；与微信号二选一</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyMemberReferrerDto.Source">
+            <summary>1 建档录入，2 开单补录，3 手工维护</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyMemberOptionsDto.StaffWechats">
+            <summary>可关联的员工微信，来源用户管理</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyCustomQueryDto.ArrivalStatus">
+            <summary>0 待联系客户，1 已到货；为空时查询全部。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyCustomQueryDto.ContactPending">
+            <summary>1 表示只查询已到货、仍需联系客户的定制单。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyCustomEditDto.Id">
+            <summary>大于 0 表示修改现有定制单；0 表示新增。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyLookupTypeDto.SortNo">
+            <summary>话术星级，1-5 星，默认 3 星。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyLookupTypeEditDto.SortNo">
+            <summary>话术星级，1-5 星，默认 3 星。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.Dto.JyDailyTaskQueryDto">
+            <summary>每日必做查询。TaskDate 为空时按服务器当天。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyDailyTaskQueryDto.Status">
+            <summary>null 全部，0 未完成，1 已完成。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyDailyTaskTemplateEditDto.Content">
+            <summary>数量或文本，例如“5 件”“3 位客户”。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyDailyTaskTemplateEditDto.Status">
+            <summary>0 启用，1 停用。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyReferralQueryDto.Keyword">
+            <summary>推荐人/被推荐人 姓名、手机号、微信号、推荐单号 模糊搜索</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyReferralQueryDto.Status">
+            <summary>0 待返现，1 已返现，2 已作废；null 全部</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyReferralRewardDto.StyleSummary">
+            <summary>按款式分类汇总的返点说明</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyReferralRewardDto.OriginalAmount">
+            <summary>系统按分类规则算出的原始返现金额</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyReferralRewardDto.IsAdjusted">
+            <summary>0 未改金额，1 已人工修改</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyReferralSummaryDto.MonthPendingAmount">
+            <summary>本月新增待返现</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyReferralPayoutDto.Ids">
+            <summary>可选：勾选结算的台账 Id。与 BeginTime/EndTime 同时传时，以日期区间为准。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyReferralPayoutDto.BeginTime">
+            <summary>结算区间开始（含当天）</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyReferralPayoutDto.EndTime">
+            <summary>结算区间结束（含当天）</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyReferralPayoutDto.Adjusts">
+            <summary>结算前允许逐单调整返现金额</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.Dto.JyReferralRateDto">
+            <summary>按款式分类维护的返点规则</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyReferralRateDto.StockQty">
+            <summary>该分类下在库件数，仅用于页面展示</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.Dto.JyReferralSettleResultDto">
+            <summary>一次区间结算的结果</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.Dto.JyReferralNodeDto">
+            <summary>推荐关系网节点：当前客户 + 上行推荐人 + 下行被推荐人。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyReferralNodeDto.Depth">
+            <summary>相对聚焦客户的层级：负数=上级，0=客户本人，正数=下级</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyReferralNodeDto.Referrers">
+            <summary>当前客户已维护的推荐人（可能多位）</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyReferralNodeDto.RewardTotal">
+            <summary>该客户自身作为推荐人累计已产生的奖励总额</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyReferralGraphDto.UpChain">
+            <summary>上行链路：由近及远</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyReferralGraphDto.DownList">
+            <summary>下行链路：直接与间接被推荐人</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyReferralGraphDto.Rewards">
+            <summary>当前客户的推荐奖励台账</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JySalesMetricQueryDto.Granularity">
+            <summary>day / week / month / year。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyTrafficSaveDto.ConfirmHistorical">
+            <summary>修改非当天数据时必须显式确认。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyTrafficDayDto.DealRate">
+            <summary>进店客流未登记时为 null，避免与真实 0% 成交率混淆。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyStylePerformanceQueryDto.SortBy">
+            <summary>amount / gross / grossRate / pieces / avgTicket</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyStylePerformanceRowDto.Children">
+            <summary>一级分类下的二级款式明细；二级行不再继续嵌套。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JySalesGoalQueryDto.Month">
+            <summary>yyyy-MM，默认服务器当前月份。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyOpsBreakdownQueryDto.Month">
+            <summary>yyyy-MM，默认服务器当前月份。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyOpsBreakdownQueryDto.Date">
+            <summary>yyyy-MM-dd，默认服务器今天；用于计算今日动作与周目标。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyComboQueryDto.Granularity">
+            <summary>day / week / month / year。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyComboQueryDto.Home">
+            <summary>首页固定近 7 天时传 true，仅返回启用组合。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyWorkItemQueryDto.View">
+            <summary>all/today/week/overdue/done/high</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyWorkScopeEditDto.SnapshotName">
+            <summary>保存模板时保留范围名称，避免以后改名导致历史模板失真。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyWorkItemEditDto.Priority">
+            <summary>四象限：4 重要且紧急、3 重要不紧急、2 不重要但紧急、1 不重要不紧急。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyWorkItemEditDto.HasDateRange">
+            <summary>0 普通记事，1 有日期区间。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyWorkItemEditDto.IsPerformanceRelated">
+            <summary>主事项是否关联业绩。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyWorkItemEditDto.TargetMode">
+            <summary>子目标：1 金额，2 件数。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyWorkStatsDto.GroupCount">
+            <summary>主事项数量（含独立待办）。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyWorkStatsDto.TotalCount">
+            <summary>可执行事项数量；主事项有子目标时只统计子目标。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.Dto.JyMemberFollowEditDto.LookupItemId">
+            <summary>数据字典「跟进方式」词条 ID。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.IdToStringConverter">
+            <summary>
+            雪花 Id 统一序列化为字符串。
+            JS 的 Number 只能安全表达 2^53 以内的整数，2113865529822420992 这样的文件 Id
+            直接以数字输出会在前端被四舍五入，回传后后端查不到 sys_file，误报“货品图片不存在”。
+            读取时兼容字符串与数字两种写法。
+            </summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyActivity">
+            <summary>营销活动。活动类型：1 折扣，2 满减，3 赠礼，4 积分倍数，5 会员专享。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyBillIssue">
+            <summary>
+            一次取号记录。只新增，不修改，不删除。
+            </summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyBillRule">
+            <summary>
+            单据编号规则。序号按租户和单据类型条件更新。
+            </summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyCustomLedger">
+            <summary>定金流水。ChangeType：1 收定金，2 销售对冲，3 作废冲回，4 退定金。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyCustomOrder">
+            <summary>
+            销售定制单。Status 表示定金业务状态：0 草稿，1 已收定金，2 部分处理，3 已对冲完，8 已退清，9 作废。
+            ArrivalStatus 独立表示货品是否到店：0 未到货，1 已到货。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyCustomOrder.PickupDate">
+            <summary>客户约定取货日期。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyCustomOrder.ArrivalStatus">
+            <summary>0 未到货，1 已到货。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyDailyTaskItem">
+            <summary>
+            每日必做当天快照。TemplateId 指向模板分项，标题/内容/备注在生成时快照，之后可单独修改并回写模板。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyDailyTaskItem.TaskDate">
+            <summary>业务日期，按服务器日期分区。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyDailyTaskItem.IsCompleted">
+            <summary>0 未完成，1 已完成。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyDailyTaskTemplate">
+            <summary>
+            每日必做模板。启用后每天按服务器日期自动生成当天的必做快照；删除模板只停止以后生成，历史快照保留。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyDailyTaskTemplate.Content">
+            <summary>数量或文本，自由填写，例如“5 件”“3 位客户”。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyDailyTaskTemplate.Status">
+            <summary>0 启用，1 停用。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyDailyTaskTemplate.DelFlag">
+            <summary>0 正常，2 已删除。只做逻辑删除，历史当天快照不受影响。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyDailyTaskTemplate.EffectiveDate">
+            <summary>模板生效日期，默认创建当天，避免给历史日期补生成快照。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyFactoryReturn">
+            <summary>商品返厂单。Status：0 草稿，1 已返厂确认，9 作废。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyFactoryReturnItem">
+            <summary>商品返厂明细，每条对应一件实物商品。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyGoodsItem">
+            <summary>库存商品。Status：1 在库，2 定制定金锁定，3 销售出库，4 赠送出库，5 盘亏，6 停用，7 入库中，8 返厂出库。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyGoodsItem.Unit">
+            <summary>计量单位：条/颗/对/件/套，仅作货品属性，不拆分库存数量。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyGoodsItem.SalePrice">
+            <summary>来源入库时的金属价快照；销售按实时销售金价结算。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyGoodsItem.PricingMode">
+            <summary>计价方式：1 按件，2 按克。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyGoodsItem.LaborFee">
+            <summary>工费；LaborFeeMode=1 时是每件固定金额，=2 时是每克金额。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyGoodsItem.PackagingFee">
+            <summary>每件商品包装费。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyGoodsStyle">
+            <summary>珠宝商品款式档案。Status：0 启用，1 停用。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyGoodsStyle.MaterialGroup">
+            <summary>材质大类：1 足金，2 足银，3 其他；用于归类而不替代材质字典。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyInbound">
+            <summary>采购入库单。状态：0 草稿，1 已确认。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyInboundLine">
+            <summary>入库明细。每条明细代表一件货品，ItemMode 保留兼容但当前采购入库固定为 1。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyInboundLine.Unit">
+            <summary>计量单位：条/颗/对/件/套，仅作货品属性，不拆分库存数量。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyInboundLine.SalePrice">
+            <summary>入库时记录的本次采购金属单价（按克商品）。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyInboundLine.PackagingFee">
+            <summary>每件商品包装费。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyLookupItem">
+            <summary>
+            珠宝业务字典项。两层时 ParentId 指向大类，大类本身 ParentId 为空。
+            </summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyLookupType">
+            <summary>
+            珠宝业务字典类型。LevelLimit 只允许 1 或 2。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyLookupType.LevelLimit">
+            <summary>
+            层级上限：1 只有一层，2 为大类加子级。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyLookupType.IsPreset">
+            <summary>
+            预置类型只允许停用，不允许删除，也不允许改编码和层级。
+            </summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyMaterial">
+            <summary>物料档案。库存重量统一按克保存，只允许通过物料单据确认变更。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyMaterialDoc">
+            <summary>物料单据。Direction：1 入库，2 出库；Status：0 草稿，1 已确认，9 作废。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyMaterialDocLine">
+            <summary>物料单据明细。Weight 为正数，由单据方向决定入库或出库。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyMaterialLedger">
+            <summary>物料重量流水，只追加不修改。ChangeWeight 正数入库、负数出库。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyMember.WechatNo">
+            <summary>本人微信号，可被任意搜索命中</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyMember.ReferrerWechatNo">
+            <summary>推荐人（介绍人）微信号，建档时录入，用于绑定推荐关系</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyMember.ReferrerMemberId">
+            <summary>推荐人会员 Id；绑定后不允许修改</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyMember.MemberWechatId">
+            <summary>客户加的哪一位员工的微信；来源 sys_user_wechat</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyMember.MemberWechatNo">
+            <summary>建档时的微信号快照，员工微信改名/停用后仍保留历史</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyMemberDiscountRule">
+            <summary>会员等级折扣矩阵。PricingMode：1 按件，2 按克，NULL 表示全部；DiscountBase：1 商品/金料，2 含工费。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyMemberFollow">
+            <summary>客户跟进记录。FollowTime 由服务器写入，不接受客户端时间。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyMemberFollow.LookupItemId">
+            <summary>Dict item for follow-up method.</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyMemberFollow.FollowTypeName">
+            <summary>Snapshot of the follow-up method name.</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyMemberReferrer">
+            <summary>
+            客户推荐关系历史。同一客户可以有多个推荐人，不同阶段由不同朋友介绍；
+            每张销售单只选择其中一位，用于返现归属。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyMemberReferrer.MemberId">
+            <summary>被推荐客户</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyMemberReferrer.ReferrerMemberId">
+            <summary>推荐人会员 Id</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyMemberReferrer.Source">
+            <summary>1 建档录入，2 开单补录，3 手工维护</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyMemberReferrer.SaleOrderId">
+            <summary>若由某张销售单补录，记录来源单</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyMemberReferrer.IsPrimary">
+            <summary>1 默认推荐人（开单优先带出）</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyMemberReview">
+            <summary>日 / 周 / 月 / 季 / 年经营复盘。复盘可独立保存，也可生成待办留痕。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyMemberReview.PeriodType">
+            <summary>1 日、2 周、3 月、4 季、5 年。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyMetalPrice">
+            <summary>金属成色历史金价。销售按生效时间取当前有效记录，单据保存价格快照。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyPointRule">
+            <summary>积分兑换规则：每 AmountBase 元奖励 PointsAwarded 积分。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyPointRule.CashBase">
+            <summary>转介绍返现：每满多少元返现一次（阶梯口径）</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyPointRule.CashAwarded">
+            <summary>转介绍返现：每满 CashBase 元返现金额（元）</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyPointRule.ReferralCashRate">
+            <summary>转介绍返现比例（%），大于 0 时按实付金额比例返现</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyPrintTemplate">
+            <summary>按一级款式分类使用的商品标签模板。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyPrintTemplateBinding">
+            <summary>一级款式分类与打印模板的绑定，每个分类只启用一个默认模板。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyReferralRate">
+            <summary>
+            转介绍返点规则：按一级款式分类维护返点百分比。
+            生成返现台账时按订单明细的款式分类逐项计算，未配置的分类不产生返现。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyReferralRate.StyleItemId">
+            <summary>一级款式分类 Id（jy_lookup_item 根节点）</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyReferralRate.Rate">
+            <summary>返点百分比，例如 3.5 表示 3.5%</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyReferralReward">
+            <summary>
+            转介绍奖励台账。一条销售单最多产生一条奖励（UX 唯一约束保证），
+            永久保留，只做状态流转：0 待返现，1 已返现，2 已作废（来源销售单作废）。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyReferralReward.ReferrerMemberId">
+            <summary>推荐人会员 Id（客户 A）</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyReferralReward.ReferralMemberId">
+            <summary>被推荐人会员 Id（客户 B，本单买家）</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyReferralReward.OrderAmount">
+            <summary>本单实付金额（按实付计算奖励）</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyReferralReward.StyleSummary">
+            <summary>按款式分类汇总的返点说明，如「银饰 3% ¥8.00；手串 2% ¥4.00」</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyReferralReward.OriginalAmount">
+            <summary>系统按分类规则算出的原始返现金额，人工改金额后保留用于对账</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyReferralReward.IsAdjusted">
+            <summary>0 未改金额，1 已人工修改</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyReferralReward.SettleBatchNo">
+            <summary>结算批次号，一次区间结算共用一个批次</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JySaleCustomOffset">
+            <summary>销售单与定制单的定金对冲。Status：0 草稿计划，1 已核销，9 已冲回。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JySaleOrder">
+            <summary>销售单。OrderType：1 正品销售，2 赠送，3 代理拿货；Status：0 草稿，1 已完成，9 作废。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JySaleOrder.CustomOffsetAmount">
+            <summary>本单对冲的定制定金。不改变商品成交额。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JySaleOrder.CashAmount">
+            <summary>扣减定金后的本次实收。积分仍按 PayAmount 计算。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JySaleOrder.CustomerWechatNo">
+            <summary>客户本人微信号（开单时录入，确认收款时写入会员档案）</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JySaleOrder.ReferrerWechatNo">
+            <summary>推荐人微信号（开单时录入，用于把本次客户绑定到推荐人）</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JySaleOrder.ReferrerMemberId">
+            <summary>本单唯一的推荐人会员 Id；推荐关系多对多，但单张销售只归属一位</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JySaleOrderItem">
+            <summary>销售单商品快照。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JySaleOrderItem.Unit">
+            <summary>成交时的数量单位快照，例如条、颗、对、件、套。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JySaleOrderItem.PackagingFee">
+            <summary>成交时的每件商品包装费快照。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JySaleReturn">
+            <summary>销售退货单。Status：0 草稿，1 已完成，9 作废。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JySaleReturnItem">
+            <summary>销售退货明细。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JySalesCombo">
+            <summary>品类联动组合配置。组合占比在查询时按销售净额实时计算，不落冗余统计。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JySalesCombo.Status">
+            <summary>0 启用，1 停用。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JySalesGoalPlan">
+            <summary>分类经营参数。目标金额仍存 jy_sales_goal_category，本表只保存拆解参数与手工动作。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JySalesGoalWeightConfig">
+            <summary>月度品类权重配置。默认销售占比 60、库存压力 20、利润率 20，可按月调整。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JySalesScript">
+            <summary>
+            销售话术。款式可以选大类或子级，空表示不限。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JySalesScript.ScriptType">
+            <summary>接待开场、产品介绍、异议处理、成交推进、售后维护、其他。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyStockAlertRule">
+            <summary>按一级款式分类设置的在库件数预警线。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyStockLedger">
+            <summary>库存流水。ChangeType：1 入库，2 销售，5 销退，6 赠送，10 盘点。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyStocktake">
+            <summary>盘点单。TakeType：1 正品，2 物料；Status：0 草稿，1 已确认，9 作废。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyStocktakeCategory">
+            <summary>盘点单中的分类进度快照。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyStocktakeCategory.ParentCategoryKey">
+            <summary>一级款式分类快照；历史单据为空时由款式字典补算。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyStocktakeCategory.AnomalyRemark">
+            <summary>一级分类账实差异说明；与未完成原因分开保存。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyStocktakeLine">
+            <summary>盘点明细。正品按件、数量单位；物料按克。BookQty 是保存草稿时的账面快照。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyStoreTraffic">
+            <summary>
+            门店客流手工登记。成交单数和成交金额不落库，查询时按销售单实时聚合。
+            </summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JySupplier">
+            <summary>
+            供应商档案。StoreId 对应 sys_dept.DeptId，空表示租户通用。
+            </summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyWorkItem">
+            <summary>
+            待办与目标统一节点。ParentId 为空表示主事项，子行表示主事项下的小目标。
+            主事项 ItemKind：1 普通记事，2 客户跟进，3 品类销售，4 期间销售，5 自定义量化，6 汇总容器。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyWorkItem.TargetFinishDate">
+            <summary>子目标计划完成日期，可为空，默认父事项结束日期。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyWorkItem.HasDateRange">
+            <summary>0 普通记事（无日期区间），1 有明确时间区间。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyWorkItem.IsPerformanceRelated">
+            <summary>1 关联业绩，子目标必须选择父级款式分类和金额/件数目标。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyWorkItem.TargetMode">
+            <summary>1 金额目标，2 件数目标。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyWorkItemProgressLog">
+            <summary>目标进度流水。UniqueKey 保证同一业务事件重复回算不会重复记账。</summary>
+        </member>
+        <member name="T:ZR.Model.JingYue.JyWorkItemScope">
+            <summary>目标统计范围。ScopeType：1 指定会员，2 款式分类（只允许大类）。</summary>
+        </member>
+        <member name="P:ZR.Model.JingYue.JyWorkTemplateItem.TargetMode">
+            <summary>1 金额目标，2 件数目标。</summary>
+        </member>
+        <member name="T:ZR.Model.PagedInfo`1">
+            <summary>
+            分页参数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.PagedInfo`1.PageSize">
+            <summary>
+            每页行数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.PagedInfo`1.PageIndex">
+            <summary>
+            当前页
+            </summary>
+        </member>
+        <member name="P:ZR.Model.PagedInfo`1.TotalNum">
+            <summary>
+            总记录数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.PagedInfo`1.TotalPage">
+            <summary>
+            总页数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.PagerInfo.PageNum">
+            <summary>
+            当前页码
+            </summary>
+        </member>
+        <member name="P:ZR.Model.PagerInfo.PageSize">
+            <summary>
+            每页显示多少条
+            </summary>
+        </member>
+        <member name="P:ZR.Model.PagerInfo.TotalNum">
+            <summary>
+            总记录数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.PagerInfo.Sort">
+            <summary>
+            排序字段
+            </summary>
+        </member>
+        <member name="P:ZR.Model.PagerInfo.SortType">
+            <summary>
+            排序类型,前端传入的是"ascending"，"descending"
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Public.BannerConfig">
+            <summary>
+            广告管理
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Public.BannerConfig.Id">
+            <summary>
+            id 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Public.BannerConfig.Title">
+            <summary>
+            Title 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Public.BannerConfig.Content">
+            <summary>
+            说明 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Public.BannerConfig.Link">
+            <summary>
+            链接 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Public.BannerConfig.ImgUrl">
+            <summary>
+            图片 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Public.BannerConfig.JumpType">
+            <summary>
+            跳转类型 0、不跳转 1、外链 2、内部跳转
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Public.BannerConfig.AddTime">
+            <summary>
+            添加时间 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Public.BannerConfig.ClicksNumber">
+            <summary>
+            点击次数 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Public.BannerConfig.ShowStatus">
+            <summary>
+            是否显示 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Public.BannerConfig.AdType">
+            <summary>
+            广告类型 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Public.BannerConfig.BeginTime">
+            <summary>
+            BeginTime 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Public.BannerConfig.EndTime">
+            <summary>
+            EndTime 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Public.BannerConfig.SortId">
+            <summary>
+            排序id 
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Public.Dto.BannerConfigQueryDto">
+            <summary>
+            广告管理查询对象
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Public.Dto.BannerConfigDto">
+            <summary>
+            广告管理输入输出对象
+            </summary>
+        </member>
+        <member name="T:ZR.Model.SkipMigrationAttribute">
+            <summary>
+            标记实体不参与自动数据库迁移（CodeFirst.InitTables）。
+            适用于：用户自定义业务表、手工维护 DDL 的表、不想被自动改结构的表。
+            用法：[SkipMigration] 或 [SkipMigration("手动维护，不自动迁移")]
+            </summary>
+        </member>
+        <member name="P:ZR.Model.SkipMigrationAttribute.Reason">
+            <summary>跳过原因说明（可选）</summary>
+        </member>
+        <member name="T:ZR.Model.social.SocialFansDto">
+            <summary>
+            粉丝表
+            </summary>
+        </member>
+        <member name="T:ZR.Model.social.SocialFans">
+            <summary>
+            粉丝表
+            </summary>
+        </member>
+        <member name="P:ZR.Model.social.SocialFans.RemarkName">
+            <summary>
+            备注名
+            </summary>
+        </member>
+        <member name="T:ZR.Model.social.SocialFansInfo">
+            <summary>
+            粉丝信息表
+            </summary>
+        </member>
+        <member name="P:ZR.Model.social.SocialFansInfo.FollowNum">
+            <summary>
+            关注数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.social.SocialFansInfo.FansNum">
+            <summary>
+            粉丝数
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.LogAiAnalysisInput">
+            <summary>
+            日志 AI 分析请求参数（登录安全分析 / 操作日志健康分析共用）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.LogAiAnalysisInput.BeginTime">
+            <summary>
+            开始时间，为空默认近 7 天
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.LogAiAnalysisInput.EndTime">
+            <summary>
+            结束时间，为空默认到当前
+            </summary>
+        </member>
+        <member name="M:ZR.Model.System.Dto.LogAiAnalysisInput.ResolveRange(System.Int32)">
+            <summary>
+            解析统计区间：起止倒置自动交换，跨度超上限时以结束时间为准向前截断。
+            返回值为整天边界（begin 为当天 00:00:00，end 为当天 23:59:59）。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.LogAiAnalysisInput.Limit">
+            <summary>
+            异地/新地点成功登录账号返回条数上限，为空默认 15（服务端约束 1-50）。
+            页面默认不传保持 Top15；AI 助手"把异地登录账号全部查出来"类提问可传 50。
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.LoginSecurityMetricsDto">
+            <summary>
+            登录日志安全分析聚合指标。由服务端固定 SQL 聚合，AI 只负责解读，不接触原始日志。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.LoginSecurityMetricsDto.TimeRange">
+            <summary>统计时间范围</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.LoginSecurityMetricsDto.NightCount">
+            <summary>凌晨 0-6 点登录次数（异常时段信号）</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.LoginSecurityMetricsDto.NightFailCount">
+            <summary>凌晨 0-6 点登录失败次数</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.LoginSecurityMetricsDto.DistinctIpCount">
+            <summary>区间内去重登录 IP 数</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.LoginSecurityMetricsDto.NewIpCount">
+            <summary>近 30 天未出现过、本次区间首次出现的 IP 数</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.LoginSecurityMetricsDto.IpMasked">
+            <summary>IP 是否已脱敏（当前用户无真实 IP 查看权限时为 true，ipaddr 为掩码值）</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.LoginSecurityMetricsDto.RemoteLoginAccountCount">
+            <summary>区间内异地/新地点成功登录的账号数（同账号多地点成功登录，或相对近 30 天成功历史出现新地点）</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.LoginSecurityMetricsDto.RemoteLoginAccounts">
+            <summary>异地/新地点成功登录账号明细 Top（含 2 小时内跨地点切换次数）</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.LoginSecurityMetricsDto.Daily">
+            <summary>按天成功/失败趋势</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.LoginSecurityMetricsDto.FailedAccounts">
+            <summary>登录失败次数 Top 账号</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.LoginSecurityMetricsDto.FailedIps">
+            <summary>登录失败次数 Top IP</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.LoginSecurityMetricsDto.Browsers">
+            <summary>客户端浏览器分布 Top5</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.LoginSecurityMetricsDto.Oses">
+            <summary>客户端操作系统分布 Top5</summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.LoginDailyStat">
+            <summary>
+            登录日志按天统计
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.OperDimensionKinds">
+            <summary>
+            操作日志的可选统计维度。同一份操作日志数据的不同切片，
+            由图表数据集以 dimension 参数切换，Key 同时作为该类目字段名。
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.Dto.OperDimensionKinds.Module">
+            <summary>按操作模块（SysOperLog.Title）</summary>
+        </member>
+        <member name="F:ZR.Model.System.Dto.OperDimensionKinds.Type">
+            <summary>按操作类型（BusinessType 中文名）</summary>
+        </member>
+        <member name="F:ZR.Model.System.Dto.OperDimensionKinds.User">
+            <summary>按操作人（SysOperLog.OperName）</summary>
+        </member>
+        <member name="F:ZR.Model.System.Dto.OperDimensionKinds.Risk">
+            <summary>按风险等级（由 BusinessType 推导的高/中/低危）</summary>
+        </member>
+        <member name="F:ZR.Model.System.Dto.OperDimensionKinds.Default">
+            <summary>默认维度</summary>
+        </member>
+        <member name="M:ZR.Model.System.Dto.OperDimensionKinds.Normalize(System.String)">
+            <summary>归一化维度取值，非法或空返回默认维度</summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.OperDimensionStat">
+            <summary>
+            操作日志按维度聚合的单项（维度见 OperDimensionKinds，如模块/操作类型/操作人/风险等级）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.OperDimensionStat.Name">
+            <summary>维度名称（模块名/操作类型中文名/操作人/风险等级）</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.OperDimensionStat.Total">
+            <summary>操作次数</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.OperDimensionStat.Errors">
+            <summary>其中失败次数（Status=1）</summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.LoginRegionStat">
+            <summary>
+            登录日志按省份（IP 解析出的地域）统计。
+            Region 为省级名称（如"河南省""天津市"），无法解析时归入"未知"。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.LoginRegionStat.Region">
+            <summary>省份名称；含"未知"与"其他"（长尾合并项）</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.LoginRegionStat.LoginCount">
+            <summary>登录次数（成功+失败）</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.LoginRegionStat.UserCount">
+            <summary>独立用户数（按账号去重）</summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.LoginFailAccountStat">
+            <summary>
+            登录失败账号统计
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.LoginFailAccountStat.LocationCount">
+            <summary>失败来源地点去重数，大于 1 提示异地/共享账号可能</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.LoginFailAccountStat.Locations">
+            <summary>失败来源地点列表（最多 5 个）</summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.RemoteLoginAccountStat">
+            <summary>
+            异地/新地点成功登录账号统计（成功侧异地信号）。
+            地点按省-市归一化（忽略运营商与未知段），与登录时的异地提醒同一口径。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.RemoteLoginAccountStat.UserName">
+            <summary>账号</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.RemoteLoginAccountStat.SuccessCount">
+            <summary>区间内成功登录次数</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.RemoteLoginAccountStat.LocationCount">
+            <summary>成功登录来源地点去重数（大于 1 提示异地/共享账号可能）</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.RemoteLoginAccountStat.Locations">
+            <summary>成功登录来源地点列表（最多 5 个）</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.RemoteLoginAccountStat.NewLocationCount">
+            <summary>相对近 30 天成功历史新增的地点数</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.RemoteLoginAccountStat.NewLocations">
+            <summary>相对近 30 天成功历史新增的地点列表（最多 3 个）</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.RemoteLoginAccountStat.RapidSwitchCount">
+            <summary>2 小时内切换不同地点成功登录的次数（盗号/共享高置信信号）</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.RemoteLoginAccountStat.LastLoginTime">
+            <summary>最近一次成功登录时间</summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.LoginFailIpStat">
+            <summary>
+            登录失败 IP 统计
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.NameCountStat">
+            <summary>
+            通用名称计数项（浏览器/OS 分布、敏感操作 Top 账号等）
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.OperHealthMetricsDto">
+            <summary>
+            操作日志健康分析聚合指标。错误在服务端归一化聚类后才交给模型。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.OperHealthMetricsDto.TimeRange">
+            <summary>统计时间范围</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.OperHealthMetricsDto.NightCount">
+            <summary>凌晨 0-6 点操作次数</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.OperHealthMetricsDto.P95Elapsed">
+            <summary>耗时 P95（毫秒），数据量过大未计算时为 null</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.OperHealthMetricsDto.Daily">
+            <summary>按天总量/错误量趋势</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.OperHealthMetricsDto.BusinessTypes">
+            <summary>业务类型分布</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.OperHealthMetricsDto.SlowOps">
+            <summary>慢操作 Top（按平均耗时排序，仅统计调用次数达门槛的操作）</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.OperHealthMetricsDto.RiskAccounts">
+            <summary>导出/删除/强退/清空等敏感操作 Top 账号</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.OperHealthMetricsDto.ErrorClusters">
+            <summary>错误聚类（错误消息归一化后分组）</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.OperHealthMetricsDto.SampleNote">
+            <summary>数据截断说明（如错误样本只取最近 N 条），无则空</summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.OperDailyStat">
+            <summary>
+            操作日志按天统计
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.OperTypeStat">
+            <summary>
+            业务类型分布统计
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.OperTypeStat.TypeName">
+            <summary>业务类型中文名</summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SlowOperStat">
+            <summary>
+            慢操作统计
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SlowOperStat.AvgElapsed">
+            <summary>平均耗时（毫秒）</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SlowOperStat.MaxElapsed">
+            <summary>最大耗时（毫秒）</summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.ErrorClusterStat">
+            <summary>
+            错误聚类统计
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.ErrorClusterStat.Pattern">
+            <summary>归一化后的错误特征（数字/GUID 已替换为占位符）</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.ErrorClusterStat.SampleErrorMsg">
+            <summary>该类最近一条原始错误样例</summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SysAiLogReportResult">
+            <summary>
+            日志 AI 分析结果（Markdown 报告文本，不落库）
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SysAiLangItem">
+            <summary>
+            AI 多语言翻译：单条待翻译条目
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiLangItem.LangKey">
+            <summary>文案键（对应 sys_common_lang.lang_key）</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiLangItem.Text">
+            <summary>源语言文案</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiLangItem.Context">
+            <summary>可选语境，如「菜单名」「按钮文案」「错误提示」，用于消歧</summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SysAiLangTranslateInput">
+            <summary>
+            AI 多语言翻译入参
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiLangTranslateInput.SourceLang">
+            <summary>源语言代码，如 zh-cn</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiLangTranslateInput.TargetLangs">
+            <summary>目标语言代码列表，如 ["en","zh-tw"]</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiLangTranslateInput.Items">
+            <summary>待翻译条目</summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SysAiLangTranslation">
+            <summary>
+            单条译文
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SysAiLangEntry">
+            <summary>
+            单个文案键的翻译结果（含全部目标语言）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiLangEntry.Text">
+            <summary>源语言文案，便于前端对照展示</summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SysAiLangTranslateResult">
+            <summary>
+            AI 多语言翻译结果（草稿，未落库）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiLangTranslateResult.Raw">
+            <summary>AI 返回非结构化 JSON 时承载原文，便于前端排查与降级展示</summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SysAiLangApplyInput">
+            <summary>
+            AI 译文落库入参
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiLangApplyInput.Entries">
+            <summary>前端可编辑后的译文条目</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiLangApplyInput.Cover">
+            <summary>true 覆盖已存在的译文，false 只补空缺（默认 false，避免误改存量）</summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SysAiCronParseInput">
+            <summary>
+            AI 自然语言转 Cron 入参
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiCronParseInput.Text">
+            <summary>自然语言调度描述，如「每天凌晨2点执行」</summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SysAiCronParseResult">
+            <summary>
+            AI 自然语言转 Cron 结果
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiCronParseResult.Cron">
+            <summary>Quartz 格式 Cron 表达式</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiCronParseResult.Description">
+            <summary>执行规律的中文说明，供用户核对</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiCronParseResult.Warnings">
+            <summary>AI 对歧义描述所做的假设说明，无则为空</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiCronParseResult.NextTimes">
+            <summary>由服务端按 Quartz 本地计算的下几次执行时间，非 AI 生成</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiCronParseResult.Raw">
+            <summary>AI 返回非结构化 JSON 时承载原文</summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SysAiScheduleParseInput">
+            <summary>
+            AI 一句话解析日程入参
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiScheduleParseInput.Text">
+            <summary>口语化描述，如「下周三下午三点前把季度报表发给张总，加急」</summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SysAiScheduleParseResult">
+            <summary>
+            AI 一句话解析日程结果（草稿，需用户确认后才落库）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiScheduleParseResult.Priority">
+            <summary>优先级：1低 2中 3高</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiScheduleParseResult.DueTime">
+            <summary>截止时间，格式 yyyy-MM-dd HH:mm，无则为空</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiScheduleParseResult.ReminderTime">
+            <summary>提醒时间，格式 yyyy-MM-dd HH:mm，无则为空</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiScheduleParseResult.Warnings">
+            <summary>AI 对模糊表述所做的假设说明</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiScheduleParseResult.Raw">
+            <summary>AI 返回非结构化 JSON 时承载原文</summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SysAiWeeklyReportInput">
+            <summary>
+            AI 周报汇总入参（不传时间则默认取本周，周一为起始日）
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SysAiWeeklyReportResult">
+            <summary>
+            AI 周报汇总结果（纯文本，不落库）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiWeeklyReportResult.Summary">
+            <summary>整体情况概述</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiWeeklyReportResult.Completed">
+            <summary>已完成事项</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiWeeklyReportResult.Pending">
+            <summary>未完成事项</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiWeeklyReportResult.Risks">
+            <summary>可观察到的风险项</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiWeeklyReportResult.Total">
+            <summary>参与统计的日程总数，便于用户核对是否与页面一致</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiWeeklyReportResult.Raw">
+            <summary>AI 返回非结构化 JSON 时承载原文</summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SysAiGenColumnItem">
+            <summary>
+            代码生成列配置推断：单列输入描述
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiGenColumnItem.ColumnName">
+            <summary>数据库列名</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiGenColumnItem.Length">
+            <summary>列长度上限，0 表示未取到</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiGenColumnItem.Comment">
+            <summary>数据库列注释，可能为空</summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SysAiGenColumnInput">
+            <summary>
+            代码生成列配置推断入参
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SysAiGenColumnSuggestion">
+            <summary>
+            单列配置建议。Current* 为库里当前值，便于前端做差异对比后让用户勾选。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiGenColumnSuggestion.Comment">
+            <summary>建议的中文标签</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiGenColumnSuggestion.HtmlType">
+            <summary>建议的控件类型</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiGenColumnSuggestion.Reason">
+            <summary>推断依据，供人工复核</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiGenColumnSuggestion.CurrentComment">
+            <summary>库中当前的注释</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiGenColumnSuggestion.CurrentHtmlType">
+            <summary>库中当前的控件类型</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiGenColumnSuggestion.DiffFields">
+            <summary>建议与当前值存在差异的字段，便于前端高亮，如 "comment,htmlType"</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiGenColumnSuggestion.SkipByDefault">
+            <summary>true 时前端默认不勾选，避免用户误采纳改坏结构约束</summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SysAiGenColumnResult">
+            <summary>
+            代码生成列配置推断结果（纯建议，不落库）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysAiGenColumnResult.Raw">
+            <summary>AI 返回非结构化 JSON 时承载原文</summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.DailyScheduleDto">
+            <summary>
+            日程新增/编辑对象
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.DailyScheduleDto.Id">
+            <summary>
+            日程ID（编辑时必传）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.DailyScheduleDto.Title">
+            <summary>
+            日程标题
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.DailyScheduleDto.Content">
+            <summary>
+            日程内容
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.DailyScheduleDto.Priority">
+            <summary>
+            优先级（1低 2中 3高）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.DailyScheduleDto.DueTime">
+            <summary>
+            截止时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.DailyScheduleDto.ReminderTime">
+            <summary>
+            提醒时间
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.DailyScheduleQueryDto">
+            <summary>
+            日程查询对象
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.DailyScheduleQueryDto.KeyWord">
+            <summary>
+            关键词（标题/内容模糊匹配）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.DailyScheduleQueryDto.Status">
+            <summary>
+            状态（0未完成 1已完成，空=全部）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.DailyScheduleQueryDto.Priority">
+            <summary>
+            优先级（1低 2中 3高）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.DailyScheduleQueryDto.BeginTime">
+            <summary>
+            截止时间起
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.DailyScheduleQueryDto.EndTime">
+            <summary>
+            截止时间止
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.DailyScheduleStatusDto">
+            <summary>
+            日程状态切换对象
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.DailyScheduleStatusDto.Id">
+            <summary>
+            日程ID
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.DailyScheduleStatusDto.Status">
+            <summary>
+            目标状态（0未完成 1已完成）
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.DailyScheduleStatsDto">
+            <summary>
+            日程统计结果
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.DailyScheduleStatsDto.Total">
+            <summary>
+            总日程数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.DailyScheduleStatsDto.Undone">
+            <summary>
+            未完成数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.DailyScheduleStatsDto.DueToday">
+            <summary>
+            今日到期数（未完成且截止日期为今天）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.DailyScheduleStatsDto.Overdue">
+            <summary>
+            已逾期数（未完成且截止时间早于今天）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.GenTableDto.Params">
+            <summary>
+            额外参数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.GenTableColumnDto.HtmlType">
+            <summary>
+            显示类型（文本框、文本域、下拉框、复选框、单选框、日期控件）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.GenTableColumnDto.QueryType">
+            <summary>
+            查询类型（等于、不等于、大于、小于、范围）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.GenTableColumnDto.DictType">
+            <summary>
+            字典类型
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.GenTableColumnDto.Remark">
+            <summary>
+            备注
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.GenTableColumnDto.AutoFillType">
+            <summary>
+            自动填充类型
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.LoginBodyDto.Username">
+            <summary>
+            用户名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.LoginBodyDto.Password">
+            <summary>
+            用户密码
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.LoginBodyDto.Code">
+            <summary>
+            验证码
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.LoginBodyDto.Uuid">
+            <summary>
+            唯一标识
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.LoginBodyDto.TenantId">
+            <summary>
+            租户ID
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.MenuDto.ParentId">
+            <summary>
+            父菜单ID
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.MenuDto.OrderNum">
+            <summary>
+            显示顺序
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.MenuDto.Path">
+            <summary>
+            路由地址
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.MenuDto.Component">
+            <summary>
+            组件路径
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.MenuDto.IsCache">
+            <summary>
+            是否缓存（1缓存 0不缓存）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.MenuDto.IsFrame">
+            <summary>
+            是否外链 1、是 0、否
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.MenuDto.MenuType">
+            <summary>
+            类型（M目录 C菜单 F按钮 L链接）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.MenuDto.Visible">
+            <summary>
+            显示状态（0显示 1隐藏）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.MenuDto.Status">
+            <summary>
+            菜单状态（0正常 1停用）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.MenuDto.Perms">
+            <summary>
+            权限字符串
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.MenuDto.Icon">
+            <summary>
+            菜单图标
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.MenuDto.Query">
+            <summary>
+            路由参数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.MenuDto.MenuNameKey">
+            <summary>
+            翻译key
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.MenuDto.TagByQuery">
+            <summary>
+            参数标签
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.RegisterDto.Username">
+            <summary>
+            用户名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.RegisterDto.Password">
+            <summary>
+            用户密码
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.RegisterDto.Code">
+            <summary>
+            验证码
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.RegisterDto.Uuid">
+            <summary>
+            唯一标识
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.RegisterDto.Photo">
+            <summary>
+            头像
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.RegisterDto.TenantId">
+            <summary>
+            租户id（SaaS 开启时必填，写入对应租户库）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.RoleMenuExportDto.MenuName">
+            <summary>
+            一级目录名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.RoleUsersCreateDto.RoleId">
+            <summary>
+            角色id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.RoleUsersCreateDto.UserIds">
+            <summary>
+            用户编码 [1,2,3,4] 
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SqlDiffLogQueryDto">
+            <summary>
+            数据差异日志查询对象
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SqlDiffLogDto">
+            <summary>
+            数据差异日志输入输出对象
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SysConfigDto">
+            <summary>
+            参数配置输入对象模型
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SysConfigQueryDto">
+            <summary>
+            参数配置查询对象模型
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysDeptDto.LeaderIds">
+            <summary>
+            负责人用户Id集合，多个以逗号分隔
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysDictDataDto.LangKey">
+            <summary>
+            多语言翻译key值
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysDictDataDto.Extend1">
+            <summary>
+            扩展1
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysDictDataDto.Extend2">
+            <summary>
+            扩展2
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysDictTypeDto.DictName">
+            <summary>
+            字典名称
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysDictTypeDto.DictType">
+            <summary>
+            字典类型
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysDictTypeDto.Type">
+            <summary>
+            系统内置 Y是 N否
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysDictTypeDto.CustomSql">
+            <summary>
+            自定义sql
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SysFileDto">
+            <summary>
+            文件存储输入对象
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysFileDto.RealName">
+            <summary>
+            文件原名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysFileDto.FileType">
+            <summary>
+            文件类型
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysFileDto.FileName">
+            <summary>
+            存储文件名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysFileDto.FileUrl">
+            <summary>
+            文件存储地址 eg：/uploads/20220202
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysFileDto.StorePath">
+            <summary>
+            仓库位置 eg：/uploads
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysFileDto.FileSize">
+            <summary>
+            文件大小
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysFileDto.FileExt">
+            <summary>
+            文件扩展名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysFileDto.Create_by">
+            <summary>
+            创建人
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysFileDto.Create_time">
+            <summary>
+            上传时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysFileDto.StoreType">
+            <summary>
+            存储类型
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysFileDto.CategoryId">
+            <summary>
+            目录
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysFileDto.AccessUrl">
+            <summary>
+            访问路径
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysFileQueryDto.ClassifyType">
+            <summary>
+            分类
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysLogininfoDto.Ipaddr">
+            <summary>
+            IP 地址
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysLogininfoDto.Status">
+            <summary>
+            登录状态 0成功 1失败
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysLogininfoDto.UserName">
+            <summary>
+            用户名
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SysNoticeDto">
+            <summary>
+            通知公告表输入对象
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SysNoticeQueryDto">
+            <summary>
+            通知公告表查询对象
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysOperLogQueryDto.OperName">
+            <summary>
+            操作人员
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysOperLogQueryDto.BusinessType">
+            <summary>
+            业务类型 0=其它,1=新增,2=修改,3=删除,4=授权,5=导出,6=导入,7=强退,8=生成代码,9=清空数据
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysOperLogQueryDto.Status">
+            <summary>
+            状态
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysOperLogQueryDto.Title">
+            <summary>
+            操作模块
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysOperLogQueryDto.OperParam">
+            <summary>
+            请求参数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysOperLogDto.PageNum">
+            <summary>
+            页码
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysOperLogDto.OperName">
+            <summary>
+            操作人员
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysOperLogDto.BusinessType">
+            <summary>
+            业务类型 0=其它,1=新增,2=修改,3=删除,4=授权,5=导出,6=导入,7=强退,8=生成代码,9=清空数据
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysOperLogDto.Status">
+            <summary>
+            状态
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysOperLogDto.Title">
+            <summary>
+            操作模块
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysOperLogDto.OperParam">
+            <summary>
+            请求参数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysRoleDto.MenuIds">
+            <summary>
+            要添加的菜单集合
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysRoleDto.DelMenuIds">
+            <summary>
+            减少菜单集合
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysRoleMenuDto.MenuIds">
+            <summary>
+            角色分配菜单
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SysTenantDto">
+            <summary>
+            租户输入对象
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysTenantDto.Domain">
+            <summary>
+            域名绑定：子域名标签或完整自定义域名，用于按访问域名解析租户。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysTenantDto.Logo">
+            <summary>
+            企业Logo图片地址（相对路径或完整URL）。
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SysTenantQueryDto">
+            <summary>
+            租户查询对象
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysTenantQueryDto.Domain">
+            <summary>
+            域名绑定（子域名标签或完整域名），用于按域名查询租户。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysTenantQueryDto.Logo">
+            <summary>
+            企业Logo图片地址（用于按Logo查询租户，一般不作为筛选项）。
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.TenantProvisionDto">
+            <summary>
+            租户开通请求。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantProvisionDto.Domain">
+            <summary>
+            域名绑定（子域标签或完整自定义域名）。留空则默认等于 TenantId（即开即用）。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantProvisionDto.Logo">
+            <summary>
+            企业Logo图片地址（相对路径或完整URL）。留空则不设置Logo。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantProvisionDto.TrialDays">
+            <summary>
+            试用期天数（1~365）。>0 时开通即分配 Pro 套餐并在试用期满后自动回落默认套餐，
+            不影响租户本身的有效期。
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.TenantBroadcastDto">
+            <summary>
+            租户公告群发请求。TenantIds 为空时发送给全部启用租户的管理员。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantBroadcastDto.TenantIds">
+            <summary>
+            目标租户标识列表。为空表示全部启用租户。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantBroadcastDto.Content">
+            <summary>
+            公告内容。
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.TenantInitializeDto">
+            <summary>
+            租户初始化请求。
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.TenantRenewDto">
+            <summary>
+            租户续费请求。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantRenewDto.Amount">
+            <summary>
+            本次续费金额（选填，用于计费流水记账）。
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.TenantDecommissionDto">
+            <summary>
+            租户删除请求。
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.TenantLifecycleStep">
+            <summary>
+            生命周期步骤。
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.TenantLifecycleResult">
+            <summary>
+            生命周期执行结果。
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.TenantPlanDto">
+            <summary>
+            套餐定义输出。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantPlanDto.MenuCount">
+            <summary>
+            套餐关联菜单数量
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.TenantPlanAssignDto">
+            <summary>
+            租户套餐分配请求。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantPlanAssignDto.Amount">
+            <summary>
+            本次计费金额（选填，用于计费流水记账）。
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.TenantCurrentPlanDto">
+            <summary>
+            租户当前套餐。
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.TenantUsageDashboardDto">
+            <summary>
+            租户套餐用量面板。
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.TenantLoginInfoDto">
+            <summary>
+            登录页租户选择列表项。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantLoginInfoDto.Domain">
+            <summary>
+            子域名标签或完整域名，登录页可用于按子域匹配当前租户。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantLoginInfoDto.Logo">
+            <summary>
+            企业Logo图片地址（登录页品牌展示）。
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.TenantExpireReminderDto">
+            <summary>
+            租户到期提醒。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysUserDto.Wechats">
+            <summary>该用户维护的微信账号；新增/编辑时随用户一并提交，列表不加载</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysUserDto.Sex">
+            <summary>
+            用户性别（0男 1女 2未知）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysUserDto.Status">
+            <summary>
+            帐号状态（0正常 1停用）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysUserDto.LoginIP">
+            <summary>
+            最后登录IP
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysUserDto.LoginDate">
+            <summary>
+            最后登录时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysUserDto.DeptId">
+            <summary>
+            部门Id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysUserDto.LeaderId">
+            <summary>
+            上级主管用户Id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysUserDto.LeaderName">
+            <summary>
+            上级主管昵称（查询时实时回查填充，仅用于展示，不入库）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysUserDto.PwdUpdateTime">
+            <summary>
+            密码最后更新时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysUserDto.DeptName">
+            <summary>
+            拥有角色个数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysUserDto.RoleIds">
+            <summary>
+            角色id集合
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysUserDto.PostIds">
+            <summary>
+            岗位集合
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.SysUserQueryDto.Sex">
+            <summary>
+            用户性别（0男 1女 2未知）
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SysUserWechatOptionDto">
+            <summary>客户档案可选的员工微信，包含员工归属与当前是否默认</summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TasksQueryDto.QueryText">
+            <summary>
+            查询字符串
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.TasksCreateDto">
+            <summary>
+            添加任务
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TasksCreateDto.ID">
+            <summary>
+            任务id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TasksCreateDto.Name">
+            <summary>
+            任务名称
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TasksCreateDto.JobGroup">
+            <summary>
+            任务分组
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TasksCreateDto.Cron">
+            <summary>
+            运行时间表达式
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TasksCreateDto.AssemblyName">
+            <summary>
+            程序集名称
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TasksCreateDto.ClassName">
+            <summary>
+            任务所在类
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TasksCreateDto.Remark">
+            <summary>
+            任务描述
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TasksCreateDto.BeginTime">
+            <summary>
+            开始时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TasksCreateDto.EndTime">
+            <summary>
+            结束时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TasksCreateDto.TriggerType">
+            <summary>
+            触发器类型（0、simple 1、cron）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TasksCreateDto.IntervalSecond">
+            <summary>
+            执行间隔时间(单位:秒)
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TasksCreateDto.JobParams">
+            <summary>
+            传入参数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TasksCreateDto.TaskType">
+            <summary>
+            1、程序集任务 2、apiUrl任务 3、SQL语句
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TasksCreateDto.SqlText">
+            <summary>
+            SQL文本
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TasksCreateDto.RequestMethod">
+            <summary>
+            网络请求方式
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TasksCreateDto.TenantId">
+            <summary>
+            目标租户表达式。
+            单租户: tenant_a；多租户: tenant_a,tenant_b；全部租户: *。
+            非主租户提交时会被后端忽略并回落为当前租户。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TasksLogQueryDto.Name">
+            <summary>
+            查询字符串
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.TenantMenuDto">
+            <summary>
+            租户菜单配置视图（合并主库 SysMenu 信息）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantMenuDto.MenuName">
+            <summary>
+            菜单名称（主库原名）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantMenuDto.CustomName">
+            <summary>
+            租户自定义名称（为空则用原名）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantMenuDto.MenuType">
+            <summary>
+            菜单类型 M/C/F/L
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantMenuDto.Path">
+            <summary>
+            路由路径
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantMenuDto.Perms">
+            <summary>
+            权限标识
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantMenuDto.Icon">
+            <summary>
+            图标
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantMenuDto.Component">
+            <summary>
+            组件路径
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantMenuDto.IsVisible">
+            <summary>
+            是否可见（0=可见 1=隐藏）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantMenuDto.IsEnable">
+            <summary>
+            是否启用（1=启用 0=停用）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantMenuDto.Sort">
+            <summary>
+            租户自定义排序
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantMenuDto.OrderNum">
+            <summary>
+            主库原始排序
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantMenuDto.Status">
+            <summary>
+            菜单状态（0=正常 1=停用）
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.TenantMenuSyncItemDto">
+            <summary>
+            全量菜单同步 - 单租户结果
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.SyncAllTenantMenusResultDto">
+            <summary>
+            全量菜单同步结果
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Dto.TenantMenuUpdateDto">
+            <summary>
+            租户菜单配置更新请求
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantMenuUpdateDto.TenantId">
+            <summary>
+            租户标识（后端从当前上下文填充）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantMenuUpdateDto.IsVisible">
+            <summary>
+            是否可见（0=可见 1=隐藏），不传则不更新
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantMenuUpdateDto.IsEnable">
+            <summary>
+            是否启用（1=启用 0=停用），不传则不更新
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantMenuUpdateDto.Sort">
+            <summary>
+            自定义排序，不传则不更新
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Dto.TenantMenuUpdateDto.CustomName">
+            <summary>
+            自定义菜单名称，null 则不更新
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.DailySchedule">
+            <summary>
+            日程管理表（租户库表，不加 IMainDbEntity，由框架按当前租户自动路由 db context）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.DailySchedule.Id">
+            <summary>
+            日程ID
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.DailySchedule.UserId">
+            <summary>
+            归属用户ID（仅当前用户可见自己的日程）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.DailySchedule.Title">
+            <summary>
+            日程标题
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.DailySchedule.Content">
+            <summary>
+            日程内容
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.DailySchedule.Status">
+            <summary>
+            状态（0未完成 1已完成）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.DailySchedule.Priority">
+            <summary>
+            优先级（1低 2中 3高）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.DailySchedule.DueTime">
+            <summary>
+            截止时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.DailySchedule.ReminderTime">
+            <summary>
+            提醒时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.DailySchedule.FinishTime">
+            <summary>
+            完成时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.DailySchedule.Reminded">
+            <summary>
+            是否已提醒（0未提醒 1已提醒），用于日程到期提醒去重，避免刷新/重连重复推送
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.DbMigrationHistory">
+            <summary>
+            数据库迁移历史记录
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.DbMigrationHistory.Id">
+            <summary>主键</summary>
+        </member>
+        <member name="P:ZR.Model.System.DbMigrationHistory.BatchId">
+            <summary>迁移批次号(时间戳 + 随机)</summary>
+        </member>
+        <member name="P:ZR.Model.System.DbMigrationHistory.Summary">
+            <summary>变更摘要</summary>
+        </member>
+        <member name="P:ZR.Model.System.DbMigrationHistory.Details">
+            <summary>变更详情(JSON)：新增表列表、新增列列表、失败实体</summary>
+        </member>
+        <member name="P:ZR.Model.System.DbMigrationHistory.AppliedAt">
+            <summary>迁移时间</summary>
+        </member>
+        <member name="P:ZR.Model.System.DbMigrationHistory.NewTables">
+            <summary>新增表数量</summary>
+        </member>
+        <member name="P:ZR.Model.System.DbMigrationHistory.NewColumns">
+            <summary>新增列数量</summary>
+        </member>
+        <member name="P:ZR.Model.System.DbMigrationHistory.Success">
+            <summary>是否成功</summary>
+        </member>
+        <member name="P:ZR.Model.System.DbMigrationHistory.Error">
+            <summary>错误信息（成功时为空）</summary>
+        </member>
+        <member name="T:ZR.Model.System.Model.Dto.SysFileGroupQueryDto">
+            <summary>
+            文件分组查询对象
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Model.Dto.SysFileGroupDto">
+            <summary>
+            文件分组输入输出对象
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Model.SysFileGroup">
+            <summary>
+            文件分组
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Model.SysFileGroup.GroupId">
+            <summary>
+            id 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Model.SysFileGroup.GroupName">
+            <summary>
+            名称 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Model.SysFileGroup.ParentId">
+            <summary>
+            父级id 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Model.SysFileGroup.Sort">
+            <summary>
+            排序 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Model.SysFileGroup.IsDelete">
+            <summary>
+            是否删除 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Model.SysFileGroup.AddTime">
+            <summary>
+            添加时间 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Model.SysFileGroup.TenantId">
+            <summary>
+            租户ID（多租户隔离）
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Enums.DelFlagEnum">
+            <summary>
+            逻辑删除标志。
+            数据库列保持 int 类型，历史取值为 0=存在、2=删除（沿用若依约定），
+            此处用枚举替代魔法数字，避免误写为 1 等非法值导致语义不清。
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.Enums.DelFlagEnum.Normal">
+            <summary>
+            存在（未删除）
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.Enums.DelFlagEnum.Deleted">
+            <summary>
+            已删除
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Enums.MenuStatus">
+            <summary>
+            菜单状态（0正常 1停用）
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Enums.MenuType">
+            <summary>
+            M目录 C菜单 F按钮 L链接
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Generate.GenTable">
+            <summary>
+            代码生成表
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTable.TableId">
+            <summary>
+            表id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTable.DbName">
+            <summary>
+            数据库名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTable.TableName">
+            <summary>
+            表名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTable.TableComment">
+            <summary>
+            表描述
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTable.SubTableName">
+            <summary>
+            关联父表的表名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTable.SubTableFkName">
+            <summary>
+            本表关联父表的外键名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTable.ClassName">
+            <summary>
+            csharp类名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTable.TplCategory">
+            <summary>
+            使用的模板（crud单表操作 tree树表操作 sub主子表操作）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTable.BaseNameSpace">
+            <summary>
+            基本命名空间前缀
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTable.ModuleName">
+            <summary>
+            生成模块名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTable.BusinessName">
+            <summary>
+            生成业务名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTable.FunctionName">
+            <summary>
+            生成功能名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTable.FunctionAuthor">
+            <summary>
+            生成作者名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTable.GenType">
+            <summary>
+            生成代码方式（0zip压缩包 1自定义路径）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTable.GenPath">
+            <summary>
+            代码生成保存路径
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTable.Options">
+            <summary>
+            其他生成选项
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTable.Columns">
+            <summary>
+            表列信息
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTable.SubTable">
+            <summary>
+            字表信息（一对一时使用，兼容旧版）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTable.SubTables">
+            <summary>
+            多个子表信息（一对多：主表关联多个子表）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTable.ParentFkName">
+            <summary>
+            本表作为子表时关联主表的外键字段名（生成模板用）
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Generate.SubTableConfig">
+            <summary>
+            主子表关联配置（存于 gen_table.options JSON，一对多支持）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.SubTableConfig.TableName">
+            <summary>
+            子表表名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.SubTableConfig.FkName">
+            <summary>
+            子表关联主表的外键字段名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.CodeOptions.CheckedBtn">
+            <summary>
+            额外参数字符串
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.CodeOptions.ColNum">
+            <summary>
+            列大小 12,24
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.CodeOptions.GenerateRepo">
+            <summary>
+            是否生成仓储层
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.CodeOptions.GenerateMenu">
+            <summary>
+            自动生成菜单
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.CodeOptions.OperBtnStyle">
+            <summary>
+            操作按钮样式
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.CodeOptions.UseSnowflakeId">
+            <summary>
+            是否使用雪花id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.CodeOptions.EnableLog">
+            <summary>
+            是否启用日志(编辑、删除)自动记录日志
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.CodeOptions.FrontTpl">
+            <summary>
+            前端模板 1、element ui 2、element plus
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.CodeOptions.EnableColumns">
+            <summary>
+            启用显隐列
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.CodeOptions.SubTables">
+            <summary>
+            多个子表配置（一对多），优先于 SubTableName/SubTableFkName
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Generate.GenTableColumn">
+            <summary>
+            代码生成表字段
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTableColumn.ColumnId">
+            <summary>
+            列id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTableColumn.ColumnName">
+            <summary>
+            导入代码生成表列名 首字母转了小写
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.Generate.GenTableColumn.columnComment">
+            <summary>
+            列说明
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTableColumn.ColumnType">
+            <summary>
+            数据库列类型
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTableColumn.CsharpType">
+            <summary>
+            C#类型
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTableColumn.CsharpField">
+            <summary>
+            C# 字段名 首字母大写
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTableColumn.IsPk">
+            <summary>
+            是否主键（1是）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTableColumn.IsRequired">
+            <summary>
+            是否必填（1是）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTableColumn.IsIncrement">
+            <summary>
+            是否自增（1是）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTableColumn.IsInsert">
+            <summary>
+            是否插入（1是）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTableColumn.IsEdit">
+            <summary>
+            是否需要编辑（1是）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTableColumn.IsList">
+            <summary>
+            是否显示列表（1是）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTableColumn.IsQuery">
+            <summary>
+            是否查询（1是）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTableColumn.IsSort">
+            <summary>
+            是否排序（1是）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTableColumn.IsExport">
+            <summary>
+            是否导出（1是）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTableColumn.HtmlType">
+            <summary>
+            显示类型（文本框、文本域、下拉框、复选框、单选框、日期控件）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTableColumn.QueryType">
+            <summary>
+            查询类型（等于、不等于、大于、小于、范围）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTableColumn.DictType">
+            <summary>
+            字典类型
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTableColumn.AutoFillType">
+            <summary>
+            自动填充类型 1、添加 2、编辑 3、添加编辑
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTableColumn.SortStr">
+            <summary>
+            前端排序字符串
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTableColumn.CsharpFieldFl">
+            <summary>
+            C# 字段名 首字母小写，用于前端
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Generate.GenTableColumn.DisabledStr">
+            <summary>
+            前端 只读字段
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SqlDiffLog.PId">
+            <summary>
+            主键
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SqlDiffLog.TableName">
+            <summary>
+            表名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SqlDiffLog.BusinessData">
+            <summary>
+            业务数据内容
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SqlDiffLog.DiffType">
+            <summary>
+            差异类型insert，update，delete
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SqlDiffLog.Sql">
+            <summary>
+            执行sql语句
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SqlDiffLog.BeforeData">
+            <summary>
+            变更前数据
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SqlDiffLog.AfterData">
+            <summary>
+            变更后数据
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SqlDiffLog.UserName">
+            <summary>
+            操作用户名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SqlDiffLog.ConfigId">
+            <summary>
+            数据库配置id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysBase.Create_by">
+            <summary>
+            创建人
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysBase.Create_time">
+            <summary>
+            创建时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysBase.Update_by">
+            <summary>
+            更新人
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysBase.Update_time">
+            <summary>
+            更新时间
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.SysConfig">
+             <summary>
+             参数配置，数据实体对象
+            
+             @author mr.zhao
+             @date 2021-09-29
+             </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysConfig.ConfigId">
+            <summary>
+            配置id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysConfig.ConfigName">
+            <summary>
+            参数名称
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysConfig.ConfigKey">
+            <summary>
+            参数键名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysConfig.ConfigValue">
+            <summary>
+            参数键值
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysConfig.ConfigType">
+            <summary>
+            系统内置（Y是 N否）
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.SysDept">
+            <summary>
+            部门表
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDept.DeptId">
+            <summary>
+            部门ID
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDept.ParentId">
+            <summary>
+            父部门ID
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDept.Ancestors">
+            <summary>
+            祖级列表
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDept.DeptName">
+            <summary>
+            部门名称
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDept.OrderNum">
+            <summary>
+            显示顺序
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDept.Leader">
+            <summary>
+            负责人（昵称快照，多个以逗号分隔）
+            注意：存量库该列为 varchar(30)，自动迁移只补列不改类型，
+            故此处保持 30 不变，负责人数量过多时由前端限制，避免截断报错。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDept.LeaderIds">
+            <summary>
+            负责人用户Id集合，多个以逗号分隔
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDept.Phone">
+            <summary>
+            联系电话
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDept.Email">
+            <summary>
+            邮箱
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDept.Status">
+            <summary>
+            部门状态:0正常,1停用
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDept.DelFlag">
+            <summary>
+            删除标志
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.SysDept.children">
+            <summary>
+            子菜单
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.SysDictData">
+            <summary>
+            字典数据表
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDictData.DictCode">
+            <summary>
+            字典编码
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDictData.DictSort">
+            <summary>
+            字典排序
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDictData.DictLabel">
+            <summary>
+            字典标签
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDictData.DictValue">
+            <summary>
+            字典键值
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDictData.DictType">
+            <summary>
+            字典类型
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDictData.CssClass">
+            <summary>
+            样式属性（其他样式扩展）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDictData.ListClass">
+            <summary>
+            表格回显样式
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDictData.IsDefault">
+            <summary>
+            是否默认（Y是 N否）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDictData.Status">
+            <summary>
+            状态（0正常 1停用）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDictData.LangKey">
+            <summary>
+            多语言翻译key值
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDictData.Extend1">
+            <summary>
+            扩展1
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDictData.Extend2">
+            <summary>
+            扩展2
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.SysDictType">
+            <summary>
+            字典类型表
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDictType.DictId">
+            <summary>
+            字典主键
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDictType.DictName">
+            <summary>
+            字典名称
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDictType.DictType">
+            <summary>
+            字典类型
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDictType.Status">
+            <summary>
+            状态 0、正常 1、停用
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDictType.Type">
+            <summary>
+            系统内置 Y是 N否
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysDictType.CustomSql">
+            <summary>
+            自定义sql
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysFile.Id">
+            <summary>
+            文件id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysFile.RealName">
+            <summary>
+            文件原名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysFile.FileType">
+            <summary>
+            文件类型
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysFile.FileName">
+            <summary>
+            存储文件名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysFile.FileUrl">
+            <summary>
+            文件存储地址 eg：/uploads/20220202
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysFile.StorePath">
+            <summary>
+            仓库位置 eg：/uploads
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysFile.FileSize">
+            <summary>
+            文件大小
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysFile.FileExt">
+            <summary>
+            文件扩展名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysFile.Create_by">
+            <summary>
+            创建人
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysFile.Create_time">
+            <summary>
+            上传时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysFile.StoreType">
+            <summary>
+            存储类型
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysFile.AccessUrl">
+            <summary>
+            访问路径
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysFile.CategoryId">
+            <summary>
+            目录
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysFile.ClassifyType">
+            <summary>
+            分类
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysFile.TenantId">
+            <summary>
+            租户ID（多租户隔离）
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.SysLogininfor">
+            <summary>
+            sys_logininfor 表
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysLogininfor.UserName">
+            <summary>
+            用户账号
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysLogininfor.Status">
+            <summary>
+            登录状态 0成功 1失败
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysLogininfor.Ipaddr">
+            <summary>
+            登录IP地址
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysLogininfor.LoginLocation">
+            <summary>
+            登录地点
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysLogininfor.Browser">
+            <summary>
+            浏览器类型
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysLogininfor.Os">
+            <summary>
+            操作系统
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysLogininfor.Msg">
+            <summary>
+            提示消息
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysLogininfor.LoginTime">
+            <summary>
+            访问时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysLogininfor.ClientId">
+            <summary>
+            客户端id
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.SysMenu">
+            <summary>
+            Sys_menu表
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysMenu.MenuId">
+            <summary>
+            菜单ID
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysMenu.MenuName">
+            <summary>
+            菜单名称
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysMenu.ParentId">
+            <summary>
+            父菜单ID
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysMenu.OrderNum">
+            <summary>
+            显示顺序
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysMenu.Path">
+            <summary>
+            路由地址
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysMenu.Component">
+            <summary>
+            组件路径
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysMenu.IsCache">
+            <summary>
+            是否缓存（1不缓存 0缓存）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysMenu.IsFrame">
+            <summary>
+            是否外链 1、是 0、否
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysMenu.MenuType">
+            <summary>
+            类型（M目录 C菜单 F按钮 L链接）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysMenu.Visible">
+            <summary>
+            显示状态（0显示 1隐藏）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysMenu.Status">
+            <summary>
+            菜单状态（0正常 1停用）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysMenu.Perms">
+            <summary>
+            权限字符串
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysMenu.Icon">
+            <summary>
+            菜单图标
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysMenu.MenuNameKey">
+            <summary>
+            菜单名key
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysMenu.Query">
+            <summary>
+            路由参数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysMenu.Children">
+            <summary>
+            子菜单
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysMenu.SubNum">
+            <summary>
+            子菜单个数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysMenu.HasChildren">
+            <summary>
+            是否包含子节点，前端用
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysMenu.RouteName">
+            <summary>
+            路由名
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.SysNotice">
+             <summary>
+             通知公告表
+            
+             @author zr
+             @date 2021-12-15
+             </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysNotice.NoticeId">
+            <summary>
+            公告ID
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysNotice.NoticeTitle">
+            <summary>
+            公告标题
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysNotice.NoticeType">
+            <summary>
+            公告类型 (1通知 2公告)
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysNotice.NoticeContent">
+            <summary>
+            公告内容
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysNotice.Status">
+            <summary>
+            公告状态 (0正常 1关闭)
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysNotice.Publisher">
+            <summary>
+            发布人
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysNotice.BeginTime">
+            <summary>
+            开始时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysNotice.EndTime">
+            <summary>
+            结束时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysNotice.Popup">
+            <summary>
+            弹出提示
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysOperLog.OperId">
+            <summary>
+            操作id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysOperLog.Title">
+            <summary>
+            操作模块
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysOperLog.BusinessType">
+            <summary>
+            业务类型（0其它 1新增 2修改 3删除 4=授权,5=导出,6=导入,7=强退,8=生成代码,9=清空数据）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysOperLog.BusinessTypes">
+            <summary>
+            业务类型数组
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysOperLog.Method">
+            <summary>
+            请求方法
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysOperLog.RequestMethod">
+            <summary>
+            请求方式
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysOperLog.OperatorType">
+            <summary>
+            操作类别（0其它 1后台用户 2手机端用户）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysOperLog.OperName">
+            <summary>
+            操作人员
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysOperLog.OperUrl">
+            <summary>
+            请求url
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysOperLog.OperIp">
+            <summary>
+            操作地址
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysOperLog.OperLocation">
+            <summary>
+            操作地点
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysOperLog.OperParam">
+            <summary>
+            请求参数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysOperLog.JsonResult">
+            <summary>
+            返回参数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysOperLog.Status">
+            <summary>
+            操作状态（0正常 1异常）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysOperLog.ErrorMsg">
+            <summary>
+            错误消息
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysOperLog.OperTime">
+            <summary>
+            操作时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysOperLog.Elapsed">
+            <summary>
+            操作用时
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysOperLog.DeptName">
+            <summary>
+            部门名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysOperLog.UserId">
+            <summary>
+            用户Id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysPost.PostId">
+            <summary>
+            岗位Id
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.SysRole">
+            <summary>
+            角色表 sys_role
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysRole.RoleId">
+            <summary>
+            角色ID
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysRole.RoleName">
+            <summary>
+            角色名称
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysRole.RoleKey">
+            <summary>
+            角色权限
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysRole.RoleSort">
+            <summary>
+            角色排序
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysRole.Status">
+            <summary>
+            帐号状态（0正常 1停用）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysRole.DelFlag">
+            <summary>
+            删除标志
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysRole.DataScope">
+            <summary>
+            数据范围（1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限））
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysRole.MenuCheckStrictly">
+            <summary>
+            菜单树选择项是否关联显示
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysRole.DeptCheckStrictly">
+            <summary>
+            部门树选择项是否关联显示
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysRole.MenuIds">
+            <summary>
+            菜单组
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysRole.DeptIds">
+            <summary>
+            部门组（数据权限）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysRole.UserNum">
+            <summary>
+            用户个数
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.SysRoleMenu">
+            <summary>
+            角色菜单
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.SysTasks">
+            <summary>
+            计划任务
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasks.ID">
+            <summary>
+            任务id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasks.Name">
+            <summary>
+            任务名称 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasks.JobGroup">
+            <summary>
+            任务分组 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasks.Cron">
+            <summary>
+            运行时间表达式 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasks.AssemblyName">
+            <summary>
+            程序集名称 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasks.ClassName">
+            <summary>
+            任务所在类 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasks.RunTimes">
+            <summary>
+            执行次数 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasks.BeginTime">
+            <summary>
+            开始时间 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasks.EndTime">
+            <summary>
+            结束时间 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasks.TriggerType">
+            <summary>
+            触发器类型（0、simple 1、cron） 
+            默认 : 1
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasks.IntervalSecond">
+            <summary>
+            执行间隔时间(单位:秒) 
+            默认 : 0
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasks.IsStart">
+            <summary>
+            是否启动
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasks.JobParams">
+            <summary>
+            传入参数
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasks.LastRunTime">
+            <summary>
+            最后运行时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasks.LastSuccessTime">
+            <summary>
+            最后成功时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasks.LastFailTime">
+            <summary>
+            最后失时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasks.LastRunStatus">
+            <summary>
+            最后运行状态 0、成功 1、失败
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasks.LastErrorMsg">
+            <summary>
+            最后运行错误信息
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasks.TenantId">
+            <summary>
+            所属租户
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasks.ApiUrl">
+            <summary>
+            api执行地址
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasks.TaskType">
+            <summary>
+            任务类型 1、程序集 2、网络请求 3、SQL语句
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasks.SqlText">
+            <summary>
+            SQL语句
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasks.RequestMethod">
+            <summary>
+            网络请求方式
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.SysTasksLog">
+            <summary>
+            任务日志
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasksLog.JobLogId">
+            <summary>
+            日志Id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasksLog.JobId">
+            <summary>
+            任务Id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasksLog.JobName">
+            <summary>
+            任务名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasksLog.JobGroup">
+            <summary>
+            任务分组
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasksLog.Status">
+            <summary>
+            执行状态（0正常 1失败）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasksLog.Exception">
+            <summary>
+            异常
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasksLog.JobMessage">
+            <summary>
+            任务消息
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasksLog.InvokeTarget">
+            <summary>
+            调用目标字符串
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasksLog.TenantId">
+            <summary>
+            所属租户
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasksLog.CreateTime">
+            <summary>
+            创建时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasksLog.Elapsed">
+            <summary>
+            执行用时，毫秒
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasksLog.ServerName">
+            <summary>
+            执行机器名称
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasksLog.Operator">
+            <summary>
+            操作人
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasksLog.TraceId">
+            <summary>
+            链路追踪id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasksLog.IsManual">
+            <summary>
+            是否为手动触发（0-系统触发/定时；1-用户手动触发）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysTasksLog.TriggerSource">
+            <summary>
+            触发来源（cron/manual/api/retry）
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.SysUser">
+            <summary>
+            用户表
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysUser.UserId">
+            <summary>
+            用户id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysUser.UserName">
+            <summary>
+            登录用户名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysUser.NickName">
+            <summary>
+            用户昵称
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysUser.UserType">
+            <summary>
+            用户类型（00系统用户）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysUser.Phonenumber">
+            <summary>
+            手机号
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysUser.Sex">
+            <summary>
+            用户性别（0男 1女 2未知）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysUser.Status">
+            <summary>
+            帐号状态（0正常 1停用）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysUser.DelFlag">
+            <summary>
+            删除标志
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysUser.LoginIP">
+            <summary>
+            最后登录IP
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysUser.LoginDate">
+            <summary>
+            最后登录时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysUser.DeptId">
+            <summary>
+            部门Id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysUser.LeaderId">
+            <summary>
+            上级主管用户Id（仅存 Id，昵称展示时实时回查，避免改名后数据不一致）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysUser.PwdUpdateTime">
+            <summary>
+            最后密码更新时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysUser.RoleIds">
+            <summary>
+            角色id集合
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysUser.PostIds">
+            <summary>
+            岗位集合
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.SysUser.Wechats">
+            <summary>新增用户时随表单提交的微信账号，不落 sys_user 表</summary>
+        </member>
+        <member name="T:ZR.Model.System.SysUserPost">
+            <summary>
+            用户岗位
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.SysUserRole">
+            <summary>
+            用户角色关联表 用户N-1 角色
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.SysUserWechat">
+            <summary>
+            用户维护的私人微信账号。客户档案只能从这里选择，不直接手写微信号。
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.UserConstants.SYS_USER">
+            <summary>
+            平台内系统用户的唯一标志
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.UserConstants.NORMAL">
+            <summary>
+            正常状态
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.UserConstants.EXCEPTION">
+            <summary>
+            异常状态
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.UserConstants.USER_DISABLE">
+            <summary>
+            用户封禁状态
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.UserConstants.ROLE_DISABLE">
+            <summary>
+            角色封禁状态
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.UserConstants.DEPT_NORMAL">
+            <summary>
+            部门正常状态
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.UserConstants.DEPT_DISABLE">
+            <summary>
+            部门停用状态
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.UserConstants.DICT_NORMAL">
+            <summary>
+            字典正常状态
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.UserConstants.YES">
+            <summary>
+            是否为系统默认（是）
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.UserConstants.YES_FRAME">
+            <summary>
+            是否菜单外链（是）
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.UserConstants.NO_FRAME">
+            <summary>
+            是否菜单外链（否）
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.UserConstants.TYPE_DIR">
+            <summary>
+            菜单类型（目录）
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.UserConstants.TYPE_MENU">
+            <summary>
+            菜单类型（菜单）
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.UserConstants.TYPE_BUTTON">
+            <summary>
+            菜单类型（按钮）
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.UserConstants.TYPE_LINK">
+            <summary>
+            菜单类型（链接）
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.UserConstants.TYPE_TREE_IDS">
+            <summary>
+            导航树可见菜单类型（目录/菜单/链接）
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.UserConstants.LAYOUT">
+            <summary>
+            Layout组件标识
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.UserConstants.PARENT_VIEW">
+            <summary>
+            ParentView组件标识
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.UserConstants.INNER_LINK">
+            <summary>
+            InnerLink组件标识
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.UserConstants.UNIQUE">
+            <summary>
+            校验返回结果码
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.UserConstants.HTTP">
+            <summary>
+            http请求
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.UserConstants.HTTPS">
+            <summary>
+            https请求
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.UserConstants.WWW">
+            <summary>
+            www主域
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Vo.RouterVo">
+            <summary>
+            路由展示
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Vo.RouterVo.AlwaysShow">
+            <summary>
+            当你一个路由下面的 children 声明的路由大于1个时，自动会变成嵌套的模式--如组件页面
+            </summary>
+        </member>
+        <member name="F:ZR.Model.System.Vo.RouterVo.component">
+            <summary>
+            组件地址
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Vo.RouterVo.Hidden">
+            <summary>
+            是否隐藏路由，当设置 true 的时候该路由不会再侧边栏出现
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Vo.RouterVo.Name">
+            <summary>
+            路由名字
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Vo.RouterVo.Path">
+            <summary>
+            路由地址
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Vo.RouterVo.Redirect">
+            <summary>
+            重定向地址，当设置 noRedirect 的时候该路由在面包屑导航中不可被点击
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Vo.RouterVo.Query">
+            <summary>
+            路由参数: 如{ "key": "value"}
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Vo.RouterVo.Meta">
+            <summary>
+            其他元素
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Vo.RouterVo.Children">
+            <summary>
+            子路由
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Vo.Meta.Title">
+            <summary>
+            设置该路由在侧边栏和面包屑中展示的名字
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Vo.Meta.Icon">
+            <summary>
+            设置该路由的图标，对应路径src/assets/icons/svg
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "P:ZR.Model.System.Vo.Meta.NoCache" -->
+        <member name="P:ZR.Model.System.Vo.Meta.IconColor">
+            <summary>
+            icon颜色
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Vo.Meta.Permi">
+            <summary>
+            权限字符
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Vo.Meta.TagByQuery">
+            <summary>
+            标签页多开，开启后路由可打开多个标签页，默认false
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Vo.TreeSelectVo">
+            <summary>
+            Treeselect树结构实体类
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Vo.TreeSelectVo.Id">
+            <summary>
+            节点Id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Vo.TreeSelectVo.Label">
+            <summary>
+            节点名称
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Tenant.SysTenant">
+            <summary>
+            租户信息
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenant.Id">
+            <summary>
+            主键ID
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenant.TenantId">
+            <summary>
+            租户标识，对应 dbConfigs[].ConfigId
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenant.Domain">
+            <summary>
+            域名绑定：子域名标签（如 acme，对应 acme.shop.com）或租户自定义完整域名（如 acme.com）。
+            用于按访问域名自动解析租户，为空表示未绑定（回退 token/主库）。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenant.TenantName">
+            <summary>
+            租户名称
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenant.CompanyName">
+            <summary>
+            企业名称
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenant.Logo">
+            <summary>
+            企业Logo图片地址（相对路径或完整URL），用于登录页/后台顶栏展示各自品牌。
+            由前端 UploadImage 上传到文件服务后回填，为空表示使用系统默认Logo。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenant.ContactName">
+            <summary>
+            联系人
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenant.ContactPhone">
+            <summary>
+            联系电话
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenant.Status">
+            <summary>
+            状态：0正常 1停用
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenant.ExpireTime">
+            <summary>
+            过期时间，为空表示不过期
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenant.DelFlag">
+            <summary>
+            删除标志
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Tenant.SysTenantDictData">
+            <summary>
+            租户字典数据扩展表（存储在租户库）
+            用于租户对主库公共字典的覆盖、禁用和新增。
+            以 DictType + DictValue 作为关联主库字典的 Key。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantDictData.DictType">
+            <summary>
+            字典类型，关联主库 SysDictType.DictType
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantDictData.DictValue">
+            <summary>
+            字典键值，关联主库 SysDictData.DictValue
+            新增自定义项时，需确保不与主库已有值冲突。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantDictData.DictLabel">
+            <summary>
+            字典标签（覆盖/新增的显示文本）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantDictData.DictSort">
+            <summary>
+            字典排序
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantDictData.Status">
+            <summary>
+            状态（0正常 1停用）
+            停用表示该租户不启用此字典项（覆盖主库项时生效）。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantDictData.IsDefault">
+            <summary>
+            是否默认（Y是 N否）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantDictData.CssClass">
+            <summary>
+            样式属性（其他样式扩展）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantDictData.ListClass">
+            <summary>
+            表格回显样式
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantDictData.OriginalDictCode">
+            <summary>
+            被覆盖的主库字典数据 DictCode。
+            如果是对主库已有项的覆盖，记录其 DictCode；
+            如果是租户新增的自定义项，则为 null。
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Tenant.SysTenantOrder">
+            <summary>
+            租户套餐计费流水。记录租户开通/套餐分配/续费/到期降级的账目事实，供平台对账与租户消费追溯。
+            流水只增不改：降级、退订等均以新记录表达，不做物理删除。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantOrder.Id">
+            <summary>
+            主键ID
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantOrder.OrderNo">
+            <summary>
+            流水单号，TO+时间戳+随机片段，业务唯一
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantOrder.TenantId">
+            <summary>
+            租户标识
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantOrder.ActionType">
+            <summary>
+            动作类型：plan-assign=套餐分配/变更（含开通初始分配），renew=续费，degrade=套餐到期降级
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantOrder.PlanCode">
+            <summary>
+            涉及的套餐编码（降级流水记录的是被降掉的套餐）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantOrder.StartTime">
+            <summary>
+            本次套餐/续费生效开始时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantOrder.EndTime">
+            <summary>
+            本次套餐/续费到期时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantOrder.Amount">
+            <summary>
+            本次计费金额。当前业务无支付闭环，由操作方在续费/分配时选填，为空表示未记账
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantOrder.OperatorName">
+            <summary>
+            操作人（平台管理员或 system）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantOrder.PayStatus">
+            <summary>
+            支付状态：0=待支付 1=已支付（在线支付单使用；线下记账直接置已支付或留空）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantOrder.PayChannel">
+            <summary>
+            支付渠道：wechat 等
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantOrder.TransactionId">
+            <summary>
+            第三方支付交易号（微信 transaction_id）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantOrder.DurationDays">
+            <summary>
+            本次续费时长（天），在线续费下单时写入，支付成功后据此执行续费
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantOrder.PayTime">
+            <summary>
+            支付完成时间
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Tenant.SysTenantPlan">
+            <summary>
+            套餐定义。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantPlan.MaxUsers">
+            <summary>
+            最大用户数。-1 表示不限制。
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Tenant.SysTenantPlanBinding">
+            <summary>
+            租户套餐绑定。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantPlanBinding.MaxUsersOverride">
+            <summary>
+            用户数上限覆盖值。为空则使用套餐默认值。
+            </summary>
+        </member>
+        <member name="T:ZR.Model.System.Tenant.SysTenantPlanMenu">
+            <summary>
+            套餐菜单配置（主库存储）
+            一个套餐关联一组菜单，租户通过套餐间接获得菜单权限。
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantPlanMenu.PlanCode">
+            <summary>
+            套餐编码
+            </summary>
+        </member>
+        <member name="P:ZR.Model.System.Tenant.SysTenantPlanMenu.MenuId">
+            <summary>
+            菜单ID，关联主库 SysMenu.MenuId
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Models.CommonLang">
+            <summary>
+            多语言配置，数据实体对象
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.CommonLang.Id">
+            <summary>
+            id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.CommonLang.LangCode">
+            <summary>
+            语言code
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.CommonLang.LangKey">
+            <summary>
+            语言key
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.CommonLang.LangName">
+            <summary>
+            名称
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.CommonLang.Addtime">
+            <summary>
+            添加时间
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Models.EmailLog">
+            <summary>
+            邮件发送记录
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.EmailLog.FromName">
+            <summary>
+            发送人名称
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.EmailLog.FromEmail">
+            <summary>
+            发送邮箱
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.EmailLog.Subject">
+            <summary>
+            邮件主题
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.EmailLog.ToEmails">
+            <summary>
+            接收邮箱
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.EmailLog.EmailContent">
+            <summary>
+            邮件内容
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.EmailLog.AddTime">
+            <summary>
+            发送时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.EmailLog.IsSend">
+            <summary>
+            是否已发送
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.EmailLog.SendResult">
+            <summary>
+            发送结果
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.EmailLog.FileUrl">
+            <summary>
+            附件地址
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.EmailLog.SendTime">
+            <summary>
+            发送时间
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Models.EmailTpl">
+            <summary>
+            邮件发送模板
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Models.SmsCodeLog">
+            <summary>
+            短信验证码记录
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.SmsCodeLog.SmsCode">
+            <summary>
+            短信验证码
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.SmsCodeLog.Userid">
+            <summary>
+            用户id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.SmsCodeLog.PhoneNum">
+            <summary>
+            手机号
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.SmsCodeLog.SmsContent">
+            <summary>
+            短信内容
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.SmsCodeLog.AddTime">
+            <summary>
+            发送时间
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.SmsCodeLog.UserIP">
+            <summary>
+            用户IP
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.SmsCodeLog.Location">
+            <summary>
+            地理位置
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.SmsCodeLog.SendType">
+            <summary>
+            1、登录 2、注册 3、找回密码
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.SmsCodeLog.SendStatus">
+            <summary>
+            发送状态 0待发送/发送中 1成功 2失败
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.SmsCodeLog.BizId">
+            <summary>
+            服务商回执ID（BizId/RequestId，用于查询发送状态）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.SmsCodeLog.ErrorMsg">
+            <summary>
+            发送失败原因
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Models.UserOnlineLog">
+            <summary>
+            用户在线时长
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.UserOnlineLog.Id">
+            <summary>
+            Id 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.UserOnlineLog.UserId">
+            <summary>
+            用户id 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.UserOnlineLog.OnlineTime">
+            <summary>
+            在线时长(分) 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.UserOnlineLog.TodayOnlineTime">
+            <summary>
+            今日在线时长
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.UserOnlineLog.AddTime">
+            <summary>
+            结束时间 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.UserOnlineLog.Location">
+            <summary>
+            地址位置 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.UserOnlineLog.UserIP">
+            <summary>
+            用户IP 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.UserOnlineLog.Remark">
+            <summary>
+            备注 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Models.UserOnlineLog.Platform">
+            <summary>
+            登录平台
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Dto.ChatMessageDto.MsgType">
+            <summary>
+            0、文本 1、图片 2、文件 3、语音 4、视频
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Dto.ChatMessageDto.Message">
+            <summary>
+            消息内容，如果type=1/2/3/4，此属性表示文件的URL地址
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Dto.CommonLangDto">
+            <summary>
+            多语言配置输入对象
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Dto.CommonLangQueryDto">
+            <summary>
+            多语言配置查询对象
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Dto.EmailLogQueryDto">
+            <summary>
+            邮件发送记录查询对象
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Dto.EmailLogDto">
+            <summary>
+            邮件发送记录输入输出对象
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Dto.EmailLogDto.IsSend">
+            <summary>
+            是否已发送
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Dto.EmailLogDto.SendResult">
+            <summary>
+            发送结果
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Dto.EmailTplQueryDto">
+            <summary>
+            邮件模板查询对象
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Dto.EmailTplDto">
+            <summary>
+            邮件模板输入输出对象
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Dto.SmscodeLogQueryDto">
+            <summary>
+            短信验证码记录查询对象
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Dto.SmsCodeLogDto">
+            <summary>
+            短信验证码记录输入输出对象
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Dto.SysUserMsgQueryDto">
+            <summary>
+            用户系统消息查询对象
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Dto.SysUserMsgDto">
+            <summary>
+            用户系统消息输入输出对象
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Dto.UploadDto.FileName">
+            <summary>
+            自定文件名
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Dto.UploadDto.FileDir">
+            <summary>
+            存储目录
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Dto.UploadDto.FileNameType">
+            <summary>
+            文件名生成类型 1 原文件名 2 自定义 3 自动生成
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Dto.UploadDto.CategoryId">
+            <summary>
+            分类id
+            </summary>
+        </member>
+        <member name="P:ZR.Model.Dto.UploadDto.Quality">
+            <summary>
+            压缩质量0-100之间
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Dto.UserOnlineLogQueryDto">
+            <summary>
+            用户在线时长查询对象
+            </summary>
+        </member>
+        <member name="T:ZR.Model.Dto.UserOnlineLogDto">
+            <summary>
+            用户在线时长输入输出对象
+            </summary>
+        </member>
+        <member name="T:ZR.Model.SysUserMsg">
+            <summary>
+            用户系统消息（多租户：统一存主库，按 TenantId 隔离）
+            </summary>
+        </member>
+        <member name="P:ZR.Model.SysUserMsg.MsgId">
+            <summary>
+            消息ID 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.SysUserMsg.UserId">
+            <summary>
+            用户ID 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.SysUserMsg.Content">
+            <summary>
+            消息内容 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.SysUserMsg.IsRead">
+            <summary>
+            是否已读 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.SysUserMsg.AddTime">
+            <summary>
+            添加时间 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.SysUserMsg.TargetId">
+            <summary>
+            目标ID 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.SysUserMsg.MsgType">
+            <summary>
+            消息类型 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.SysUserMsg.IsDelete">
+            <summary>
+            是否删除 
+            </summary>
+        </member>
+        <member name="P:ZR.Model.SysUserMsg.FromUserid">
+            <summary>
+            来源用户
+            </summary>
+        </member>
+        <member name="P:ZR.Model.SysUserMsg.User">
+            <summary>
+            关联用户
+            </summary>
+        </member>
+        <member name="P:ZR.Model.SysUserMsg.TenantId">
+            <summary>
+            租户ID（多租户隔离标识）
+            </summary>
+        </member>
+        <member name="P:ZR.ServiceCore.Model.Dto.PhoneLoginDto.Code">
+            <summary>
+            验证码
+            </summary>
+        </member>
+        <member name="P:ZR.ServiceCore.Model.Dto.PhoneLoginDto.Uuid">
+            <summary>
+            唯一标识
+            </summary>
+        </member>
+        <member name="P:ZR.ServiceCore.Model.Dto.PhoneLoginDto.PhoneCode">
+            <summary>
+            手机短信验证码
+            </summary>
+        </member>
+        <member name="P:ZR.ServiceCore.Model.Dto.PhoneLoginDto.SendType">
+            <summary>
+            0、登录 1、绑定
+            </summary>
+        </member>
+        <member name="P:ZR.ServiceCore.Model.Dto.PhoneLoginDto.TenantId">
+            <summary>
+            租户id
+            </summary>
+        </member>
+        <member name="P:ZR.ServiceCore.Model.Dto.StatiLoginLogDto.DeRepeatNum">
+            <summary>
+            去重数据
+            </summary>
+        </member>
+        <member name="P:ZR.ServiceCore.Model.Dto.SysPostDto.UserNum">
+            <summary>
+            用户个数
+            </summary>
+        </member>
+        <member name="F:UserMsgType.TENANT_NOTICE">
+            <summary>
+            租户通知：平台对租户管理员推送的租户级系统消息（停服/续费/套餐变更等）
+            </summary>
+        </member>
+        <member name="F:UserMsgType.ORDER">
+            <summary>
+            商城订单通知：发货/退款等订单状态变化推送给买家
+            </summary>
+        </member>
+        <member name="F:UserMsgType.WORKFLOW">
+            <summary>
+            工作流通知：审批待办/通过/驳回/转办/加签/撤回/重提等流转提醒
+            </summary>
+        </member>
+    </members>
+</doc>

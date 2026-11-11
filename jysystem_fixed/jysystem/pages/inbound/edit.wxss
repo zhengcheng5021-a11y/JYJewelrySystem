@@ -1,0 +1,61 @@
+.head-btn-group { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 12rpx; }
+.head-action.gold { border-color: transparent; background: var(--btn-grad); color: var(--btn-text); box-shadow: 0 8rpx 22rpx rgba(60, 40, 39, 0.22); }
+.quick-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14rpx; margin-bottom: 20rpx; padding: 20rpx 26rpx; border: 1rpx solid var(--line); border-radius: 30rpx; background: var(--surface-soft); box-shadow: var(--shadow); }
+.quick-bar > .row { flex-wrap: wrap; min-width: 0; }
+.quick-bar > .row:last-child { margin-left: auto; }
+.inbound-card { position: relative; }
+.capture-main { display: flex; align-items: stretch; gap: 20rpx; margin-top: 18rpx; }
+.photo-box { position: relative; display: flex; width: 208rpx; min-height: 228rpx; flex: none; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; border: 2rpx dashed var(--jade); border-radius: 34rpx; background: var(--jade-soft); color: var(--jade); transition: all 0.2s ease; }
+.photo-box.has-img { border-style: solid; border-color: var(--line); background: var(--surface-soft); }
+.photo-img { width: 100%; height: 100%; border-radius: 32rpx; }
+.photo-icon { font-size: 46rpx; line-height: 1; }
+.photo-label { margin-top: 10rpx; font-size: 22rpx; font-weight: 700; }
+.photo-sub { margin-top: 4rpx; color: var(--muted); font-size: 18rpx; }
+.photo-mask { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; border-radius: 32rpx; background: rgba(0, 0, 0, 0.45); color: #fff; font-size: 22rpx; font-weight: 700; }
+.photo-actions { position: absolute; right: 10rpx; bottom: 10rpx; left: 10rpx; display: flex; justify-content: space-between; gap: 8rpx; }
+.photo-act-btn { display: flex; min-height: 60rpx; flex: 1; align-items: center; justify-content: center; padding: 10rpx 12rpx; border-radius: 999rpx; background: rgba(20, 24, 23, 0.72); color: #fff; font-size: 21rpx; font-weight: 600; line-height: 1.35; text-align: center; white-space: normal; box-sizing: border-box; backdrop-filter: blur(8rpx); }
+.photo-act-btn.danger { flex: none; width: 56rpx; padding-right: 0; padding-left: 0; border-radius: 999rpx; background: rgba(185, 92, 80, 0.88); }
+
+.capture-fields { display: flex; flex: 1; min-width: 0; flex-direction: column; justify-content: space-between; gap: 14rpx; }
+.name-input-wrap { width: 100%; }
+.name-input { height: 74rpx; border-radius: 999rpx; font-size: 25rpx; font-weight: 700; }
+.price-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12rpx; }
+.price-box { display: flex; flex-direction: column; padding: 12rpx 18rpx; border: 1rpx solid var(--line); border-radius: 26rpx; background: var(--surface-soft); }
+.price-box.sale { border-color: var(--gold); background: var(--gold-soft); }
+.price-label { color: var(--muted); font-size: 18rpx; }
+.price-input { width: 100%; height: 46rpx; margin-top: 2rpx; color: var(--ink); font-size: 28rpx; font-weight: 700; }
+.markup-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10rpx; }
+.markup-tip { color: var(--muted); font-size: 19rpx; }
+.markup-chip { display: inline-flex; min-height: 64rpx; align-items: center; justify-content: center; padding: 10rpx 28rpx; border: 1rpx solid var(--line); border-radius: 999rpx; background: var(--surface-strong); color: var(--jade); font-size: 22rpx; font-weight: 700; line-height: 1.4; text-align: center; white-space: normal; box-sizing: border-box; transition: transform 0.15s ease; }
+.markup-chip:active { transform: scale(0.94); background: var(--jade); color: #fff; }
+
+.quick-spec-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10rpx; margin-top: 16rpx; padding-top: 14rpx; border-top: 1rpx dashed var(--line); }
+.quick-spec-label { flex: none; color: var(--muted); font-size: 20rpx; }
+
+.spec-tile { display: flex; min-height: 100rpx; flex-direction: column; justify-content: center; padding: 16rpx 24rpx; border: 1rpx solid var(--line); border-radius: 28rpx; background: var(--surface-soft); transition: all 0.18s ease; }
+.spec-tile:active { transform: scale(0.98); }
+.spec-tile.required { border-color: var(--gold); background: var(--gold-soft); }
+.spec-tile.filled { border-color: var(--jade); background: var(--jade-soft); }
+.spec-label { color: var(--muted); font-size: 19rpx; }
+.spec-value { margin-top: 4rpx; color: var(--ink); font-size: 24rpx; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+
+.spec-sheet { max-height: 82vh; display: flex; flex-direction: column; }
+.spec-option-scroll { max-height: 52vh; margin-top: 18rpx; }
+.spec-chip-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14rpx; padding-bottom: 28rpx; }
+.spec-option-chip { display: flex; min-height: 82rpx; align-items: center; justify-content: space-between; gap: 12rpx; padding: 16rpx 26rpx; border: 1rpx solid var(--line); border-radius: 999rpx; background: var(--surface-soft); color: var(--ink); font-size: 23rpx; font-weight: 600; line-height: 1.45; text-align: left; transition: all 0.15s ease; }
+.spec-option-chip:active { transform: scale(0.96); }
+.spec-option-chip.active { border-color: transparent; background: var(--btn-grad); color: var(--btn-text); box-shadow: 0 8rpx 20rpx rgba(60, 40, 39, 0.22); }
+.spec-option-text { min-width: 0; line-height: 1.35; overflow-wrap: anywhere; }
+.spec-option-check { margin-left: 6rpx; font-size: 22rpx; font-weight: 700; }
+
+@media screen and (max-width: 360px) {
+  .capture-main { flex-direction: column; }
+  .photo-box { width: 100%; height: 220rpx; min-height: 220rpx; }
+  .photo-actions { right: 18rpx; bottom: 16rpx; left: 18rpx; }
+  .photo-act-btn { min-height: 64rpx; font-size: 22rpx; }
+  .spec-option-chip { min-height: 88rpx; padding-right: 22rpx; padding-left: 22rpx; font-size: 22rpx; }
+  .name-input { height: 80rpx; }
+  .price-grid { grid-template-columns: minmax(0, 1fr); }
+  .spec-chip-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .quick-bar { border-radius: 30rpx; }
+}

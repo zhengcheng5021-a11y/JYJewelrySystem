@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<NoWarn>1701;1702;1591;1570</NoWarn>
+		<ProjectGuid>{3F4A9C1B-7D2E-4F8B-9A6C-1B5E3D7C9A04}</ProjectGuid>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="FluentValidation" Version="11.11.0" />
+		<PackageReference Include="Quartz" Version="3.18.1" />
+		<PackageReference Include="UglyToad.PdfPig" Version="1.7.0-custom-5" />
+		<PackageReference Include="DocumentFormat.OpenXml" Version="3.1.1" />
+		<ProjectReference Include="..\Infrastructure\ZR.Infrastructure.csproj" />
+		<ProjectReference Include="..\ZR.ServiceCore\ZR.ServiceCore.csproj" />
+	</ItemGroup>
+
+</Project>

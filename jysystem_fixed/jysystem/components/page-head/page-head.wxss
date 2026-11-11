@@ -1,0 +1,29 @@
+button,
+button:not([size='mini']) {
+  width: auto;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-weight: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  font-family: inherit;
+}
+button::after { display: none; border: 0; }
+.head { display: flex; align-items: flex-start; justify-content: space-between; gap: 24rpx; }
+.copy { flex: 1; min-width: 0; }
+.eyebrow { color: var(--jade); font-size: 20rpx; font-weight: 700; letter-spacing: 3rpx; opacity: .86; }
+.title { margin-top: 10rpx; font-family: "Songti SC","STSong",serif; font-size: 48rpx; font-weight: 700; letter-spacing: 2rpx; line-height: 1.15; }
+.subtitle { margin-top: 10rpx; color: var(--muted); font-size: 23rpx; line-height: 1.55; opacity: .9; }
+button.head-action,
+.head-action {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: none; width: auto; max-width: 100%; min-height: 80rpx; margin: 8rpx 0 0; padding: 14rpx 36rpx;
+  border: 1rpx solid var(--line); border-radius: 999rpx;
+  background: var(--surface-strong); color: var(--jade); font-size: 24rpx; font-weight: 700; line-height: 1.45; text-align: center; white-space: normal; overflow-wrap: anywhere;
+  box-sizing: border-box;
+  box-shadow: 0 3rpx 12rpx rgba(60,40,39,.06);
+}
+.head { flex-wrap: wrap; }
+.copy { flex: 1 1 360rpx; }

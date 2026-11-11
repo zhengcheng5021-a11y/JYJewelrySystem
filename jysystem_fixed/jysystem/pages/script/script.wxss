@@ -1,0 +1,33 @@
+.chips { display: flex; flex-wrap: wrap; gap: 12rpx; margin-bottom: 20rpx; }
+.chips > .chip,
+button.chip,
+.chip {
+  display: inline-flex; width: auto; align-items: center; justify-content: center;
+  min-height: 68rpx; margin: 0; padding: 10rpx 28rpx;
+  border: 1rpx solid var(--line); border-radius: 999rpx; background: var(--surface); color: var(--muted);
+  font-size: 22rpx; font-weight: 600; line-height: 1.4; text-align: center; white-space: normal; overflow-wrap: anywhere;
+  transition: transform 0.15s ease;
+}
+.chip:active { transform: scale(0.95); }
+.chips > .chip.active,
+button.chip.active,
+.chip.active { border-color: var(--jade); background: var(--jade-soft); color: var(--jade); font-weight: 700; }
+.script-card { cursor: pointer; }
+.script-content { margin-top: 16rpx; padding: 22rpx 24rpx; border: 1rpx solid var(--line); border-radius: 26rpx; background: var(--surface-soft); font-size: 24rpx; line-height: 1.65; }
+.script-card > .row-between { flex-wrap: wrap; gap: 10rpx 14rpx; }
+.script-card > .row-between > .row { flex-wrap: wrap; gap: 10rpx; }
+.script-title-row { row-gap: 8rpx; }
+.script-title-group { flex: 1 1 280rpx; gap: 8rpx 12rpx; }
+.script-title { min-width: 0; line-height: 1.45; overflow-wrap: anywhere; }
+.script-meta-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8rpx 16rpx; margin-top: 12rpx; }
+.script-stars { display: flex; align-items: center; flex-wrap: wrap; gap: 4rpx 6rpx; }
+.script-star { color: var(--line); font-size: 24rpx; line-height: 1; }
+.script-star.lit { color: var(--gold); text-shadow: 0 0 10rpx rgba(185,143,74,.22); }
+.script-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 12rpx; margin-top: 14rpx; }
+.script-actions .btn-mini { margin: 0; }
+.btn-mini.danger { border-color: rgba(160,70,70,.35); color: var(--red); }
+.star-picker-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10rpx 16rpx; padding: 14rpx 18rpx; border: 1rpx solid var(--line); border-radius: 22rpx; background: var(--surface-soft); }
+.star-picker { display: flex; align-items: center; flex-wrap: wrap; gap: 4rpx; }
+.star-picker-btn { width: 58rpx; min-width: 58rpx; height: 58rpx; margin: 0; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--line); font-size: 38rpx; line-height: 58rpx; text-align: center; }
+.star-picker-btn.lit { color: var(--gold); }
+.star-picker-btn::after { border: 0; }

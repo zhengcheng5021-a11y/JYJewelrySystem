@@ -1,0 +1,53 @@
+<app-nav title="客户档案"></app-nav>
+<view class="app-page" style="{{theme.style}}">
+  <view class="top-bar"><theme-switch bind:change="onTheme"></theme-switch><text class="top-meta">共 {{totalText}} 位藏家档案</text></view>
+  <view class="page-head"><view><view class="eyebrow-row"><text class="seal-dot"></text><text class="eyebrow">VIP CLIENTS</text></view><view class="page-title">客户档案</view><view class="page-sub">沉淀东方珠宝藏家私域，支持浮层建档与一键带客去开单。</view></view><button class="head-action" bindtap="openCreate">新建档案</button></view>
+  <view class="row search-row" style="margin-bottom:20rpx;">
+    <input class="input-mini grow" value="{{keyword}}" placeholder="姓名、手机或会员号" placeholder-class="placeholder" bindinput="onKeyword" bindconfirm="search" />
+    <button wx:if="{{keyword}}" class="btn-mini" bindtap="clearKeyword">清空</button>
+    <button class="btn-mini primary" bindtap="search">搜索</button>
+  </view>
+  <view wx:if="{{loading && !rows.length}}" class="state"><view class="state-title">正在查找客户</view></view>
+  <view wx:elif="{{error && !rows.length}}" class="state" bindtap="search"><view class="state-title">客户加载失败</view><view>{{error}}</view><text class="state-action">重试</text></view>
+  <view wx:elif="{{!rows.length}}" class="state" bindtap="openCreate"><view class="state-title">没有匹配的客户</view><view>先建立档案，后续可识别开单和记录跟进。</view><text class="state-action">新建客户</text></view>
+  <view wx:for="{{rows}}" wx:key="id" class="glass-card">
+    <view class="row">
+      <view class="avatar">{{item.initial}}</view>
+      <view class="grow">
+        <view class="row-between member-title-row"><view class="row member-name-row"><text class="member-name" style="font-size:27rpx;font-weight:700;">{{item.memberName}}</text><text class="tag tag-gold">{{item.levelName || '普通会员'}}</text></view><text class="money small member-points" style="color:var(--gold);">{{item.pointsText}} 积分</text></view>
+        <view class="muted small" style="margin-top:5rpx;">卡号 {{item.memberNo || '未编号'}} · 手机 {{item.phone || '无手机'}}</view>
+      </view>
+    </view>
+    <view class="member-actions"><button class="btn-mini" data-index="{{index}}" bindtap="contact">联系</button><button class="btn-mini" data-index="{{index}}" bindtap="follow">跟进</button><button class="btn-mini primary" data-index="{{index}}" bindtap="sendToSale">带客开单 ›</button></view>
+  </view>
+  <view wx:if="{{rows.length}}" class="pager-bar">
+    <view class="pager-info">已显示 {{rows.length}} / {{totalText}} 位藏家（第 {{pageNum}} 页）</view>
+    <view class="pager-actions">
+      <button wx:if="{{hasMore}}" class="pager-btn" loading="{{loadingMore}}" bindtap="loadMore">{{loadingMore ? '加载中...' : '加载更多藏家 ↓'}}</button>
+      <text wx:else class="muted small">—— 已展示全部藏家档案 ——</text>
+      <button wx:if="{{pageNum > 1 || rows.length > 8}}" class="pager-btn" bindtap="scrollTop">回到顶部 ↑</button>
+    </view>
+  </view>
+  <view wx:if="{{error && rows.length}}" class="glass-card small" style="color:var(--red);">{{error}}</view>
+</view>
+<view wx:if="{{creating}}" class="drawer-mask" bindtap="closeCreate">
+  <view class="drawer-panel" catchtap="noop">
+    <view class="drawer-handle"></view>
+    <view class="drawer-head"><text class="drawer-title">新建藏家客户档案</text><button class="btn-mini" bindtap="closeCreate">关闭 ×</button></view>
+    <view class="drawer-list">
+      <input class="input-mini" value="{{form.memberName}}" data-field="memberName" placeholder="客户姓名 / 雅称（必填）" placeholder-class="placeholder" bindinput="onForm" />
+      <view class="row" style="gap:10rpx;flex-wrap:wrap;">
+        <text class="muted small">常用尊称快补：</text>
+        <view class="quick-chip" data-suffix="女士" bindtap="appendHonorific">＋女士</view>
+        <view class="quick-chip" data-suffix="先生" bindtap="appendHonorific">＋先生</view>
+        <view class="quick-chip" data-suffix="藏家" bindtap="appendHonorific">＋藏家</view>
+        <view class="quick-chip" data-suffix="老师" bindtap="appendHonorific">＋老师</view>
+      </view>
+      <input class="input-mini" type="number" value="{{form.phone}}" data-field="phone" placeholder="联系电话（选填）" placeholder-class="placeholder" bindinput="onForm" />
+      <input class="input-mini" value="{{form.wechatNo}}" data-field="wechatNo" placeholder="微信号（选填）" placeholder-class="placeholder" bindinput="onForm" />
+      <button class="btn btn-primary" loading="{{saving}}" bindtap="save">保存并建立档案</button>
+      <view wx:if="{{formError}}" class="small" style="color:var(--red);">{{formError}}</view>
+    </view>
+  </view>
+</view>
+<bottom-nav active="members"></bottom-nav>

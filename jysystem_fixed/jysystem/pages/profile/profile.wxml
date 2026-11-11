@@ -1,0 +1,74 @@
+<app-nav title="我的"></app-nav>
+<view class="app-page" style="{{theme.style}}">
+  <view class="top-bar"><theme-switch bind:change="onTheme"></theme-switch><text class="top-meta">JINGYUE ATELIER</text></view>
+  <view class="hero-banner profile-hero">
+    <view class="hero-orb"></view>
+    <view class="row">
+      <view class="avatar-logo" style="width:96rpx;height:96rpx;">
+        <image src="/images/logo.png" mode="aspectFill"></image>
+      </view>
+      <view class="grow">
+        <view class="row" style="flex-wrap:wrap;"><text class="serif" style="font-size:34rpx;font-weight:700;">{{nickName}}</text><text class="tag tag-gold">官方认证顾问</text></view>
+        <view class="muted small" style="margin-top:8rpx;">账号：{{userName || '未登录'}} · 租户节点 #{{tenantId}}</view>
+        <view class="muted small" style="margin-top:4rpx;">权限级别：{{permissionText}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section-head"><view class="row"><text class="seal-bar"></text><text class="section-title">画境长廊 · 四时气韵切换</text></view><text class="section-note">全端同步高定光影</text></view>
+  <view class="season-grid">
+    <button wx:for="{{seasons}}" wx:key="id" class="season-card {{theme.id===item.id?'active':''}}" data-id="{{item.id}}" bindtap="chooseSeason">
+      <view class="row-between"><view class="row season-name-row"><text class="season-dot" style="background:{{item.dot}};"></text><text class="serif season-name" style="font-size:25rpx;font-weight:700;">{{item.short}}</text></view><text wx:if="{{theme.id===item.id}}" class="tag">当前</text></view>
+      <view class="muted small" style="margin-top:9rpx;">{{item.label}} · {{item.caption}}</view>
+    </button>
+  </view>
+
+  <view class="glass-card">
+    <view class="row-between" style="padding-bottom:16rpx;border-bottom:1rpx solid var(--line);flex-wrap:wrap;gap:12rpx;">
+      <view class="grow">
+        <view class="row" style="gap:10rpx;">
+          <text style="font-size:26rpx;font-weight:700;">直连云服务器 API 地址</text>
+          <text class="tag tag-gold">直连模式</text>
+        </view>
+        <view class="muted small" style="margin-top:6rpx;word-break:break-all;">{{apiBase}}（租户 #{{tenantId}}）</view>
+      </view>
+      <view class="row" style="gap:10rpx;">
+        <button class="btn-mini" bindtap="copyBase">复制</button>
+        <button class="btn-mini primary" bindtap="openApiModal">配置地址</button>
+      </view>
+    </view>
+    <view class="muted small" style="margin-top:14rpx;line-height:1.6;">已移除全部云开发中转，所有数据请求与实品图片上传均直接连接你的自有云服务器后台 API。</view>
+  </view>
+
+  <view class="btn btn-danger profile-logout {{loggingOut ? 'is-loading' : ''}}" style="margin-top:24rpx;" catchtap="logout">
+    {{loggingOut ? '正在退出…' : '退出登录'}}
+  </view>
+</view>
+<bottom-nav active="profile"></bottom-nav>
+
+<!-- 配置直连服务器地址弹窗 -->
+<view wx:if="{{apiModalVisible}}" class="logout-modal-mask" catchtap="closeApiModal">
+  <view class="logout-modal" catchtap="noop">
+    <view class="logout-modal-title">配置自有云服务器 API</view>
+    <view class="logout-modal-content">小程序将直接向该服务器发起 HTTP/HTTPS 请求与图片上传。</view>
+    <view class="drawer-list" style="margin-top:20rpx;">
+      <input class="input-mini" value="{{editApiBase}}" placeholder="如 http://146.56.241.105:8888" placeholder-class="placeholder" bindinput="onEditApiBase" />
+      <input class="input-mini" value="{{editTenantId}}" placeholder="租户节点编号，默认 0" placeholder-class="placeholder" bindinput="onEditTenantId" />
+    </view>
+    <view class="logout-modal-actions">
+      <view class="logout-modal-btn secondary" catchtap="resetApiConfig">恢复默认</view>
+      <view class="logout-modal-btn primary" catchtap="saveApiConfig">保存生效</view>
+    </view>
+  </view>
+</view>
+
+<view wx:if="{{logoutConfirmVisible}}" class="logout-modal-mask" catchtap="cancelLogout">
+  <view class="logout-modal" catchtap="noop">
+    <view class="logout-modal-title">退出登录</view>
+    <view class="logout-modal-content">退出后需要重新输入账号密码。</view>
+    <view class="logout-modal-actions">
+      <view class="logout-modal-btn secondary" catchtap="cancelLogout">再检查一下</view>
+      <view class="logout-modal-btn primary" catchtap="confirmLogout">退出</view>
+    </view>
+  </view>
+</view>
