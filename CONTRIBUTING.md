@@ -22,3 +22,4 @@
 1. 变更 ISysAiChatService / SysAiChatService / IAiAssistantToolProvider 后，必须本地编译通过。
 2. 涉及流式对话（SSE）时，需验证 delta/tool/done/error 事件链路完整。
 3. 任何破坏兼容性的接口变更，必须在 PR 描述中明确。
+## 测试提交
