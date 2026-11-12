@@ -1,4 +1,4 @@
-/* 静悦业务页：压低说明头、装饰和过大字号，把空间留给单据和明细 */
+/* 静悦业务页全局高密度布局与强弱视觉层级规范 */
 .jy-sale,
 .jy-records,
 .jy-return,
@@ -9,10 +9,14 @@
 .jy-activity,
 .jy-bill,
 .jy-sheet,
-.jy-custom {
+.jy-custom,
+.jy-workbench,
+.jy-dash {
   font-size: 13px;
+  line-height: 1.4;
 }
 
+/* 1. 彻底隐藏纯装饰性图形、冗余英文副标题与说明段落，释放垂直空间 */
 .jy-sale .eyebrow,
 .jy-records .eyebrow,
 .jy-return .eyebrow,
@@ -24,6 +28,8 @@
 .jy-bill .eyebrow,
 .jy-sheet .eyebrow,
 .jy-custom .eyebrow,
+.jy-workbench .wb-kicker,
+.jy-dash .kicker,
 .jy-sale .section-kicker,
 .jy-records .section-kicker,
 .jy-return .section-kicker,
@@ -32,10 +38,7 @@
 .jy-inbound .section-kicker,
 .jy-activity .section-kicker,
 .jy-bill .section-kicker,
-.jy-custom .section-kicker {
-  display: none !important;
-}
-
+.jy-custom .section-kicker,
 .jy-sale .sale-topbar p,
 .jy-records .records-hero p,
 .jy-return .return-hero p,
@@ -46,41 +49,11 @@
 .jy-activity .activity-hero p,
 .jy-member .rail-note,
 .jy-stock .panel-head p,
-.jy-goods .hero-note {
-  display: none !important;
-}
-
-.jy-sale .sale-topbar,
-.jy-records .records-hero,
-.jy-return .return-hero,
-.jy-stock .stock-hero,
-.jy-member .member-hero,
-.jy-inbound .page-hero,
-.jy-goods .archive-hero,
-.jy-activity .activity-hero,
-.jy-custom .page-bar {
-  min-height: 0 !important;
-  margin-bottom: 8px !important;
-  padding: 8px 12px !important;
-  border-radius: 10px !important;
-  box-shadow: none !important;
-}
-
-.jy-sale h1,
-.jy-records h1,
-.jy-return h1,
-.jy-stock h1,
-.jy-member h1,
-.jy-inbound h1,
-.jy-goods h1,
-.jy-activity h1,
-.jy-custom h1 {
-  margin: 0 !important;
-  font-size: 16px !important;
-  font-weight: 650 !important;
-  letter-spacing: 0 !important;
-}
-
+.jy-goods .hero-note,
+.jy-workbench .wb-title p,
+.jy-workbench .strip-label small,
+.jy-dash .card-head p,
+.jy-sale .coupon-block,
 .jy-sale .hero-orbit,
 .jy-stock .hero-orbit,
 .jy-member .hero-seal,
@@ -92,37 +65,216 @@
   display: none !important;
 }
 
+/* 2. 顶部栏极致紧凑化（单行高度控制在 42px~46px 内） */
+.jy-sale .sale-topbar,
+.jy-records .records-hero,
+.jy-return .return-hero,
+.jy-stock .stock-hero,
+.jy-member .member-hero,
+.jy-inbound .page-hero,
+.jy-goods .archive-hero,
+.jy-activity .activity-hero,
+.jy-custom .page-bar {
+  min-height: 0 !important;
+  margin-bottom: 6px !important;
+  padding: 6px 12px !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+}
+
+.jy-workbench {
+  padding: 8px 10px 12px !important;
+}
+.jy-workbench .wb-head {
+  align-items: center !important;
+  margin-bottom: 8px !important;
+  padding: 6px 12px !important;
+  background: #fff;
+  border: 1px solid #efe2e5;
+  border-radius: 8px;
+}
+.jy-workbench .quick-strip {
+  padding: 6px 10px !important;
+  margin-bottom: 8px !important;
+  border-radius: 8px !important;
+}
+.jy-workbench .quadrant-board {
+  gap: 8px !important;
+  margin-bottom: 8px !important;
+}
+.jy-workbench .quadrant-card {
+  padding: 8px 12px !important;
+  min-height: 54px !important;
+}
+.jy-workbench .quadrant-card strong {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.jy-sale h1,
+.jy-records h1,
+.jy-return h1,
+.jy-stock h1,
+.jy-member h1,
+.jy-inbound h1,
+.jy-goods h1,
+.jy-activity h1,
+.jy-custom h1,
+.jy-workbench .wb-title-line h1,
+.jy-dash .dash-title h1 {
+  margin: 0 !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: #2c1e22 !important;
+  letter-spacing: 0 !important;
+}
+
+/* 3. 统计指标卡紧凑化 + 核心数字放大高亮 */
 .jy-member .metric-board,
 .jy-activity .metric-board,
 .jy-stock .metric-board,
 .jy-goods .hero-stats {
-  margin-bottom: 8px !important;
+  margin: 0 0 8px 0 !important;
   gap: 8px !important;
 }
 
 .jy-member .metric-board article,
 .jy-activity .metric-board article,
 .jy-stock .metric-board article {
+  min-height: 64px !important;
   padding: 8px 12px !important;
-  border-radius: 10px !important;
+  border-radius: 8px !important;
   box-shadow: none !important;
 }
 
 .jy-member .metric-board strong,
 .jy-activity .metric-board strong,
 .jy-stock .metric-board strong {
-  font-size: 18px !important;
-  line-height: 1.3 !important;
+  margin-top: 4px !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  color: #9e2a42 !important;
+  font-variant-numeric: tabular-nums;
 }
 
-.jy-sale .pay-panel strong { font-size: 22px !important; }
-.jy-sale .summary-card { grid-template-columns: 1fr !important; padding: 10px 12px !important; }
-.jy-sale .sale-workspace { margin-top: 8px !important; gap: 10px !important; }
-.jy-sale .sale-main { gap: 8px !important; }
+/* 4. 柜台销售页（jy-sale）空间布局优化：保持左右紧凑对照，绝不纵向堆叠浪费高度 */
+.jy-sale {
+  padding: 6px 8px 10px !important;
+}
+.jy-sale .sale-workspace {
+  grid-template-columns: minmax(0, 1fr) 310px !important;
+  margin-top: 6px !important;
+  gap: 8px !important;
+}
+.jy-sale .sale-main {
+  gap: 6px !important;
+}
+.jy-sale .summary-card {
+  grid-template-columns: minmax(0, 1fr) 210px !important;
+  gap: 10px !important;
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+}
+.jy-sale .summary-fields {
+  gap: 6px 10px !important;
+}
+.jy-sale .field > span {
+  font-size: 11.5px !important;
+  color: #8c767d !important;
+  font-weight: 400 !important;
+}
+.jy-sale .scan-bar {
+  padding: 6px 10px !important;
+  border-radius: 8px !important;
+}
+.jy-sale .settle-card {
+  padding: 10px 12px !important;
+  border-radius: 8px !important;
+}
+.jy-sale .pay-panel {
+  padding: 8px 10px !important;
+  margin-top: 6px !important;
+}
+
+/* 5. 强弱分明的视觉层级：关键数据高亮 vs 描述性内容弱化 */
+/* 一级关键信息：实付金额、总金额、应收金额、克重、核心单号 */
+.jy-sale .pay-panel .pay-total strong,
+.jy-sale .line-pay,
+.jy-stock .item-price b,
+.jy-stock .item-quantity b,
+.jy-dash .trend-facts strong,
+.jy-dash .recent-list .amount {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  // color: #01cb3d !important;
+  color: #4227e8 !important;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.2px;
+}
+.jy-sale .pay-panel .pay-total strong {
+  font-size: 22px !important;
+}
+.jy-sale .topbar-stats b {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: #9e2a42 !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 二级关键信息：商品款式名、客户姓名、商品条码/单号 */
+.jy-sale .goods-cell b,
+.jy-stock .item-title b,
+.jy-workbench .row-title,
+.jy-dash .recent-list .who b {
+  font-size: 13.5px !important;
+  font-weight: 650 !important;
+  color: #24191c !important;
+}
+.jy-stock .item-code span,
+.jy-sale .goods-cell small,
+.jy-dash .recent-list .who span {
+  font-family: Consolas, "SFMono-Regular", Menlo, monospace !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #4a383e !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 三级描述性/次要信息：标签、备注、时间、辅助说明（强制弱化，不抢视觉焦点） */
+.jy-sale .meta-cell small,
+.jy-sale .pricing-cell small,
+.jy-sale .settle-note,
+.jy-sale .enter-hint,
+.jy-stock .item-tags span,
+.jy-stock .item-meta small,
+.jy-stock .item-price small,
+.jy-workbench .row-remark,
+.jy-dash .recent-list .time {
+  font-size: 11px !important;
+  font-weight: 400 !important;
+  color: #9e8c92 !important;
+}
+.jy-stock .item-tags span {
+  padding: 1px 6px !important;
+  background: #faf4f5 !important;
+  border-color: #f0e4e7 !important;
+  color: #8c767d !important;
+}
+
+/* 6. 表格与列表行高紧凑化，单屏容纳更多数据 */
 .jy-sale .lines-card,
 .jy-records .records-card,
 .jy-return .detail-panel,
 .jy-stock .stock-panel {
-  border-radius: 10px !important;
+  border-radius: 8px !important;
   box-shadow: none !important;
+}
+.app-main .el-table .el-table__cell {
+  padding: 5px 0 !important;
+}
+.jy-stock .stock-row {
+  padding: 8px 12px !important;
+  gap: 10px !important;
 }

@@ -412,8 +412,17 @@ function lineAmount(row) {
     : Number(row.laborFee || 0) * Number(row.qty || 0)
   return material + labor + Number(row.packagingFee || 0) * Number(row.qty || 0)
 }
+const previewItemMap = computed(() => {
+  const map = new Map()
+  const items = preview.value?.items || []
+  for (let i = 0; i < items.length; i++) {
+    map.set(Number(items[i].goodsItemId), items[i])
+  }
+  return map
+})
+
 function rowCalc(row) {
-  const calcItem = (preview.value?.items || []).find((item) => Number(item.goodsItemId) === Number(row.goodsItemId))
+  const calcItem = previewItemMap.value.get(Number(row.goodsItemId))
   if (calcItem) {
     return {
       listAmount: Number(calcItem.listAmount || 0),
@@ -426,11 +435,12 @@ function rowCalc(row) {
       dealPrice: Number(calcItem.dealPrice || 0)
     }
   }
+  const fallback = lineAmount(row)
   return {
-    listAmount: lineAmount(row),
+    listAmount: fallback,
     memberDiscountAmount: Number(row.memberDiscountAmount || 0),
     activityBenefit: Number(row.activityBenefit || 0),
-    payAmount: Number(row.payAmount || 0) || lineAmount(row),
+    payAmount: Number(row.payAmount || 0) || fallback,
     metalPricePerGram: Number(row.metalPricePerGram || 0),
     marketMetalPricePerGram: Number(row.marketMetalPricePerGram || 0),
     packagingAmount: Number(row.packagingAmount || 0),

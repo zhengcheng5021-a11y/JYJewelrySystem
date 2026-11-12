@@ -164,34 +164,31 @@ function handleOutsideClick() {
   width: 100%;
 }
 .app-main {
-  /* 50= navbar  50  */
-  // min-height: calc(100vh - 50px);
   width: 100%;
   position: relative;
   height: 100%;
   overflow-x: hidden;
-  padding: 10px 12px 12px;
+  padding: 6px 8px 8px;
 }
 
 .route-switch-shell {
   width: 100%;
   min-height: 100%;
   box-sizing: border-box;
-  padding-bottom: 10px;
+  padding-bottom: 4px;
+  will-change: opacity;
 }
 
 .route-switch-shell.is-animating {
-  animation: route-fade-in 0.22s ease-out;
+  animation: route-fade-in 0.12s ease-out;
 }
 
 @keyframes route-fade-in {
   from {
-    opacity: 0;
-    filter: blur(2px);
+    opacity: 0.65;
   }
   to {
     opacity: 1;
-    filter: blur(0);
   }
 }
 
